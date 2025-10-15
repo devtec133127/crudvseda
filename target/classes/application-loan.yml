@@ -1,0 +1,12 @@
+server.port: 8081
+service.role: loan
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/loan
+  kafka:
+    consumer.group-id: loan-service
+
+outbox:
+  enabled: true
+  publisher:
+    enabled: true

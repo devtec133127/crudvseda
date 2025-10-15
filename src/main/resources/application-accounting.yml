@@ -1,0 +1,12 @@
+server.port: 8083
+service.role: accounting
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/accounting
+  kafka:
+    consumer.group-id: accounting-service
+  liquibase:
+    change-log: classpath:/db/changelog/accounting/master.yaml
+  jpa:
+    hibernate:
+      ddl-auto: none

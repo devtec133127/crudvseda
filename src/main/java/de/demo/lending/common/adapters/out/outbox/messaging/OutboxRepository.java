@@ -1,0 +1,44 @@
+package de.demo.lending.common.adapters.out.outbox.messaging;
+
+import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
+
+public interface OutboxRepository extends JpaRepository<OutboxEntity, Long> {
+
+    /** Unveröffentlichte Events – FIFO, begrenzt. */
+    @Query(value = """
+      SELECT * FROM outbox
+      WHERE published_at IS NULL
+      ORDER BY id ASC
+      LIMIT :limit
+      """, nativeQuery = true)
+    List<OutboxEntity> findUnpublished(@Param("limit") int limit);
+
+    /** Batch-Update: markiert Events als veröffentlicht. */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Transactional
+    @Query(value = """
+      UPDATE outbox
+      SET published_at = :publishedAt,
+          attempt = attempt + 1
+      WHERE id IN (:ids)
+      """, nativeQuery = true)
+    int markPublished(@Param("ids") Collection<Long> ids,
+                      @Param("publishedAt") Instant publishedAt);
+
+    /** Optional: Retry-Fenster (z. B. nach Crash wieder aufgreifen). */
+    @Query(value = """
+      SELECT * FROM outbox
+      WHERE published_at IS NULL
+         OR (published_at IS NOT NULL AND attempt < :maxAttempts)
+      ORDER BY id ASC
+      LIMIT :limit
+      """, nativeQuery = true)
+    List<OutboxEntity> findForRetry(@Param("limit") int limit,
+                                    @Param("maxAttempts") int maxAttempts);
+}
