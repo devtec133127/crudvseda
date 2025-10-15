@@ -1,3 +1,27 @@
-Beispiel Anfrage (createLoan): 
+Beispiel Anfragen 
 
-curl -X POST http://localhost:8081/loans -H "Content-Type: application/json" -d '{"id": "fd2fab66-8a6a-11f0-829e-005056bb85fb", "bookId": "5a47647d-4a22-4967-9d1d-9c9d6e7b66c4"}'
+Buch erstellen:
+curl -X POST http://localhost:8083/lending/books -H "Content-Type: application/json" -d '{"title": "Testbuch", "isbn": "123456"}'
+
+Ausleihe anfragen:
+curl -X POST http://localhost:8083/lending/loans/request -H "Content-Type: application/json" -d '{"bookTitle": "Testbuch", "userId": "123e4567-e89b-12d3-a456-426614174000"}'
+
+Verlängerung (Ersetze <bookId> durch die ID aus der Response):
+curl -X PUT http://localhost:8083/lending/loans/<bookId>/extend?userId=123e4567-e89b-12d3-a456-426614174000
+
+Bestand abfragen:
+curl -X GET http://localhost:8083/lending/inventory/123e4567-e89b-12d3-a456-426614174000
+
+Verfügbare Bücher:
+curl -X GET http://localhost:8083/lending/inventory/available
+
+
+
+########## Lasttest #############
+Vor jedem Lasttest alles neu initialisieren
+
+docker compose down --volumes --rmi local
+docker compose up -d --build
+
+Dann den Lasttest starten 
+./loadtest.sh

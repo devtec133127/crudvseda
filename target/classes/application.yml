@@ -26,7 +26,7 @@ spring:
     name: lending-system
 
 server:
-  port: 8082
+  port: 8080
 
 logging:
   level:
