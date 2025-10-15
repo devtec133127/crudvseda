@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-books-table
+      author: marcel.zinnow (generated)
+      changes:
+        - createTable:
+            tableName: books
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: isbn
+                  type: varchar(20)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: available
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: true  # Null, wenn verfügbar
+              - column:
+                  name: borrow_date
+                  type: date
+                  constraints:
+                    nullable: true
+              - column:
+                  name: due_date
+                  type: date
+                  constraints:
+                    nullable: true
+              - column:
+                  name: extended
+                  type: boolean
+                  defaultValueBoolean: false
