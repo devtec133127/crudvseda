@@ -3,13 +3,16 @@ package de.demo.lending.service;
 import de.demo.lending.domain.Book;
 import de.demo.lending.dto.LoanRequest;
 import de.demo.lending.repository.BookRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 
+@Slf4j
 @Service
 public class LendingService {
 
@@ -26,8 +29,10 @@ public class LendingService {
     public Book requestLoan(LoanRequest request) {
         // Schritt 1: Inventory prüfen (synchrone Kette)
         if (!inventoryService.checkAvailability(request.getBookTitle())) {
+            log.error("Book title is not available");
             throw new RuntimeException("Buch nicht verfügbar");
         }
+        log.debug("Book title is available. Starting with payment request");
 
         // Schritt 2: Payment verarbeiten (z. B. Kaution 5€)
         UUID userId = request.getUserId();
@@ -35,10 +40,11 @@ public class LendingService {
             throw new RuntimeException("Zahlung fehlgeschlagen");
         }
 
+        log.debug("Book title is available. Ending with payment request");
         // Schritt 3: Loan erstellen und Inventory updaten
-        Optional<Book> optBook = bookRepository.findByTitle(request.getBookTitle());
-        if (optBook.isPresent()) {
-            Book book = optBook.get();
+        List<Book> bookList = bookRepository.findByTitleContainingIgnoreCase(request.getBookTitle());
+        if (!bookList.isEmpty()) {
+            Book book = bookList.get(0);
             book.setAvailable(false);
             book.setUserId(userId);
             book.setBorrowDate(LocalDate.now());

@@ -1,4 +1,5 @@
 /Users/marcel.zinnow/PRIVAT/dev/lending-system-crud/src/main/java/de/demo/lending/LendingApplication.java
+/Users/marcel.zinnow/PRIVAT/dev/lending-system-crud/src/main/java/de/demo/lending/config/AppConfiguration.java
 /Users/marcel.zinnow/PRIVAT/dev/lending-system-crud/src/main/java/de/demo/lending/controller/LendingController.java
 /Users/marcel.zinnow/PRIVAT/dev/lending-system-crud/src/main/java/de/demo/lending/domain/Book.java
 /Users/marcel.zinnow/PRIVAT/dev/lending-system-crud/src/main/java/de/demo/lending/domain/Payment.java

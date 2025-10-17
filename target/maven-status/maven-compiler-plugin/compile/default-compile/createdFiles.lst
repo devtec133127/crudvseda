@@ -8,3 +8,4 @@ de/demo/lending/LendingApplication.class
 de/demo/lending/dto/LoanRequest.class
 de/demo/lending/domain/Book.class
 de/demo/lending/service/LendingService.class
+de/demo/lending/config/AppConfiguration.class
