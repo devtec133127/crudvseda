@@ -33,7 +33,7 @@ public class InventoryService {
     }
 
     public List<Book> searchBook(String query) {
-        String url = apiBaseUrl + "/search.json?title=" + URLEncoder.encode(query, StandardCharsets.UTF_8);
+        String url = apiBaseUrl + "/search.json?title=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&limit=1";
         try {
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
             log.debug("Body of Response: {}", response.getBody().toString());

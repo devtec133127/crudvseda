@@ -16,6 +16,20 @@ Verfügbare Bücher:
 curl -X GET http://localhost:8083/lending/inventory/available
 
 
+########## Requests against extern services ############
+
+### Open library - GET Request
+https://openlibrary.org/search.json?title=Java
+
+### JSONPlaceholder API - POST Request
+curl -X POST https://jsonplaceholder.typicode.com/posts \
+-H "Content-Type: application/json" \
+-d '{
+"title": "Payment for Order: ORD1234",
+"body": "Amount: 101.0 EUR",
+"userId": 1
+}'
+
 
 ########## Lasttest #############
 Vor jedem Lasttest alles neu initialisieren

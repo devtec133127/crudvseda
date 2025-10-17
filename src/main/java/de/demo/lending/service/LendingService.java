@@ -2,10 +2,14 @@ package de.demo.lending.service;
 
 import de.demo.lending.domain.Book;
 import de.demo.lending.dto.LoanRequest;
+import de.demo.lending.dto.PaymentResponse;
 import de.demo.lending.repository.BookRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +30,7 @@ public class LendingService {
     private PaymentService paymentService; // Neu
 
     // Szenario 1: Ausleih-Anfrage mit Kette
-    public Book requestLoan(LoanRequest request) {
+    public Book requestLoan(LoanRequest request, UUID loanId) {
         // Schritt 1: Inventory prüfen (synchrone Kette)
         if (!inventoryService.checkAvailability(request.getBookTitle())) {
             log.error("Book title is not available");
@@ -36,8 +40,19 @@ public class LendingService {
 
         // Schritt 2: Payment verarbeiten (z. B. Kaution 5€)
         UUID userId = request.getUserId();
-        if (!paymentService.processLoanPayment(userId, 5.0)) {
-            throw new RuntimeException("Zahlung fehlgeschlagen");
+        PaymentResponse paymentResponse = paymentService.processLoanPayment(userId, loanId, request.getBookTitle(), 5.0);
+        // direkt nach dem Aufruf der Payment-Methode
+        log.debug("paymentResponse={}", paymentResponse);
+
+        if (paymentResponse == null || !"SUCCESS".equals(paymentResponse.getStatus())) {
+            log.warn("Payment failed for loanId={} userId={} paymentResponseId={} status={}",
+                    loanId,
+                    userId,
+                    paymentResponse != null ? paymentResponse.getId() : null,
+                    paymentResponse != null ? paymentResponse.getStatus() : null);
+
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "Zahlung fehlgeschlagen: status=" + (paymentResponse != null ? paymentResponse.getStatus() : "null"));
         }
 
         log.debug("Book title is available. Ending with payment request");
@@ -53,7 +68,7 @@ public class LendingService {
             inventoryService.updateStock(request.getBookTitle(), false); // Bestand aktualisieren
             return book;
         }
-        throw new RuntimeException("Buch nicht gefunden");
+        throw new RuntimeException("Ausleih Prozess fehlgeschlagen!");
     }
 
     // Szenario 2: Verlängerung mit Kette
@@ -61,7 +76,9 @@ public class LendingService {
         Optional<Book> optBook = bookRepository.findById(bookId);
         if (optBook.isPresent() && !optBook.get().isAvailable() && optBook.get().getUserId().equals(userId)) {
             Book book = optBook.get();
-            if (!paymentService.processExtensionPayment(userId, 2.0)) { // Gebühr 2€
+            PaymentResponse paymentResponse = paymentService.processExtensionPayment(userId, UUID.randomUUID(), book.getTitle(), 2.0);
+
+            if (paymentResponse == null || paymentResponse.getStatus().equals("FAILED")) { // Gebühr 2€
                 throw new RuntimeException("Verlängerungsgebühr fehlgeschlagen");
             }
             book.setExtended(true);

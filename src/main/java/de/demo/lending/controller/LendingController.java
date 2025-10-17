@@ -30,7 +30,8 @@ public class LendingController {
     // Szenario 1: Ausleih-Anfrage
     @PostMapping("/loans/request")
     public ResponseEntity<Book> requestLoan(@RequestBody LoanRequest request) {
-        return ResponseEntity.ok(lendingService.requestLoan(request));
+        UUID loanId = UUID.randomUUID();
+        return ResponseEntity.ok(lendingService.requestLoan(request, loanId));
     }
 
     // Szenario 2: Verlängerung

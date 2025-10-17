@@ -1,40 +1,87 @@
 package de.demo.lending.service;
 
 import de.demo.lending.domain.Payment;
+import de.demo.lending.dto.PaymentResponse;
 import de.demo.lending.repository.PaymentRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class PaymentService {
+
+    private final RestTemplate restTemplate;
+    private final String apiBaseUrl = "https://jsonplaceholder.typicode.com/posts";
 
     @Autowired
     private PaymentRepository paymentRepository;
 
-    // Verarbeite Zahlung für Ausleihe (Mock)
-    public boolean processLoanPayment(UUID userId, double amount) {
-        // Simuliere Zahlung: Prüfe User-Kreditlimit oder DB-Check
-        if (userId != null && amount > 0) {
-            // Simuliere und speichere
-            Payment payment = new Payment();
-            payment.setId(UUID.randomUUID());
-            payment.setUserId(userId);
-            payment.setAmount(amount);
-            payment.setStatus("PAID");
-            // Setze loan_id wenn verfügbar
-            paymentRepository.save(payment);
+    public PaymentService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
-            // In Realität: Aufruf an externe API oder DB-Speicherung
-            System.out.println("Zahlung von " + amount + " für User " + userId + " verarbeitet.");
-            return true; // Erfolgreich
+    // Verarbeite Zahlung für Ausleihe (Mock)
+    public PaymentResponse processLoanPayment(UUID userId, UUID loanId, String bookTitle, double amount) {
+        try {
+            // Mappe Request zu JSONPlaceholder-kompatiblem Body
+            Map<String, Object> body = new HashMap<>();
+            body.put("title", "Payment for book with title " + bookTitle);
+            body.put("body", "Amount: " + amount);
+            body.put("userId", userId); // Simuliertes User-ID
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(apiBaseUrl, entity, Map.class);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                Object idObj = response.getBody().get("id");
+                if (idObj instanceof Number) {
+                    long id = ((Number) idObj).longValue();
+
+                    Payment payment = new Payment();
+                    payment.setLoanId(loanId);
+                    payment.setUserId(userId);
+                    payment.setAmount(amount);
+                    payment.setStatus("bezahlt");
+
+                    try {
+                        paymentRepository.save(payment);
+                        log.debug("Saved Payment entity for loanId={} userId={} amount={}", loanId, userId, amount);
+                    } catch (Exception dbEx) {
+                        log.error("Fehler beim Speichern des Payments", dbEx);
+                        // Entscheidung: trotzdem SUCCESS weil remote payment bestätigt? Oder FAILED? Hier controlliert ableiten.
+                    }
+
+                    return new PaymentResponse(id, bookTitle, amount, "SUCCESS");
+                } else {
+                    log.warn("Payment API returned non-numeric id: {}", idObj);
+                    return new PaymentResponse(-1, bookTitle, amount, "FAILED");
+                }
+            } else {
+                log.warn("Payment API not successful: status={} body={}", response.getStatusCode(), response.getBody());
+                return new PaymentResponse(-1, bookTitle, amount, "FAILED");
+            }
+        } catch (Exception e) {
+            // Fallback für Fehlerszenarien (z. B. Netzwerkfehler)
+            return new PaymentResponse(-1, bookTitle, amount, "FAILED");
         }
-        return false; // Fehlschlag
     }
 
     // Verarbeite Zahlung für Verlängerung (z. B. Gebühr)
-    public boolean processExtensionPayment(UUID userId, double fee) {
-        return processLoanPayment(userId, fee); // Wiederverwendung
+    public PaymentResponse processExtensionPayment(UUID userId, UUID loanId,String bookTitle, double fee) {
+        return processLoanPayment(userId, loanId, bookTitle, fee); // Wiederverwendung
     }
 
     // Rückerstattung bei Rückgabe
