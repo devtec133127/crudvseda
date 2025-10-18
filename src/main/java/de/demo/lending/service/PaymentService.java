@@ -44,7 +44,10 @@ public class PaymentService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
+            log.info("Synchroner REST-Call zu Payment-Service | Endpoint: {} mit Buchtitel {} und Betrag {} ",
+                    apiBaseUrl, bookTitle, amount);
             ResponseEntity<Map> response = restTemplate.postForEntity(apiBaseUrl, entity, Map.class);
+            log.info("Payment-Service antwortete: Status {}", response.getStatusCode());
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Object idObj = response.getBody().get("id");
@@ -65,6 +68,7 @@ public class PaymentService {
                         // Entscheidung: trotzdem SUCCESS weil remote payment bestätigt? Oder FAILED? Hier controlliert ableiten.
                     }
 
+                    log.info("Zahlung genehmigt | Loan-ID: {} | User-ID {}", loanId, userId);
                     return new PaymentResponse(id, bookTitle, amount, "SUCCESS");
                 } else {
                     log.warn("Payment API returned non-numeric id: {}", idObj);

@@ -35,7 +35,10 @@ public class InventoryService {
     public List<Book> searchBook(String query) {
         String url = apiBaseUrl + "/search.json?title=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&limit=1d&fields=title,isbn";
         try {
+            log.info("Synchroner REST-Call zu Payment-Service | Endpoint: {}", url);
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+            log.info("Inventory-Service antwortete: Status {}", response.getStatusCode());
+
             log.debug("Body of Response: {}", response.getBody().toString());
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Object docsObj = response.getBody().get("docs");
@@ -124,8 +127,11 @@ public class InventoryService {
             log.error("No valid book with ISBN found for title {}", bookTitle);
             throw new RuntimeException("No valid book with ISBN found for title " + bookTitle);
         }
+        log.info("Buch {} vorhanden", bookTitle);
+
         log.debug("Saving found Book with ISBN: {}", firstValidBook.get().getIsbn());
 
+        log.info("🔍Speichere Buch {} mit id {} in DB", firstValidBook.get().getTitle(), firstValidBook.get().getId());
         return bookRepository.save(firstValidBook.get());
 
         //Optional<Book> book = bookRepository.findByTitle(bookTitle);

@@ -35,6 +35,8 @@ public class LendingService {
 
     // Szenario 1: Ausleih-Anfrage mit Kette
     public Book requestLoan(LoanRequest request, UUID loanId) {
+
+        log.info("Prüfe Verfügbarkeit und reserviere für User {}", request.getUserId());
         // Schritt 1: Inventory prüfen (synchrone Kette)
         Book savedBook = inventoryService.checkAvailability(request.getBookTitle());
         if (savedBook == null || !savedBook.isAvailable()) {
@@ -43,9 +45,11 @@ public class LendingService {
         }
         log.debug("Book title is available. Starting with payment request");
 
+        log.info("Erstelle Ausleihanfrage für Buch {}", savedBook.getTitle());
         // Schritt 2: Ausleiheanfrage speichern
         Loan savedLoan = loanService.createLoan(request.getUserId(), savedBook);
 
+        log.info("Verarbeite die Zahlung für User {} und angefragtem Buch {}", savedBook.getTitle());
         // Schritt 3: Payment verarbeiten (z. B. Kaution 5€)
         UUID userId = request.getUserId();
         PaymentResponse paymentResponse = paymentService.processLoanPayment(userId, savedLoan.getId(), request.getBookTitle(), 5.0);
@@ -64,7 +68,8 @@ public class LendingService {
         }
 
         log.debug("Book title is available. Ending with payment request");
-        // Schritt 3: Loan erstellen und Inventory updaten
+        log.info("Update Status für Buch {} im Inventar", savedBook.getTitle());
+        // Schritt 4: Inventory updaten
         List<Book> bookList = bookRepository.findByTitleContainingIgnoreCase(request.getBookTitle());
         if (!bookList.isEmpty()) {
             Book book = bookList.get(0);

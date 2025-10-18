@@ -3,11 +3,13 @@ package de.demo.lending.controller;
 import de.demo.lending.domain.Book;
 import de.demo.lending.dto.LoanRequest;
 import de.demo.lending.service.LendingService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/lending")
 public class LendingController {
@@ -30,8 +32,16 @@ public class LendingController {
     // Szenario 1: Ausleih-Anfrage
     @PostMapping("/loans/request")
     public ResponseEntity<Book> requestLoan(@RequestBody LoanRequest request) {
+        log.info("Eingehender Loan-Request | User: {} | Buchtitel: {}",
+                request.getUserId(), request.getBookTitle());
         UUID loanId = UUID.randomUUID();
-        return ResponseEntity.ok(lendingService.requestLoan(request, loanId));
+
+        long startTime = System.currentTimeMillis();
+        ResponseEntity<Book> ok = ResponseEntity.ok(lendingService.requestLoan(request, loanId));
+        long duration = System.currentTimeMillis() - startTime;
+        log.info("Request verarbeitet in {} ms", duration);
+
+        return ok;
     }
 
     // Szenario 2: Verlängerung
