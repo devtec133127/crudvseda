@@ -5,6 +5,7 @@ databaseChangeLog:
       changes:
         - createTable:
             tableName: payments
+            ifNotExists: true
             columns:
               - column:
                   name: id
@@ -36,8 +37,7 @@ databaseChangeLog:
         - addForeignKeyConstraint:
             baseTableName: payments
             baseColumnNames: loan_id
-            referencedTableName: books
+            constraintName: fk_payments_loans
+            referencedTableName: loans
             referencedColumnNames: id
-            constraintName: fk_payments_books
             onDelete: CASCADE
-            onUpdate: RESTRICT

@@ -33,7 +33,7 @@ public class InventoryService {
     }
 
     public List<Book> searchBook(String query) {
-        String url = apiBaseUrl + "/search.json?title=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&limit=1";
+        String url = apiBaseUrl + "/search.json?title=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&limit=1d&fields=title,isbn";
         try {
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
             log.debug("Body of Response: {}", response.getBody().toString());
@@ -105,16 +105,28 @@ public class InventoryService {
     }
 
     // Prüfe Verfügbarkeit eines Buches
-    public boolean checkAvailability(String bookTitle) {
+    public Book checkAvailability(String bookTitle) {
         List<Book> foundBooks = searchBook(bookTitle);
         if(foundBooks.isEmpty()) {
             log.warn("Book title {} not found", bookTitle);
-            return false;
+            return null;
         }
 
-        log.debug("Saving found Book with ISBN: {}", foundBooks.get(0).getIsbn());
-        bookRepository.save(foundBooks.get(0));
-        return true;
+        foundBooks.stream().forEach(b -> log.debug("Found Book: {} with ISBN: {}", b.getTitle(), b.getIsbn()));
+        Optional<Book> firstValidBook = foundBooks.stream()
+                .filter(b -> !"N/A".equals(b.getIsbn()))
+                .findFirst();
+        firstValidBook.ifPresentOrElse(
+                b -> System.out.println("Gefundenes Buch: " + b.getTitle() + " / ISBN: " + b.getIsbn()),
+                () -> System.out.println("Kein Buch mit gültiger ISBN gefunden")
+        );
+        if(firstValidBook.isEmpty()) {
+            log.error("No valid book with ISBN found for title {}", bookTitle);
+            throw new RuntimeException("No valid book with ISBN found for title " + bookTitle);
+        }
+        log.debug("Saving found Book with ISBN: {}", firstValidBook.get().getIsbn());
+
+        return bookRepository.save(firstValidBook.get());
 
         //Optional<Book> book = bookRepository.findByTitle(bookTitle);
         //return book.map(b -> b.isAvailable()).orElse(false);

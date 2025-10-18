@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-loans-table
+      author: marcel.zinnow (generated)
+      changes:
+        - createTable:
+            tableName: loans
+            ifNotExists: true
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: book_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: due_date
+                  type: date
+                  constraints:
+                    nullable: true
+        - addForeignKeyConstraint:
+            baseTableName: loans
+            baseColumnNames: book_id
+            constraintName: fk_loans_books
+            referencedTableName: books
+            referencedColumnNames: id
+            onDelete: CASCADE

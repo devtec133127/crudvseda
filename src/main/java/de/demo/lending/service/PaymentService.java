@@ -1,5 +1,6 @@
 package de.demo.lending.service;
 
+import de.demo.lending.domain.Book;
 import de.demo.lending.domain.Payment;
 import de.demo.lending.dto.PaymentResponse;
 import de.demo.lending.repository.PaymentRepository;

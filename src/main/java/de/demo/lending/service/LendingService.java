@@ -1,6 +1,7 @@
 package de.demo.lending.service;
 
 import de.demo.lending.domain.Book;
+import de.demo.lending.domain.Loan;
 import de.demo.lending.dto.LoanRequest;
 import de.demo.lending.dto.PaymentResponse;
 import de.demo.lending.repository.BookRepository;
@@ -29,18 +30,25 @@ public class LendingService {
     @Autowired
     private PaymentService paymentService; // Neu
 
+    @Autowired
+    private LoanService loanService; // Neu
+
     // Szenario 1: Ausleih-Anfrage mit Kette
     public Book requestLoan(LoanRequest request, UUID loanId) {
         // Schritt 1: Inventory prüfen (synchrone Kette)
-        if (!inventoryService.checkAvailability(request.getBookTitle())) {
+        Book savedBook = inventoryService.checkAvailability(request.getBookTitle());
+        if (savedBook == null || !savedBook.isAvailable()) {
             log.error("Book title is not available");
             throw new RuntimeException("Buch nicht verfügbar");
         }
         log.debug("Book title is available. Starting with payment request");
 
-        // Schritt 2: Payment verarbeiten (z. B. Kaution 5€)
+        // Schritt 2: Ausleiheanfrage speichern
+        Loan savedLoan = loanService.createLoan(request.getUserId(), savedBook);
+
+        // Schritt 3: Payment verarbeiten (z. B. Kaution 5€)
         UUID userId = request.getUserId();
-        PaymentResponse paymentResponse = paymentService.processLoanPayment(userId, loanId, request.getBookTitle(), 5.0);
+        PaymentResponse paymentResponse = paymentService.processLoanPayment(userId, savedLoan.getId(), request.getBookTitle(), 5.0);
         // direkt nach dem Aufruf der Payment-Methode
         log.debug("paymentResponse={}", paymentResponse);
 
