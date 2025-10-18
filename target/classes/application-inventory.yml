@@ -5,6 +5,11 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/inventory
   kafka:
     consumer.group-id: inventory-service
+  liquibase:
+    change-log: classpath:/db/changelog/inventory/master.yaml
+  jpa:
+    hibernate:
+      ddl-auto: none
 
 outbox:
   enabled: true

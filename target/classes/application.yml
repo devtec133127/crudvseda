@@ -1,7 +1,7 @@
 spring:
   application.name: order-flow
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:orders}
+    #url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:orders}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
   jpa:

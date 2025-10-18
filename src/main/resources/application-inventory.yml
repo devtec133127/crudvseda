@@ -14,4 +14,4 @@ spring:
 outbox:
   enabled: true
   publisher:
-    enabled: false‚
+    enabled: true‚
