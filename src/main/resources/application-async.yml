@@ -1,0 +1,20 @@
+# Spring Profile: async
+# Aktivierung: --spring.profiles.active=async
+# Zweck: In-Memory Event-Verarbeitung ohne Kafka für lokale Performance-Tests
+
+spring:
+  kafka:
+    enabled: false  # Kafka-AutoConfiguration deaktivieren
+
+# Outbox-Scheduler deaktivieren (nicht benötigt bei in-memory)
+outbox:
+  publisher:
+    enabled: false
+
+# Thread-Pool für @Async Event-Verarbeitung
+# Konfiguriert in AsyncEventConfig.java
+
+logging:
+  level:
+    de.demo.lending.common.adapters.out.messaging.async: DEBUG
+    de.demo.lending.inventory.adapters.in.messaging: DEBUG

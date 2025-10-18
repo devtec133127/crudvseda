@@ -19,7 +19,7 @@ import java.util.UUID;
 class LoanEntity {
     @Id private UUID id;
     @Column(nullable=false) private UUID userId;
-    @Column(nullable=false) private UUID bookId;
+    @Column(nullable=false) private String bookTitle;
     private UUID copyId;
     @Column(nullable=false) private String status;
     private LocalDate dueDate;

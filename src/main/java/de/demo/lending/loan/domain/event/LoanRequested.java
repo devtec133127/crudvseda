@@ -8,6 +8,6 @@ import java.time.Instant;
 public record LoanRequested(
         LoanId loanId,
         UserId userId,
-        BookId bookId,
+        String bookTitle,
         Instant occurredAt
 ) {}

@@ -6,7 +6,7 @@ spring:
   kafka:
     consumer.group-id: inventory-service
   liquibase:
-    change-log: classpath:/db/changelog/inventory/master.yaml
+    change-log: classpath:/db/changelog/inventory/inventory-changelog.yaml
   jpa:
     hibernate:
       ddl-auto: none

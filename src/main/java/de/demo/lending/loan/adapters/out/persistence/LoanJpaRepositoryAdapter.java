@@ -36,7 +36,7 @@ public class LoanJpaRepositoryAdapter implements LoanRepository {
         var e = new LoanEntity();
         e.setId(l.getId().value());
         e.setUserId(l.getUserId().value());
-        e.setBookId(l.getBookId().value());
+        e.setBookTitle(l.getBookTitle());
         if(l.getCopyId() != null) {
             e.setCopyId(l.getCopyId().value());
         }
@@ -50,7 +50,7 @@ public class LoanJpaRepositoryAdapter implements LoanRepository {
     private Loan toDomain(LoanEntity e) {
         log.debug("toDomain(loan={})", e);
         // Re-Konstruktor: über Factory-Methode oder Package-private ctor
-        return Loan.restore(LoanId.of(e.getId()), UserId.of(e.getUserId()), BookId.of(e.getBookId()),
+        return Loan.restore(LoanId.of(e.getId()), UserId.of(e.getUserId()), e.getBookTitle(),
                 CopyId.of(e.getCopyId()), Loan.Status.valueOf(e.getStatus()), e.getDueDate(), e.getCreatedAt(), e.getUpdatedAt());
     }
 }

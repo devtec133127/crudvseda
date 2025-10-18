@@ -3,7 +3,6 @@ package de.demo.lending.loan.domain;
 import java.time.Instant;
 import java.time.LocalDate;
 
-import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.event.LoanRequested;
@@ -11,7 +10,7 @@ import de.demo.lending.loan.domain.event.LoanRequested;
 public class Loan {
     private final LoanId id;
     private final UserId userId;
-    private final BookId bookId;
+    private final String bookTitle;
 
     private CopyId copyId;
     private Status status;
@@ -19,17 +18,17 @@ public class Loan {
     private final Instant createdAt;
     private Instant updatedAt;
 
-    public enum Status { REQUESTED, RESERVED, CHECKED_OUT, RETURNED, FAILED }
+    public enum Status {REQUESTED, RESERVED, CHECKED_OUT, RETURNED, FAILED}
 
     // Domain-Events nur intern sammeln (keine Framework-Abh.)
     private final java.util.List<Object> domainEvents = new java.util.ArrayList<>();
 
-    private Loan(LoanId id, UserId userId, BookId bookId,
+    private Loan(LoanId id, UserId userId, String bookTitle,
                  CopyId copyId, Status status,
                  LocalDate dueDate, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.userId = userId;
-        this.bookId = bookId;
+        this.bookTitle = bookTitle;
         this.copyId = copyId;
         this.status = status;
         this.dueDate = dueDate;
@@ -37,20 +36,22 @@ public class Loan {
         this.updatedAt = updatedAt;
     }
 
-    public static Loan createNew(UserId userId, BookId bookId) {
+    public static Loan createNew(UserId userId, String bookTitle) {
         var now = Instant.now();
-        Loan newLoan = new Loan(LoanId.newId(), userId, bookId, null, Status.REQUESTED, null, now, now);
+        Loan newLoan = new Loan(LoanId.newId(), userId, bookTitle, null, Status.REQUESTED, null, now, now);
         newLoan.status = Status.REQUESTED;
-        newLoan.raise(new LoanRequested(newLoan.getId(), userId, bookId, Instant.now()));
+        newLoan.raise(new LoanRequested(newLoan.getId(), userId, bookTitle, Instant.now()));
         return newLoan;
     }
 
-    public static Loan restore(LoanId id, UserId userId, BookId bookId, CopyId copyId,
-                        Status status, LocalDate dueDate, Instant createdAt, Instant updatedAt) {
-        return new Loan(id, userId, bookId, copyId, status, dueDate, createdAt, updatedAt);
+    public static Loan restore(LoanId id, UserId userId, String bookTitle, CopyId copyId,
+                               Status status, LocalDate dueDate, Instant createdAt, Instant updatedAt) {
+        return new Loan(id, userId, bookTitle, copyId, status, dueDate, createdAt, updatedAt);
     }
 
-    private void raise(Object event) { domainEvents.add(event); }
+    private void raise(Object event) {
+        domainEvents.add(event);
+    }
 
     public java.util.List<Object> pullDomainEvents() {
         var copy = java.util.List.copyOf(domainEvents);
@@ -84,26 +85,49 @@ public class Loan {
     }
 
     // Getter
-    public LoanId getId() { return id; }
-    public UserId getUserId() { return userId; }
-    public BookId getBookId() { return bookId; }
-    public CopyId getCopyId() { return copyId; }
-    public Status getStatus() { return status; }
-    public LocalDate getDueDate() { return dueDate; }
-    public Instant getCreatedAt() { return createdAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
+    public LoanId getId() {
+        return id;
+    }
+
+    public UserId getUserId() {
+        return userId;
+    }
+
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public CopyId getCopyId() {
+        return copyId;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
 
     @Override
     public String toString() {
         return "Loan{" +
                 "id=" + id +
                 ", userId=" + userId +
-                ", bookId=" + bookId +
+                ", bookTitle=" + bookTitle +
                 ", copyId=" + copyId +
                 ", status=" + status +
                 ", dueDate=" + dueDate +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
-                '}';
+                "}";
     }
 }

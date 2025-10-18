@@ -1,12 +1,13 @@
-server.port: 8081
-service.role: loan
+#server.port: 8081
+service:
+  role: loan
 spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/loans
   kafka:
     consumer.group-id: loan-service
   liquibase:
-    change-log: classpath:/db/changelog/loan/master.yaml
+    change-log: classpath:/db/changelog/loan/loan-changelog.yaml
   jpa:
     hibernate:
       ddl-auto: none

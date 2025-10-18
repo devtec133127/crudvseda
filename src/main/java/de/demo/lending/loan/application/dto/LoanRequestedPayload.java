@@ -10,5 +10,5 @@ public record LoanRequestedPayload(
         // fachliche Daten:
         String loanId,
         String userId,
-        String bookId
+        String bookTitle
 ) {}

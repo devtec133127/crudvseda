@@ -4,9 +4,17 @@ import java.time.Instant;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+/**
+ * Outbox-basierter Event Publisher für Kafka.
+ * 
+ * Aktiviert durch Profile "kafka" (Standard für Produktion).
+ * Wird durch AsyncEventPublisher ersetzt bei Profile "async".
+ */
 @Component
+@Profile("kafka")  // NEU: Nur aktiv bei Kafka-Profil
 @ConditionalOnProperty(value="service.role", havingValue="loan")
 public class OutboxEventPublisher implements EventPublisher {
     private final OutboxRepository repo;
@@ -18,9 +26,9 @@ public class OutboxEventPublisher implements EventPublisher {
         try {
             String json = om.writeValueAsString(payload);
             repo.save(OutboxEntity.builder()
-                    .type("loan.requested.v1")
-                    .payload(json)                 // ObjectMapper.writeValueAsString(...)
-                    .headers(null)                 // oder JSON mit correlationId etc.
+                    .type(type)  // FIX: type dynamisch nutzen statt hardcoded "loan.requested.v1"
+                    .payload(json)
+                    .headers(null)
                     .createdAt(Instant.now())
                     .attempt(0)
                     .build());

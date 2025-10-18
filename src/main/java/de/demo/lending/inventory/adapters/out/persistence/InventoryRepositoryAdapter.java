@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-@ConditionalOnProperty(value = "service.role", havingValue = "inventory")
+//@ConditionalOnProperty(value = "service.role", havingValue = "inventory")
 public class InventoryRepositoryAdapter implements InventoryRepository {
 
     private final SpringInventoryCopyRepository jpa;

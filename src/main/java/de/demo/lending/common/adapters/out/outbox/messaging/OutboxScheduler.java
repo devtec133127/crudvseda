@@ -6,11 +6,20 @@ import java.util.ArrayList;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+/**
+ * Scheduler für Outbox-Pattern (Kafka-Modus).
+ * Pollt regelmäßig die Outbox-Tabelle und sendet Events an Kafka.
+ * 
+ * Aktiviert durch Profile "kafka" (Standard für Produktion).
+ * Bei Profile "async" nicht aktiv, da Events direkt im Memory verteilt werden.
+ */
 @Component
+@Profile("kafka")  // NEU: Nur aktiv bei Kafka-Profil
 @ConditionalOnProperty(name="outbox.publisher.enabled", havingValue="true", matchIfMissing=true)
 public class OutboxScheduler {
     private final OutboxRepository repo;
