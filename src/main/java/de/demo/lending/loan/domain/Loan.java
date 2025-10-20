@@ -1,5 +1,6 @@
 package de.demo.lending.loan.domain;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -40,7 +41,7 @@ public class Loan {
         var now = Instant.now();
         Loan newLoan = new Loan(LoanId.newId(), userId, bookTitle, null, Status.REQUESTED, null, now, now);
         newLoan.status = Status.REQUESTED;
-        newLoan.raise(new LoanRequested(newLoan.getId(), userId, bookTitle, Instant.now()));
+        newLoan.raise(new LoanRequested(newLoan.getId(), userId, bookTitle, Instant.now(), LoanPolicy.STANDARD_DURATION));
         return newLoan;
     }
 

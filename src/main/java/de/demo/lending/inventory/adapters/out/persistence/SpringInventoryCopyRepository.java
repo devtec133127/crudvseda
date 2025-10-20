@@ -13,5 +13,5 @@ public interface SpringInventoryCopyRepository extends JpaRepository<InventoryCo
      * Wir geben eine Liste zurück, damit die Adapter-Logik entscheiden kann welche Kopie reserviert wird.
      */
     @Query("select i from InventoryCopyEntity i where i.bookId = :bookId and i.state = 'AVAILABLE' order by i.createdAt")
-    List<InventoryCopyEntity> findAvailableByBookId(@Param("bookId") UUID bookId);
+    List<InventoryCopyEntity> findAvailableByBookId(@Param("bookId") String bookId);
 }

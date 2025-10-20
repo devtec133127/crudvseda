@@ -57,12 +57,13 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
     // -------------------------
     private InventoryCopy toDomain(InventoryCopyEntity e) {
         return new InventoryCopy(
+                correlationId,
                 CopyId.of(e.getId()),
                 BookId.of(e.getBookId()),
-                InventoryCopy.State.valueOf(e.getState()),
+                userId,
+                bookTitle,
                 e.getCreatedAt() != null ? e.getCreatedAt() : Instant.now(),
-                e.getUpdatedAt() != null ? e.getUpdatedAt() : Instant.now(),
-                e.getLocation()
+                e.getUpdatedAt() != null ? e.getUpdatedAt() : Instant.now()
         );
     }
 
@@ -71,7 +72,6 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
                 .id(d.getId().value())
                 .bookId(d.getBookId().value())
                 .state(d.getState().name())
-                .location(d.getLocation())
                 .createdAt(d.getCreatedAt() != null ? d.getCreatedAt() : Instant.now())
                 .updatedAt(Instant.now())
                 .build();

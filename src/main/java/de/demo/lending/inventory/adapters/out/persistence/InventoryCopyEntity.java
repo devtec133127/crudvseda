@@ -13,7 +13,7 @@ public class InventoryCopyEntity {
     private UUID id;
 
     @Column(nullable = false)
-    private UUID bookId;
+    private String bookId;
 
     @Column(nullable = false)
     private String state; // AVAILABLE, RESERVED, CHECKED_OUT

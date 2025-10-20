@@ -1,5 +1,7 @@
 package de.demo.lending.common.valueobjects;
 
+import de.demo.lending.loan.domain.LoanId;
+
 import java.util.UUID;
 
 /**
@@ -8,5 +10,6 @@ import java.util.UUID;
  */
 public final class CopyId extends UuidId {
     private CopyId(UUID value) { super(value); }
+    public static CopyId newId() { return new CopyId(UUID.randomUUID()); }
     public static CopyId of(UUID value) { return new CopyId(value); }
 }
