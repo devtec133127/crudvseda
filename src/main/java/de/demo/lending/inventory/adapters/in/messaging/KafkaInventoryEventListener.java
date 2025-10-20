@@ -68,7 +68,7 @@ public class KafkaInventoryEventListener {
         }
 
         UUID loanUuid = UUID.fromString(node.get("loanId").asText());
-        UUID bookUuid = UUID.fromString(node.get("bookId").asText());
+        String bookUuid = node.get("bookId").asText();
 
         LoanId loanId = LoanId.of(loanUuid);
         BookId bookId = BookId.of(bookUuid);

@@ -1,7 +1,9 @@
 package de.demo.lending.inventory.domain;
 
 import java.time.Instant;
+import java.util.UUID;
 
+import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
@@ -11,38 +13,34 @@ import de.demo.lending.loan.domain.Loan;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.loan.domain.event.LoanRequested;
 
-public class InventoryCopy {
+public class InventoryCopy extends AggregateRoot {
     public enum InventoryState { AVAILABLE, RESERVED, LOANED }
 
-    private final CopyId id;
-    private final String correlationId;
     private final BookId bookId;
     private final UserId userId;
     private InventoryState state;
-    private final Instant createdAt;
     private Instant updatedAt;
     private final String bookTitle;
 
     private final java.util.List<Object> domainEvents = new java.util.ArrayList<>();
 
-    public InventoryCopy(String correlationId, CopyId id, BookId bookId, UserId userId,
-                         String bookTitle, Instant createdAt, Instant updatedAt) {
-        this.id = id;
-        this.correlationId = correlationId;
+    public InventoryCopy(String id, String correlationId, BookId bookId, UserId userId,
+                         String bookTitle, Instant updatedAt) {
+        super(id, correlationId);
+
         this.bookId = bookId;
         this.userId = userId;
-        this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.bookTitle = bookTitle;
     }
 
-    public static InventoryCopy createNew(String correlationId, LoanId loanId,
+    public static InventoryCopy createNew(String correlationId, String causationId, LoanId loanId,
                                           BookId bookId, String bookTitle, UserId userId) {
         var now = Instant.now();
-        InventoryCopy newInventory = new InventoryCopy(correlationId, CopyId.newId(), bookId, userId,
-                                                            bookTitle, now, now);
+        InventoryCopy newInventory = new InventoryCopy(CopyId.newId().toString(), correlationId, bookId, userId,
+                                                            bookTitle, now);
         newInventory.state = InventoryState.RESERVED;
-        newInventory.raise(new BookReserved(loanId, userId, bookId, bookTitle, Instant.now()));
+        newInventory.raise(new BookReserved(loanId, correlationId, causationId, newInventory.getCopyId(), bookTitle, userId, bookId));
         return newInventory;
     }
 
@@ -56,10 +54,12 @@ public class InventoryCopy {
         return copy;
     }
 
-    public CopyId getId() { return id; }
+    public CopyId getCopyId() {
+        UUID uuid = UUID.fromString(super.getId());
+        return CopyId.of(uuid);
+    }
     public BookId getBookId() { return bookId; }
     public InventoryState getState() { return state; }
-    public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
     public void reserve() {

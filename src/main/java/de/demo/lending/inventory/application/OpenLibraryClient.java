@@ -95,6 +95,8 @@ public class OpenLibraryClient {
             throw new RuntimeException("No valid book with ISBN found for title " + searchBootTitle);
         }
         log.info("Buch {} vorhanden", searchBootTitle);
+
+        return firstValidBook.get();
     }
 
     private Pair<String, String> mapToBook(Map doc) {

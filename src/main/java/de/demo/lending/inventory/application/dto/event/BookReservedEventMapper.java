@@ -1,25 +1,24 @@
 package de.demo.lending.inventory.application.dto.event;
 
-import de.demo.lending.inventory.application.dto.ReservationCreatedPayload;
-import de.demo.lending.inventory.domain.event.ReservationCreated;
-import de.demo.lending.loan.application.dto.LoanRequestedPayload;
-import de.demo.lending.loan.domain.event.LoanRequested;
-import lombok.NoArgsConstructor;
-
 import java.util.UUID;
 
+import de.demo.lending.inventory.application.dto.BookReservedPayload;
+import de.demo.lending.inventory.application.dto.ReservationCreatedPayload;
+import de.demo.lending.inventory.domain.event.BookReserved;
+import de.demo.lending.inventory.domain.event.ReservationCreated;
+import lombok.NoArgsConstructor;
+
 @NoArgsConstructor
-public final class ReservationEventMapper {
+public class BookReservedEventMapper {
+    public static BookReservedPayload toPayload(
+            BookReserved e, String correlationId, String causationId) {
 
-    public static ReservationCreatedPayload toPayload(
-            ReservationCreated e, String correlationId, String causationId) {
-
-        return new ReservationCreatedPayload(
+        return new BookReservedPayload(
                 UUID.randomUUID().toString(),          // eventId
                 e.getOccurredAt().toString(),
                 correlationId,
                 causationId,
-                e.getUserId().toString(),
+                e.getBookId(),
                 e.getBookTitle()
         );
     }

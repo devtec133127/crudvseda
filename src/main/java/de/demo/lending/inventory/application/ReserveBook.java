@@ -3,10 +3,14 @@ package de.demo.lending.inventory.application;
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.application.dto.BookReservedPayload;
 import de.demo.lending.inventory.application.dto.ReservationCreatedPayload;
+import de.demo.lending.inventory.application.dto.event.BookReservedEventMapper;
 import de.demo.lending.inventory.application.dto.event.ReservationEventMapper;
 import de.demo.lending.inventory.domain.InventoryCopy;
 import de.demo.lending.inventory.domain.Reservation;
+import de.demo.lending.inventory.domain.ReservationId;
+import de.demo.lending.inventory.domain.event.BookReserved;
 import de.demo.lending.inventory.domain.event.ReservationCreated;
 import de.demo.lending.loan.application.LoanRepository;
 import de.demo.lending.loan.application.dto.LoanRequestedPayload;
@@ -26,20 +30,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
 import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
 import static de.demo.lending.common.events.Topics.RESERVATION_CREATED_V1;
 
 @Slf4j
 @Component
 public class ReserveBook {
-    private final RestTemplate restTemplate;
-    private final String apiBaseUrl = "https://openlibrary.org";
+    private final OpenLibraryClient externalClient;
     private final ReservationRepository reservationRepository;
     private final InventoryRepository repo;
     private final EventPublisher publisher; // eigenes Port-Interface, s.u.
 
-    public ReserveBook(RestTemplate restTemplate, ReservationRepository reservationRepository, InventoryRepository repo, EventPublisher publisher) {
-        this.restTemplate = restTemplate;
+    public ReserveBook(OpenLibraryClient externalClient, ReservationRepository reservationRepository, InventoryRepository repo, EventPublisher publisher) {
+        this.externalClient = externalClient;
         this.repo = repo;
         this.reservationRepository = reservationRepository;
         this.publisher = publisher;
@@ -51,21 +55,21 @@ public class ReserveBook {
      3. Übergabe an Outbox Publisher
      */
     @Transactional
-    public UUID handle(UserId userId, LoanId loanId, String bookTitle, Duration duration, String correlationId, String causationId) {
+    public void handle(UserId userId, LoanId loanId, String bookTitle, Duration duration, String correlationId, String causationId) {
 
-        OpenLibraryClient externalClient = new OpenLibraryClient(restTemplate);
-        Pair<String, String> bookInfo = externalClient.searchBook(bookTitle);
+        Pair<String, String> bookInfo = this.externalClient.searchBook(bookTitle);
 
         log.info("Buch {} vorhanden", bookInfo.getSecond());
 
         String title = bookInfo.getSecond();
         String isbn = bookInfo.getFirst();
 
-        var reservation = Reservation.create(correlationId, loanId, isbn, title, userId, duration);
+        BookId bookId = BookId.of(isbn);
+
+        var reservation = Reservation.create(correlationId, causationId, bookId, title, userId, duration);
         reservationRepository.save(reservation);
 
-        reservation.pullDomainEvents().forEach(event -> {
-            // Fachliches Event -> Payload fürs Outbox System
+        reservation.pullProducedEvents().forEach(event -> {
             if(event instanceof ReservationCreated) {
                 ReservationCreatedPayload payload = ReservationEventMapper.toPayload((ReservationCreated) event, correlationId, causationId);
                 log.info("Publishing event to topic {}: {}", RESERVATION_CREATED_V1, payload);
@@ -73,9 +77,15 @@ public class ReserveBook {
             }
         });
 
-        InventoryCopy copy = InventoryCopy.createNew(correlationId, loanId, BookId.of(isbn), title, userId);
+        InventoryCopy copy = InventoryCopy.createNew(correlationId, causationId, loanId, BookId.of(isbn), title, userId);
         repo.save(copy);
 
-        return reservation.getId().value();
+        copy.pullProducedEvents().forEach(event -> {
+            if(event instanceof BookReserved) {
+                BookReservedPayload payload = BookReservedEventMapper.toPayload((BookReserved) event, correlationId, causationId);
+                log.info("Publishing event to topic {}: {}", INVENTORY_RESERVED_V1, payload);
+                publisher.enqueue(INVENTORY_RESERVED_V1, payload);
+            }
+        });
     }
 }

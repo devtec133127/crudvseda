@@ -5,21 +5,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
 import de.demo.lending.common.events.Topics;
-import de.demo.lending.common.valueobjects.BookId;
-import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.InventoryRepository;
+import de.demo.lending.inventory.application.ReserveBook;
 import de.demo.lending.loan.domain.LoanId;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.util.Map;
-import java.util.Optional;
+import java.time.Duration;
 import java.util.UUID;
 
 /**
@@ -38,16 +35,19 @@ public class AsyncInventoryEventListener {
     private final ObjectMapper om = new ObjectMapper();
     private final InventoryRepository repo;
     private final EventPublisher events;
+    private final ReserveBook reserveBookUseCase;
     //private final SpringProcessedEventRepository processedRepo;
     private final AsyncEventBus eventBus;
 
     public AsyncInventoryEventListener(
             InventoryRepository repo,
             EventPublisher events,
+            ReserveBook reserveBookUseCase,
             //SpringProcessedEventRepository processedRepo,
             AsyncEventBus eventBus) {
         this.repo = repo;
         this.events = events;
+        this.reserveBookUseCase = reserveBookUseCase;
         //this.processedRepo = processedRepo;
         this.eventBus = eventBus;
     }
@@ -79,48 +79,17 @@ public class AsyncInventoryEventListener {
         }
 
         UUID loanUuid = UUID.fromString(node.get("loanId").asText());
+        UUID userUuid = UUID.fromString(node.get("userId").asText());
         String bookTitle = node.get("bookTitle").asText();
+        long durationDays = node.get("duration").asLong();
+        String corralationId = node.get("corralationId").asText();
+        String causationId = incomingEventId;
 
-        LoanId loanId = LoanId.of(loanUuid);
-        //BookId bookId = BookId.of(bookUuid);
 
-        // Try reserve via port
-        Optional<CopyId> reserved = repo.reserveFirstAvailable(bookId);
+        Duration duration = Duration.ofDays(durationDays);
 
-        String correlationId = node.has("correlationId") ? node.get("correlationId").asText() : UUID.randomUUID().toString();
-        String causationId = incomingEventId != null ? incomingEventId : null;
+        reserveBookUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), bookTitle, duration, corralationId, causationId);
 
-        // Reserve-Policy: pick first AVAILABLE
-        if (reserved.isPresent()) {
-            // Erfolg: publish inventory.reserved.v1
-            Map<String, Object> payload = Map.of(
-                    "eventId", UUID.randomUUID().toString(),
-                    "occurredAt", Instant.now().toString(),
-                    "correlationId", correlationId,
-                    "causationId", causationId,
-                    "loanId", loanId.toString(),
-                    "copyId", reserved.get().value().toString());
-            events.enqueue(Topics.INVENTORY_RESERVED_V1, payload);
-            log.info("Reserved copy {} for loan {}", reserved.get().value(), loanUuid);
-        } else {
-            // Keine verfügbare Kopie: publish inventory.rejected.v1
-            Map<String, Object> payload = Map.of(
-                    "eventId", UUID.randomUUID().toString(),
-                    "occurredAt", Instant.now().toString(),
-                    "correlationId", node.path("correlationId").asText(UUID.randomUUID().toString()),
-                    "causationId", incomingEventId != null ? incomingEventId : null,
-                    "loanId", loanId.toString(),
-                    "reason", "NO_COPY_AVAILABLE"
-            );
-            events.enqueue(Topics.INVENTORY_REJECTED_V1, payload);
-            log.info("No copy available for book {} (loan {})", bookUuid, loanUuid);
-        }
 
-        // speichern: processed_event (Idempotenz)
-        /*if (incomingEventId != null) {
-            processedRepo.save(new ProcessedEventEntity(
-                    incomingEventId, consumer, Instant.now()
-            ));
-        }*/
     }
 }
