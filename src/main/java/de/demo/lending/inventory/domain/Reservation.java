@@ -30,6 +30,18 @@ public class Reservation extends AggregateRoot {
         this.userId = userId;
     }
 
+    public Reservation(String id, String correlationId, String bookTitle, BookId bookId, UserId userId,
+                       ReservationStatus status, Instant createdAt, Instant expiresAt, String copyId) {
+        super(id, correlationId);
+        this.bookTitle = bookTitle;
+        this.bookId = bookId;
+        this.userId = userId;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.expiresAt = expiresAt;
+        this.copyId = copyId;
+    }
+
     public static Reservation create(String correlationId, String causationId, BookId  bookId, String bookTitle, UserId userId, Duration ttl) {
         Reservation reservation = new Reservation(ReservationId.newId().value().toString(), correlationId, bookId, bookTitle, userId);
         reservation.status = ReservationStatus.PENDING;
@@ -53,5 +65,34 @@ public class Reservation extends AggregateRoot {
     public ReservationId getReservationId() {
         UUID uuid = UUID.fromString(super.getId());
         return ReservationId.of(uuid);
+    }
+
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public BookId getBookId() {
+        return bookId;
+    }
+
+    public UserId getUserId() {
+        return userId;
+    }
+
+    public ReservationStatus getStatus() {
+        return status;
+    }
+
+    @Override
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
+
+    public String getCopyId() {
+        return copyId;
     }
 }

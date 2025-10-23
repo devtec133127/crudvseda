@@ -18,6 +18,7 @@ public class BookReservedEventMapper {
                 e.getOccurredAt().toString(),
                 correlationId,
                 causationId,
+                e.getUserId().value().toString(),
                 e.getBookId(),
                 e.getBookTitle()
         );

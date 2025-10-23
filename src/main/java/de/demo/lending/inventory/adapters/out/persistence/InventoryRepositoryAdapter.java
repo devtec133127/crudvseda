@@ -3,6 +3,7 @@ package de.demo.lending.inventory.adapters.out.persistence;
 
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.InventoryRepository;
 import de.demo.lending.inventory.domain.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 //@ConditionalOnProperty(value = "service.role", havingValue = "inventory")
@@ -57,19 +59,20 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
     // -------------------------
     private InventoryCopy toDomain(InventoryCopyEntity e) {
         return new InventoryCopy(
-                correlationId,
-                CopyId.of(e.getId()),
+                e.getId().toString(),
+                null,
+                //CopyId.of(e.getId()),
                 BookId.of(e.getBookId()),
-                userId,
-                bookTitle,
-                e.getCreatedAt() != null ? e.getCreatedAt() : Instant.now(),
+                UserId.of(UUID.fromString(e.getUserId())),
+                e.getBookTitle(),
+                //e.getCreatedAt() != null ? e.getCreatedAt() : Instant.now(),
                 e.getUpdatedAt() != null ? e.getUpdatedAt() : Instant.now()
         );
     }
 
     private InventoryCopyEntity toEntity(InventoryCopy d) {
         return InventoryCopyEntity.builder()
-                .id(d.getId().value())
+                .id(UUID.fromString(d.getId()))
                 .bookId(d.getBookId().value())
                 .state(d.getState().name())
                 .createdAt(d.getCreatedAt() != null ? d.getCreatedAt() : Instant.now())
