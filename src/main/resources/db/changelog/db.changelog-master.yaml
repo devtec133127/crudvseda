@@ -1,7 +1,0 @@
-databaseChangeLog:
-  - include:
-        file: classpath:/db/changelog/common/outbox.yaml
-  - include:
-      file: classpath:db/changelog/loan/loan-changelog.yaml
-  - include:
-      file: classpath:db/changelog/inventory/inventory-changelog.yaml

@@ -82,7 +82,7 @@ public class AsyncInventoryEventListener {
         UUID userUuid = UUID.fromString(node.get("userId").asText());
         String bookTitle = node.get("bookTitle").asText();
         long durationDays = node.get("duration").asLong();
-        String corralationId = node.get("corralationId").asText();
+        String corralationId = node.get("correlationId").asText();
         String causationId = incomingEventId;
 
 

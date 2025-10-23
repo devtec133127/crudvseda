@@ -7,7 +7,8 @@ spring:
   kafka:
     consumer.group-id: loan-service
   liquibase:
-    change-log: classpath:/db/changelog/loan/loan-changelog.yaml
+    enabled: false
+    #change-log: classpath:/db/changelog/loan/loan-changelog.yaml
   jpa:
     hibernate:
       ddl-auto: none

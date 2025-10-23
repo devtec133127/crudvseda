@@ -29,7 +29,7 @@ public class OpenLibraryClient {
     public Pair<String, String> searchBook(String query) {
         String url = apiBaseUrl + "/search.json?title=" +
                 URLEncoder.encode(query, StandardCharsets.UTF_8) +
-                "&limit=1d&fields=title,isbn";
+                "&limit=1&fields=title,isbn";
         try {
             log.info("Synchroner REST-Call zu Payment-Service | Endpoint: {}", url);
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);

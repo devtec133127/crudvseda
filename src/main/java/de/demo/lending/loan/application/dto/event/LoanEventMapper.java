@@ -20,7 +20,8 @@ public final class LoanEventMapper {
                 causationId,
                 e.loanId().toString(),
                 e.userId().toString(),
-                e.bookTitle()
+                e.bookTitle(),
+                e.duration().toDays()
         );
     }
 }

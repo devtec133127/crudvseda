@@ -74,6 +74,8 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
         return InventoryCopyEntity.builder()
                 .id(UUID.fromString(d.getId()))
                 .bookId(d.getBookId().value())
+                .bookTitle(d.getBookTitle())
+                .userId(d.getUserId().toString())
                 .state(d.getState().name())
                 .createdAt(d.getCreatedAt() != null ? d.getCreatedAt() : Instant.now())
                 .updatedAt(Instant.now())

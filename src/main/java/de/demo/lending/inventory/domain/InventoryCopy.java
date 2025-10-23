@@ -78,4 +78,12 @@ public class InventoryCopy extends AggregateRoot {
         this.state = InventoryState.AVAILABLE;
         this.updatedAt = Instant.now();
     }
+
+    public UserId getUserId() {
+        return userId;
+    }
+
+    public String getBookTitle() {
+        return bookTitle;
+    }
 }
