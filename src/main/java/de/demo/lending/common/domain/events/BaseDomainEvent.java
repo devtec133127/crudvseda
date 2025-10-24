@@ -1,11 +1,10 @@
 package de.demo.lending.common.domain.events;
 
-import java.time.Instant;
-import java.util.Objects;
-
 import de.demo.lending.common.valueobjects.UserId;
 import lombok.Getter;
-import org.apache.catalina.User;
+
+import java.time.Instant;
+import java.util.Objects;
 
 @Getter
 public abstract class BaseDomainEvent {

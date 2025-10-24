@@ -4,15 +4,13 @@ import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.domain.event.ReservationCreated;
-import de.demo.lending.loan.domain.LoanId;
-import de.demo.lending.loan.domain.event.LoanRequested;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
 public class Reservation extends AggregateRoot {
-    public enum ReservationStatus { PENDING, CONFIRMED, CANCELLED, FAILED, EXPIRED }
+    public enum ReservationStatus {PENDING, CONFIRMED, CANCELLED, FAILED, EXPIRED}
 
     private final String bookTitle;
     private final BookId bookId;
@@ -30,6 +28,7 @@ public class Reservation extends AggregateRoot {
         this.userId = userId;
     }
 
+    // TODO: change to private
     public Reservation(String id, String correlationId, String bookTitle, BookId bookId, UserId userId,
                        ReservationStatus status, Instant createdAt, Instant expiresAt, String copyId) {
         super(id, correlationId);
@@ -42,7 +41,7 @@ public class Reservation extends AggregateRoot {
         this.copyId = copyId;
     }
 
-    public static Reservation create(String correlationId, String causationId, BookId  bookId, String bookTitle, UserId userId, Duration ttl) {
+    public static Reservation create(String correlationId, String causationId, BookId bookId, String bookTitle, UserId userId, Duration ttl) {
         Reservation reservation = new Reservation(ReservationId.newId().value().toString(), correlationId, bookId, bookTitle, userId);
         reservation.status = ReservationStatus.PENDING;
         reservation.createdAt = Instant.now();
@@ -60,7 +59,9 @@ public class Reservation extends AggregateRoot {
     }
 
     //public void cancel(String reason) { ... } // set FAILED/CANCELLED + event
-    public boolean isExpired() { return Instant.now().isAfter(expiresAt); }
+    public boolean isExpired() {
+        return Instant.now().isAfter(expiresAt);
+    }
 
     public ReservationId getReservationId() {
         UUID uuid = UUID.fromString(super.getId());
