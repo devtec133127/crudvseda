@@ -69,14 +69,14 @@ public class Payment extends AggregateRoot {
     }
 
     public void capture(Money captureAmount) {
-        if (status != PaymentStatus.AUTHORIZED) throw new IllegalStateException("Can only capture from AUTHORIZED");
+        if (status != PaymentStatus.CREATED) throw new IllegalStateException("Can only capture from AUTHORIZED");
         if (!captureAmount.equals(this.amount)) {
             // optional: allow partial capture -> adjust invariants / record amountCaptured
             throw new IllegalArgumentException("Currently only full capture supported");
         }
         this.status = PaymentStatus.CAPTURED;
         this.updatedAt = Instant.now();
-        this.raise(new PaymentCaptured(id, loanId, userId, getCorrelationId(), Instant.now()));
+        this.raise(new PaymentCaptured(id, loanId, userId, bookId, getCorrelationId(), Instant.now()));
     }
 
     public void fail(String reason) {

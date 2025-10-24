@@ -1,12 +1,10 @@
 package de.demo.lending.inventory.application.dto.event;
 
-import java.util.UUID;
-
 import de.demo.lending.inventory.application.dto.BookReservedPayload;
-import de.demo.lending.inventory.application.dto.ReservationCreatedPayload;
 import de.demo.lending.inventory.domain.event.BookReserved;
-import de.demo.lending.inventory.domain.event.ReservationCreated;
 import lombok.NoArgsConstructor;
+
+import java.util.UUID;
 
 @NoArgsConstructor
 public class BookReservedEventMapper {
@@ -19,8 +17,10 @@ public class BookReservedEventMapper {
                 correlationId,
                 causationId,
                 e.getUserId().value().toString(),
+                e.getBookTitle(),
                 e.getBookId(),
-                e.getBookTitle()
+                e.getLoanId()
+
         );
     }
 }

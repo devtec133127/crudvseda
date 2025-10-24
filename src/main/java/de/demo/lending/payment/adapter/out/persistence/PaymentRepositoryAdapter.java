@@ -30,6 +30,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
         e.setCreatedAt(payment.getCreatedAt());
         e.setLoanId(payment.getLoanId().toString());
         e.setBookId(payment.getBookId().toString());
+        e.setUserId(payment.getUserId().toString());
         e.setAmountCents(payment.getAmount().getCents());
         e.setCurrency(payment.getAmount().getCurrency());
         e.setState(payment.getStatus().name());
@@ -44,7 +45,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
                 BookId.of(save.getBookId()),
                 UserId.of(UUID.fromString(save.getUserId())),
                 new Money(save.getAmountCents(), save.getCurrency()),
-                new PaymentMethod(save.getPaymentMethodJson())
+                PaymentMethod.fromString(save.getPaymentMethodJson()).get()
         );
     }
 }

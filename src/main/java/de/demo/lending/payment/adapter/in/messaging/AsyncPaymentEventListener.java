@@ -2,13 +2,14 @@ package de.demo.lending.payment.adapter.in.messaging;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
 import de.demo.lending.common.events.Topics;
+import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.application.InventoryRepository;
-import de.demo.lending.inventory.application.ReserveBook;
 import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.payment.application.ExecutePayment;
+import de.demo.lending.payment.domain.PaymentMethod;
+import de.demo.lending.payment.domain.PaymentPolicy;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -16,13 +17,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.util.UUID;
 
 /**
  * Async-basierter Event Listener für Payment (ohne Kafka).
  * Registriert sich beim AsyncEventBus statt @KafkaListener.
- * 
+ * <p>
  * Aktiviert durch Profile "async".
  */
 @Component
@@ -33,35 +33,27 @@ public class AsyncPaymentEventListener {
     private static final Logger log = LoggerFactory.getLogger(AsyncPaymentEventListener.class);
 
     private final ObjectMapper om = new ObjectMapper();
-    private final InventoryRepository repo;
-    private final EventPublisher events;
-    private final ReserveBook reserveBookUseCase;
+    private final ExecutePayment executePaymentUseCase;
     //private final SpringProcessedEventRepository processedRepo;
     private final AsyncEventBus eventBus;
 
     public AsyncPaymentEventListener(
-            InventoryRepository repo,
-            EventPublisher events,
-            ReserveBook reserveBookUseCase,
-            //SpringProcessedEventRepository processedRepo,
+            ExecutePayment executePaymentUseCase,
             AsyncEventBus eventBus) {
-        this.repo = repo;
-        this.events = events;
-        this.reserveBookUseCase = reserveBookUseCase;
-        //this.processedRepo = processedRepo;
+        this.executePaymentUseCase = executePaymentUseCase;
         this.eventBus = eventBus;
     }
 
     @PostConstruct
     public void subscribeToEvents() {
         // Registriere Handler beim Event Bus
-        eventBus.subscribe(Topics.LOAN_REQUESTED_V1, this::onLoanRequested);
-        log.info("Subscribed to {} via AsyncEventBus", Topics.LOAN_REQUESTED_V1);
+        eventBus.subscribe(Topics.INVENTORY_RESERVED_V1, this::onExecute);
+        log.info("Subscribed to {} via AsyncEventBus", Topics.INVENTORY_RESERVED_V1);
     }
 
     @Transactional
-    public void onLoanRequested(String json) throws Exception {
-        log.info("Received async event on {}: {}", Topics.LOAN_REQUESTED_V1, json);
+    public void onExecute(String json) throws Exception {
+        log.info("Received async event on {}: {}", Topics.INVENTORY_RESERVED_V1, json);
         JsonNode node = om.readTree(json);
         String incomingEventId = node.has("eventId") ? node.get("eventId").asText(null) : null;
 
@@ -73,22 +65,20 @@ public class AsyncPaymentEventListener {
         }*/
 
         // mandatory fields expected: loanId, bookId
-        if (!node.has("loanId") || !node.has("bookTitle")) {
+        if (!node.has("loanId") || !node.has("bookId")) {
             log.warn("Received loan.requested without loanId/bookId: {}", json);
             return;
         }
 
         UUID loanUuid = UUID.fromString(node.get("loanId").asText());
         UUID userUuid = UUID.fromString(node.get("userId").asText());
-        String bookTitle = node.get("bookTitle").asText();
-        long durationDays = node.get("duration").asLong();
+        String bookId = node.get("bookId").asText();
         String corralationId = node.get("correlationId").asText();
         String causationId = incomingEventId;
 
 
-        Duration duration = Duration.ofDays(durationDays);
-
-        reserveBookUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), bookTitle, duration, corralationId, causationId);
+        executePaymentUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), BookId.of(bookId),
+                PaymentPolicy.STANDARD_FEE, PaymentMethod.PAYPAL, corralationId, causationId);
 
 
     }
