@@ -2,11 +2,9 @@ package de.demo.lending.inventory.adapters.in.messaging;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.application.InventoryRepository;
 import de.demo.lending.inventory.application.ReserveBook;
 import de.demo.lending.loan.domain.LoanId;
 import jakarta.annotation.PostConstruct;
@@ -22,7 +20,7 @@ import java.util.UUID;
 /**
  * Async-basierter Event Listener für Inventory (ohne Kafka).
  * Registriert sich beim AsyncEventBus statt @KafkaListener.
- * 
+ * <p>
  * Aktiviert durch Profile "async".
  */
 @Component
@@ -33,22 +31,13 @@ public class AsyncInventoryEventListener {
     private static final Logger log = LoggerFactory.getLogger(AsyncInventoryEventListener.class);
 
     private final ObjectMapper om = new ObjectMapper();
-    private final InventoryRepository repo;
-    private final EventPublisher events;
     private final ReserveBook reserveBookUseCase;
-    //private final SpringProcessedEventRepository processedRepo;
     private final AsyncEventBus eventBus;
 
     public AsyncInventoryEventListener(
-            InventoryRepository repo,
-            EventPublisher events,
             ReserveBook reserveBookUseCase,
-            //SpringProcessedEventRepository processedRepo,
             AsyncEventBus eventBus) {
-        this.repo = repo;
-        this.events = events;
         this.reserveBookUseCase = reserveBookUseCase;
-        //this.processedRepo = processedRepo;
         this.eventBus = eventBus;
     }
 
@@ -89,7 +78,5 @@ public class AsyncInventoryEventListener {
         Duration duration = Duration.ofDays(durationDays);
 
         reserveBookUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), bookTitle, duration, corralationId, causationId);
-
-
     }
 }

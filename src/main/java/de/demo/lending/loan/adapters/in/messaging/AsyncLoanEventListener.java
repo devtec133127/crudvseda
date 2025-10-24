@@ -15,14 +15,13 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
- * Async-basierter Event Listener für Inventory (ohne Kafka).
+ * Async-basierter Event Listener für Loan (ohne Kafka).
  * Registriert sich beim AsyncEventBus statt @KafkaListener.
  * <p>
  * Aktiviert durch Profile "async".
  */
 @Component
 @Profile("async")
-//@ConditionalOnProperty(value = "service.role", havingValue = "inventory")
 public class AsyncLoanEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncLoanEventListener.class);
@@ -31,19 +30,16 @@ public class AsyncLoanEventListener {
     private final InventoryRepository repo;
     private final EventPublisher events;
     private final ReserveBook reserveBookUseCase;
-    //private final SpringProcessedEventRepository processedRepo;
     private final AsyncEventBus eventBus;
 
     public AsyncLoanEventListener(
             InventoryRepository repo,
             EventPublisher events,
             ReserveBook reserveBookUseCase,
-            //SpringProcessedEventRepository processedRepo,
             AsyncEventBus eventBus) {
         this.repo = repo;
         this.events = events;
         this.reserveBookUseCase = reserveBookUseCase;
-        //this.processedRepo = processedRepo;
         this.eventBus = eventBus;
     }
 

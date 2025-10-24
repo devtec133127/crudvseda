@@ -27,14 +27,12 @@ import java.util.UUID;
  */
 @Component
 @Profile("async")
-//@ConditionalOnProperty(value = "service.role", havingValue = "inventory")
 public class AsyncPaymentEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncPaymentEventListener.class);
 
     private final ObjectMapper om = new ObjectMapper();
     private final ExecutePayment executePaymentUseCase;
-    //private final SpringProcessedEventRepository processedRepo;
     private final AsyncEventBus eventBus;
 
     public AsyncPaymentEventListener(
