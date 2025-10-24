@@ -2,7 +2,6 @@ package de.demo.lending.common.application.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
@@ -14,5 +13,5 @@ public abstract class DtoPayload {
     private final String causationId;
     private final String userId;
 
-
+    private final String type;
 }

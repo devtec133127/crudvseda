@@ -5,6 +5,7 @@ import lombok.Getter;
 
 @Getter
 public class BookReservedPayload extends DtoPayload {
+    private static final String TYPE = "BookReservedPayload";
     private final String bookTitle;
     private final String bookId;
     private final String loanId;
@@ -12,7 +13,7 @@ public class BookReservedPayload extends DtoPayload {
     public BookReservedPayload(String eventId, String occurredAt, String correlationId,
                                String causationId, String userId, String bookTitle,
                                String bookId, String loanId) {
-        super(eventId, occurredAt, correlationId, causationId, userId);
+        super(eventId, occurredAt, correlationId, causationId, userId, TYPE);
         this.bookId = bookId;
         this.bookTitle = bookTitle;
         this.loanId = loanId;
