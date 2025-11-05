@@ -1,6 +1,5 @@
 package de.demo.lending.loan.domain;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 

@@ -1,5 +1,10 @@
 package de.demo.lending.inventory.application;
 
+import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
+import static de.demo.lending.common.events.Topics.RESERVATION_CREATED_V1;
+
+import java.time.Duration;
+
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
@@ -9,30 +14,13 @@ import de.demo.lending.inventory.application.dto.event.BookReservedEventMapper;
 import de.demo.lending.inventory.application.dto.event.ReservationEventMapper;
 import de.demo.lending.inventory.domain.InventoryCopy;
 import de.demo.lending.inventory.domain.Reservation;
-import de.demo.lending.inventory.domain.ReservationId;
 import de.demo.lending.inventory.domain.event.BookReserved;
 import de.demo.lending.inventory.domain.event.ReservationCreated;
-import de.demo.lending.loan.application.LoanRepository;
-import de.demo.lending.loan.application.dto.LoanRequestedPayload;
-import de.demo.lending.loan.application.dto.event.LoanEventMapper;
-import de.demo.lending.loan.domain.Loan;
 import de.demo.lending.loan.domain.LoanId;
-import de.demo.lending.loan.domain.event.LoanRequested;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.apache.bcel.classfile.Module;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
-
-import java.time.Duration;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
-import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
-import static de.demo.lending.common.events.Topics.RESERVATION_CREATED_V1;
 
 @Slf4j
 @Component
@@ -70,7 +58,7 @@ public class ReserveBook {
         reservationRepository.save(reservation);
 
         reservation.pullProducedEvents().forEach(event -> {
-            if(event instanceof ReservationCreated) {
+            if (event instanceof ReservationCreated) {
                 ReservationCreatedPayload payload = ReservationEventMapper.toPayload((ReservationCreated) event, correlationId, causationId);
                 log.info("Publishing event to topic {}: {}", RESERVATION_CREATED_V1, payload);
                 publisher.enqueue(RESERVATION_CREATED_V1, payload);
@@ -81,7 +69,7 @@ public class ReserveBook {
         repo.save(copy);
 
         copy.pullProducedEvents().forEach(event -> {
-            if(event instanceof BookReserved) {
+            if (event instanceof BookReserved) {
                 BookReservedPayload payload = BookReservedEventMapper.toPayload((BookReserved) event, correlationId, causationId);
                 log.info("Publishing event to topic {}: {}", INVENTORY_RESERVED_V1, payload);
                 publisher.enqueue(INVENTORY_RESERVED_V1, payload);

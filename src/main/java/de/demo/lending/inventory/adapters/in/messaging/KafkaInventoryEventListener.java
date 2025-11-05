@@ -16,7 +16,6 @@ import de.demo.lending.loan.domain.LoanId;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -25,13 +24,12 @@ import org.springframework.stereotype.Component;
 
 /**
  * Kafka-basierter Event Listener für Inventory.
- * 
+ * <p>
  * Aktiviert durch Profile "kafka" (Standard für Produktion).
  * Wird durch AsyncInventoryEventListener ersetzt bei Profile "async".
  */
 @Component
 @Profile("kafka")  // NEU: Nur aktiv bei Kafka-Profil
-@ConditionalOnProperty(value="service.role", havingValue="inventory")
 public class KafkaInventoryEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(KafkaInventoryEventListener.class);
@@ -39,12 +37,12 @@ public class KafkaInventoryEventListener {
     private final ObjectMapper om = new ObjectMapper();
     private final InventoryRepository repo;
     private final EventPublisher events;
-    //private final SpringProcessedEventRepository processedRepo;
 
     public KafkaInventoryEventListener(InventoryRepository repo,
-                                  EventPublisher events) {
-                                  //SpringProcessedEventRepository processedRepo) {
-        this.repo = repo; this.events = events; //this.processedRepo = processedRepo;
+                                       EventPublisher events) {
+        this.repo = repo;
+        this.events = events;
+        //this.processedRepo = processedRepo;
     }
 
     @KafkaListener(topics = {Topics.LOAN_REQUESTED_V1}, groupId = "inventory")
@@ -78,12 +76,12 @@ public class KafkaInventoryEventListener {
 
 
         String correlationId = node.has("correlationId") ? node.get("correlationId").asText() : UUID.randomUUID().toString();
-        String causationId   = incomingEventId != null ? incomingEventId : null;
+        String causationId = incomingEventId != null ? incomingEventId : null;
 
         // Reserve-Policy: pick first AVAILABLE
         if (reserved.isPresent()) {
             // Erfolg: publish inventory.reserved.v1
-            Map<String,Object> payload = Map.of(
+            Map<String, Object> payload = Map.of(
                     "eventId", UUID.randomUUID().toString(),
                     "occurredAt", Instant.now().toString(),
                     "correlationId", correlationId,
@@ -94,7 +92,7 @@ public class KafkaInventoryEventListener {
             log.info("Reserved copy {} for loan {}", reserved.get().value(), loanUuid);
         } else {
             // Keine verfügbare Kopie: publish inventory.rejected.v1
-            Map<String,Object> payload = Map.of(
+            Map<String, Object> payload = Map.of(
                     "eventId", UUID.randomUUID().toString(),
                     "occurredAt", Instant.now().toString(),
                     "correlationId", node.path("correlationId").asText(UUID.randomUUID().toString()),

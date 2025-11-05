@@ -1,22 +1,20 @@
 package de.demo.lending.inventory.adapters.out.persistence;
 
 
-import de.demo.lending.common.valueobjects.BookId;
-import de.demo.lending.common.valueobjects.CopyId;
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.application.InventoryRepository;
-import de.demo.lending.inventory.domain.*;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import de.demo.lending.common.valueobjects.BookId;
+import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.application.InventoryRepository;
+import de.demo.lending.inventory.domain.InventoryCopy;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 @Component
-//@ConditionalOnProperty(value = "service.role", havingValue = "inventory")
 public class InventoryRepositoryAdapter implements InventoryRepository {
 
     private final SpringInventoryCopyRepository jpa;

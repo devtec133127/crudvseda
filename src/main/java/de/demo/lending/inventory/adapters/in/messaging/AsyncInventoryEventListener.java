@@ -1,5 +1,8 @@
 package de.demo.lending.inventory.adapters.in.messaging;
 
+import java.time.Duration;
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
@@ -14,9 +17,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.util.UUID;
-
 /**
  * Async-basierter Event Listener für Inventory (ohne Kafka).
  * Registriert sich beim AsyncEventBus statt @KafkaListener.
@@ -25,7 +25,6 @@ import java.util.UUID;
  */
 @Component
 @Profile("async")
-//@ConditionalOnProperty(value = "service.role", havingValue = "inventory")
 public class AsyncInventoryEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncInventoryEventListener.class);

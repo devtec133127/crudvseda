@@ -1,6 +1,5 @@
 package de.demo.lending.loan.application.dto;
 
-import java.time.Duration;
 
 public record LoanRequestedPayload(
         String type,        // "loan.requested"
@@ -14,4 +13,5 @@ public record LoanRequestedPayload(
         String userId,
         String bookTitle,
         long duration
-) {}
+) {
+}

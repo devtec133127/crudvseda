@@ -1,25 +1,24 @@
 package de.demo.lending.loan.adapters.out.persistence;
 
-import de.demo.lending.common.valueobjects.BookId;
+import java.util.Optional;
+
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.application.LoanRepository;
 import de.demo.lending.loan.domain.Loan;
 import de.demo.lending.loan.domain.LoanId;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(value="service.role", havingValue="loan")
 public class LoanJpaRepositoryAdapter implements LoanRepository {
 
     private final SpringLoanJpaRepository jpa;
 
-    public LoanJpaRepositoryAdapter(SpringLoanJpaRepository jpa) { this.jpa = jpa; }
+    public LoanJpaRepositoryAdapter(SpringLoanJpaRepository jpa) {
+        this.jpa = jpa;
+    }
 
     @Override
     public void save(Loan loan) {
@@ -37,7 +36,7 @@ public class LoanJpaRepositoryAdapter implements LoanRepository {
         e.setId(l.getId().value());
         e.setUserId(l.getUserId().value());
         e.setBookTitle(l.getBookTitle());
-        if(l.getCopyId() != null) {
+        if (l.getCopyId() != null) {
             e.setCopyId(l.getCopyId().value());
         }
         e.setStatus(l.getStatus().name());

@@ -1,14 +1,13 @@
 package de.demo.lending.inventory.application.dto.event;
 
-import de.demo.lending.inventory.application.dto.ReservationCreatedPayload;
-import de.demo.lending.inventory.domain.event.ReservationCreated;
-import de.demo.lending.loan.application.dto.LoanRequestedPayload;
-import de.demo.lending.loan.domain.event.LoanRequested;
-import lombok.NoArgsConstructor;
-
 import java.util.UUID;
 
-@NoArgsConstructor
+import de.demo.lending.inventory.application.dto.ReservationCreatedPayload;
+import de.demo.lending.inventory.domain.event.ReservationCreated;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ReservationEventMapper {
 
     public static ReservationCreatedPayload toPayload(

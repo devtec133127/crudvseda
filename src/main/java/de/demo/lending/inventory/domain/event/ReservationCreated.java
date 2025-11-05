@@ -1,13 +1,12 @@
 package de.demo.lending.inventory.domain.event;
 
-import de.demo.lending.common.domain.events.BaseDomainEvent;
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.domain.ReservationId;
-import lombok.Getter;
-
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+
+import de.demo.lending.common.domain.events.BaseDomainEvent;
+import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.domain.ReservationId;
 
 public final class ReservationCreated extends BaseDomainEvent {
 
@@ -26,8 +25,19 @@ public final class ReservationCreated extends BaseDomainEvent {
     }
 
     // getters
-    public ReservationId getReservationId() { return reservationId; }
-    public String getBookTitle() { return bookTitle; }
-    public UserId getUserId() { return userId; }
-    public Instant getExpiresAt() { return expiresAt; }
+    public ReservationId getReservationId() {
+        return reservationId;
+    }
+
+    public String getBookTitle() {
+        return bookTitle;
+    }
+
+    public UserId getUserId() {
+        return userId;
+    }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
 }

@@ -1,19 +1,18 @@
 package de.demo.lending.inventory.application;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -54,7 +53,7 @@ public class OpenLibraryClient {
                 // 3. Jedes Element sicher casten und mappen
                 List<Pair<String, String>> bookInfos = docs.stream()
                         .filter(o -> o instanceof Map)
-                        .map(o -> mapToBook((Map<String,Object>) o))
+                        .map(o -> mapToBook((Map<String, Object>) o))
                         .collect(Collectors.toList());
 
                 if (bookInfos.isEmpty()) {
@@ -75,7 +74,7 @@ public class OpenLibraryClient {
     }
 
     private Pair<String, String> determineBook(List<Pair<String, String>> bookInfos, String searchBootTitle) {
-        if(bookInfos.isEmpty()) {
+        if (bookInfos.isEmpty()) {
             log.warn("Book title {} not found", searchBootTitle);
             return null;
         }
@@ -90,7 +89,7 @@ public class OpenLibraryClient {
                 () -> System.out.println("Kein Buch mit gültiger ISBN gefunden")
         );
 
-        if(firstValidBook.isEmpty()) {
+        if (firstValidBook.isEmpty()) {
             log.error("No valid book with ISBN found for title {}", searchBootTitle);
             throw new RuntimeException("No valid book with ISBN found for title " + searchBootTitle);
         }

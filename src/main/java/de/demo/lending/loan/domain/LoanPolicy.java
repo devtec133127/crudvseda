@@ -4,4 +4,7 @@ import java.time.Duration;
 
 public class LoanPolicy {
     public static final Duration STANDARD_DURATION = Duration.ofDays(14);
+
+    private LoanPolicy() {
+    }
 }
