@@ -1,11 +1,14 @@
 package de.demo.lending.inventory.adapters.in.messaging;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
+import de.demo.lending.common.adapters.out.persistence.ProcessedEventEntity;
+import de.demo.lending.common.adapters.out.persistence.ProcessedEventRepository;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.ReserveBook;
@@ -32,12 +35,15 @@ public class AsyncInventoryEventListener {
     private final ObjectMapper om = new ObjectMapper();
     private final ReserveBook reserveBookUseCase;
     private final AsyncEventBus eventBus;
+    private final ProcessedEventRepository processedRepo;
 
     public AsyncInventoryEventListener(
             ReserveBook reserveBookUseCase,
-            AsyncEventBus eventBus) {
+            AsyncEventBus eventBus,
+            ProcessedEventRepository processedRepo) {
         this.reserveBookUseCase = reserveBookUseCase;
         this.eventBus = eventBus;
+        this.processedRepo = processedRepo;
     }
 
     @PostConstruct
@@ -53,12 +59,13 @@ public class AsyncInventoryEventListener {
         JsonNode node = om.readTree(json);
         String incomingEventId = node.has("eventId") ? node.get("eventId").asText(null) : null;
 
-        String consumer = "inventory";
-        /*if (incomingEventId != null && processedRepo.existsByEventIdAndConsumer(incomingEventId, consumer)) {
+        // ########## Indempotenz - Event schon verarbeitet? ##########
+        String consumer = AsyncInventoryEventListener.class.getCanonicalName();
+        if (incomingEventId != null && processedRepo.existsByEventIdAndConsumer(incomingEventId, consumer)) {
             // already processed -> idempotent
             log.info("Skipping already processed event {} for consumer {}", incomingEventId, consumer);
             return;
-        }*/
+        }
 
         // mandatory fields expected: loanId, bookId
         if (!node.has("loanId") || !node.has("bookTitle")) {
@@ -77,5 +84,12 @@ public class AsyncInventoryEventListener {
         Duration duration = Duration.ofDays(durationDays);
 
         reserveBookUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), bookTitle, duration, corralationId, causationId);
+
+        // ########## Indempotenz - Event verarbeitet -> spciehern  ##########
+        if (incomingEventId != null) {
+            processedRepo.save(new ProcessedEventEntity(
+                    incomingEventId, consumer, Instant.now()
+            ));
+        }
     }
 }

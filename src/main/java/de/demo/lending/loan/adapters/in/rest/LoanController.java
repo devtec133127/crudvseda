@@ -3,8 +3,9 @@ package de.demo.lending.loan.adapters.in.rest;
 import java.util.Map;
 import java.util.UUID;
 
-import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.loan.adapters.in.rest.dto.ReserveBookRequest;
 import de.demo.lending.loan.application.CreateLoan;
+import de.demo.lending.loan.application.command.ReserveBookCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -26,22 +27,18 @@ public class LoanController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Map<String, String> body) {
-        log.debug("Received create loan request with body: {}", body);
+    public ResponseEntity<Map<String, String>> create(@RequestBody ReserveBookRequest request) {
+        log.debug("Received create loan request with body: {}", request);
 
-        String userId = body.get("userId");
-        String bookTitle = body.get("bookTitle");
-
-        log.debug("userId from request: {}", userId);
-        log.debug("bookTitle from request: {}", bookTitle);
-
-        UUID userIdFromRequest = UUID.fromString(body.get("userId"));
+        log.debug("userId from request: {}", request.userId());
+        log.debug("bookTitle from request: {}", request.bookTitle());
 
         // Beginn einer neuen Kette
         String correlationId = UUID.randomUUID().toString();
         String causationId = correlationId;  // erste Ursache = der Request selbst
 
-        var id = createLoan.handle(UserId.of(userIdFromRequest), bookTitle, correlationId, causationId);
+        ReserveBookCommand cmd = new ReserveBookCommand(request.userId(), request.bookTitle());
+        var id = createLoan.handle(cmd, correlationId, causationId);
         return ResponseEntity.accepted().body(Map.of("loanId", id.toString()));
     }
 }
