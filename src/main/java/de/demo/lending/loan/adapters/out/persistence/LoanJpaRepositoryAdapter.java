@@ -1,7 +1,5 @@
 package de.demo.lending.loan.adapters.out.persistence;
 
-import java.util.Optional;
-
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.application.LoanRepository;
@@ -23,11 +21,6 @@ public class LoanJpaRepositoryAdapter implements LoanRepository {
     @Override
     public void save(Loan loan) {
         jpa.save(toEntity(loan));
-    }
-
-    @Override
-    public Optional<Loan> findById(LoanId id) {
-        return jpa.findById(id.value()).map(this::toDomain);
     }
 
     private LoanEntity toEntity(Loan l) {

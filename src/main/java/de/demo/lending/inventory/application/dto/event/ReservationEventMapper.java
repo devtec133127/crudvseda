@@ -13,13 +13,12 @@ public final class ReservationEventMapper {
     public static ReservationCreatedPayload toPayload(
             ReservationCreated e, String correlationId, String causationId) {
 
-        return new ReservationCreatedPayload(
-                UUID.randomUUID().toString(),          // eventId
-                e.getOccurredAt().toString(),
-                correlationId,
-                causationId,
-                e.getUserId().toString(),
-                e.getBookTitle()
-        );
+        return ReservationCreatedPayload.builder()
+                .eventId(UUID.randomUUID().toString())
+                .occurredAt(e.getOccurredAt().toString())
+                .correlationId(correlationId)
+                .causationId(causationId)
+                .userId(e.getUserId().toString())
+                .bookTitle(e.getBookTitle()).build();
     }
 }

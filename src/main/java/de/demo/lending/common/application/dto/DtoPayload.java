@@ -1,10 +1,10 @@
 package de.demo.lending.common.application.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
-@AllArgsConstructor
+@SuperBuilder
 public abstract class DtoPayload {
 
     private final String eventId;     // UUID as String

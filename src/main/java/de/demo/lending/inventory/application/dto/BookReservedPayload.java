@@ -1,11 +1,11 @@
 package de.demo.lending.inventory.application.dto;
 
 import de.demo.lending.common.application.dto.DtoPayload;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
-@Builder
+@SuperBuilder
 public class BookReservedPayload extends DtoPayload {
     private static final String TYPE = "BookReservedPayload";
     private final String bookTitle;

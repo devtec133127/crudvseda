@@ -12,16 +12,14 @@ public class BookReservedEventMapper {
     public static BookReservedPayload toPayload(
             BookReserved e, String correlationId, String causationId) {
 
-        return new BookReservedPayload(
-                UUID.randomUUID().toString(),          // eventId
-                e.getOccurredAt().toString(),
-                correlationId,
-                causationId,
-                e.getUserId().value().toString(),
-                e.getBookTitle(),
-                e.getBookId(),
-                e.getLoanId()
-
-        );
+        return BookReservedPayload.builder()
+                .eventId(UUID.randomUUID().toString())
+                .occurredAt(e.getOccurredAt().toString())
+                .correlationId(correlationId)
+                .causationId(causationId)
+                .userId(e.getUserId().value().toString())
+                .bookTitle(e.getBookTitle())
+                .bookId(e.getBookId())
+                .loanId(e.getLoanId()).build();
     }
 }
