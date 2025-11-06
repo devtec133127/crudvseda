@@ -23,7 +23,7 @@ public class ProcessedEventEntity {
     @Id
     private String eventId;        // aus Payload/eventId header
     @Column(nullable = false)
-    private String consumer;       // e.g., "inventory"
+    private String consumer;        // z.B. Package + Klassenname
     @Column(nullable = false)
     private Instant receivedAt;
 }

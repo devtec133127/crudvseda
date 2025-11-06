@@ -59,7 +59,8 @@ public class AsyncInventoryEventListener {
         JsonNode node = om.readTree(json);
         String incomingEventId = node.has("eventId") ? node.get("eventId").asText(null) : null;
 
-        // ########## Indempotenz - Event schon verarbeitet? ##########
+        // ########## Indempotenz - Event schon verarbeitet? - Inbox Tabelle abfragen ##########
+        // Wichtig ist hierbei die eventId und der consumer (hier der Klassenname), um die Eindeutig des Events und die Verarbeitung des Consumers zu garantieren
         String consumer = AsyncInventoryEventListener.class.getCanonicalName();
         if (incomingEventId != null && processedRepo.existsByEventIdAndConsumer(incomingEventId, consumer)) {
             // already processed -> idempotent
@@ -85,7 +86,8 @@ public class AsyncInventoryEventListener {
 
         reserveBookUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), bookTitle, duration, corralationId, causationId);
 
-        // ########## Indempotenz - Event verarbeitet -> spciehern  ##########
+        // ########## Indempotenz - Event verarbeitet -> speichern  ##########
+        // Wichtig ist, dass die Schreiboperation in derselben Transaktion erfolgt wie die DB-Änderungen für die Geschäftslogik!
         if (incomingEventId != null) {
             processedRepo.save(new ProcessedEventEntity(
                     incomingEventId, consumer, Instant.now()
