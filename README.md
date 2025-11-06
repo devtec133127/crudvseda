@@ -8,6 +8,8 @@ Testbuch", "userId": "123e4567-e89b-12d3-a456-426614174000"}'
 
 ########## INDEMPOTENZ ###############
 
+- INSERT INTO processed_events(event_id) VALUES(:eventId)
+  ON CONFLICT DO NOTHING; (der ON Teil ist äußerst wichtig in verteilten Systemenh)
 - regelmäßiger Clean-Up Job verhindert unendliches Wachstum
 - Archivierung für Audits in Betracht ziehen anstatt löschen
 - Spring Boot Scheduled Job - Kubernetes Cron Job
@@ -44,10 +46,9 @@ Testbuch", "userId": "123e4567-e89b-12d3-a456-426614174000"}'
 
 # Polling-Concurrency (Praktische Patterns)
 
-- SELECT ... FOR UPDATE SKIP LOCKED (Postgres) — erlaubt mehrere Poller gleichzeitig ohne Kollision.
-- Optimistic update: UPDATE outbox SET status='SENDING' WHERE id IN (...) AND status='PENDING' RETURNING id — nur
-  gewonnene rows send.
-- Wenn DB kein SKIP LOCKED unterstützt, nutze single leader CronJob (Kubernetes CronJob) oder leader election.
+- **SELECT ... FOR UPDATE SKIP LOCKED (Postgres) — erlaubt mehrere Poller gleichzeitig ohne Kollision.** -> keine
+  Deadlocks, keine doppelten Events, bessere Parallelität.
+- (Wenn DB kein SKIP LOCKED unterstützt, nutze single leader CronJob (Kubernetes CronJob) oder leader election.)
 
 # Fehlerfälle & Recovery
 
