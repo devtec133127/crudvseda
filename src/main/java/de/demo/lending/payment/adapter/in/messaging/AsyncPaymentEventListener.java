@@ -1,8 +1,11 @@
 package de.demo.lending.payment.adapter.in.messaging;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
+import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
@@ -16,8 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 /**
  * Async-basierter Event Listener für Payment (ohne Kafka).
@@ -55,12 +56,8 @@ public class AsyncPaymentEventListener {
         JsonNode node = om.readTree(json);
         String incomingEventId = node.has("eventId") ? node.get("eventId").asText(null) : null;
 
-        String consumer = "inventory";
-        /*if (incomingEventId != null && processedRepo.existsByEventIdAndConsumer(incomingEventId, consumer)) {
-            // already processed -> idempotent
-            log.info("Skipping already processed event {} for consumer {}", incomingEventId, consumer);
-            return;
-        }*/
+        // ########## Indempotenz - Event schon verarbeitet? - Inbox Tabelle abfragen ##########
+        ProcessedEventUtil.checkEvent(AsyncPaymentEventListener.class, incomingEventId);
 
         // mandatory fields expected: loanId, bookId
         if (!node.has("loanId") || !node.has("bookId")) {
@@ -78,6 +75,7 @@ public class AsyncPaymentEventListener {
         executePaymentUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), BookId.of(bookId),
                 PaymentPolicy.STANDARD_FEE, PaymentMethod.PAYPAL, corralationId, causationId);
 
-
+        // ########## Indempotenz - Event verarbeitet -> speichern  ##########
+        ProcessedEventUtil.saveEvent(AsyncPaymentEventListener.class, incomingEventId);
     }
 }

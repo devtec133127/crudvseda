@@ -1,14 +1,13 @@
 package de.demo.lending.inventory.adapters.in.messaging;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
-import de.demo.lending.common.adapters.out.persistence.ProcessedEventEntity;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventRepository;
+import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.ReserveBook;
@@ -60,13 +59,7 @@ public class AsyncInventoryEventListener {
         String incomingEventId = node.has("eventId") ? node.get("eventId").asText(null) : null;
 
         // ########## Indempotenz - Event schon verarbeitet? - Inbox Tabelle abfragen ##########
-        // Wichtig ist hierbei die eventId und der consumer (hier der Klassenname), um die Eindeutig des Events und die Verarbeitung des Consumers zu garantieren
-        String consumer = AsyncInventoryEventListener.class.getCanonicalName();
-        if (incomingEventId != null && processedRepo.existsByEventIdAndConsumer(incomingEventId, consumer)) {
-            // already processed -> idempotent
-            log.info("Skipping already processed event {} for consumer {}", incomingEventId, consumer);
-            return;
-        }
+        ProcessedEventUtil.checkEvent(AsyncInventoryEventListener.class, incomingEventId);
 
         // mandatory fields expected: loanId, bookId
         if (!node.has("loanId") || !node.has("bookTitle")) {
@@ -87,11 +80,6 @@ public class AsyncInventoryEventListener {
         reserveBookUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), bookTitle, duration, corralationId, causationId);
 
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
-        // Wichtig ist, dass die Schreiboperation in derselben Transaktion erfolgt wie die DB-Änderungen für die Geschäftslogik!
-        if (incomingEventId != null) {
-            processedRepo.save(new ProcessedEventEntity(
-                    incomingEventId, consumer, Instant.now()
-            ));
-        }
+        ProcessedEventUtil.saveEvent(AsyncInventoryEventListener.class, incomingEventId);
     }
 }
