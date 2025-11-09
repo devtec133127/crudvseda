@@ -28,9 +28,11 @@ public final class ProcessedEventUtil {
         ProcessedEventRepository repo = SpringContext.getBean(ProcessedEventRepository.class);
         String consumer = clazz.getCanonicalName();
         if (eventId != null) {
-            repo.save(new ProcessedEventEntity(
-                    eventId, consumer, Instant.now()
-            ));
+            ProcessedEventEntity entity = new ProcessedEventEntity();
+            entity.setEventId(eventId);
+            entity.setConsumer(consumer);
+            entity.setReceivedAt(Instant.now());
+            repo.save(entity);
         }
     }
 }

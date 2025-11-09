@@ -111,9 +111,11 @@ public class KafkaInventoryEventListener {
 
         // ########## Indempotenz - Event verarbeitet -> spciehern  ##########
         if (incomingEventId != null) {
-            processedRepo.save(new ProcessedEventEntity(
-                    incomingEventId, consumer, Instant.now()
-            ));
+            ProcessedEventEntity eventEntity = new ProcessedEventEntity();
+            eventEntity.setEventId(incomingEventId);
+            eventEntity.setConsumer(consumer);
+            eventEntity.setReceivedAt(Instant.now());
+            processedRepo.save(eventEntity);
         }
     }
 }

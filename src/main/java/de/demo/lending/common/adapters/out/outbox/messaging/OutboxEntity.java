@@ -1,13 +1,24 @@
 package de.demo.lending.common.adapters.out.outbox.messaging;
 
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.Instant;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "outbox")
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -16,6 +27,12 @@ public class OutboxEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // BIGSERIAL in Postgres
     private Long id;
+
+    @Column(name = "event_id", nullable = false, unique = true)
+    private UUID eventId;
+
+    @Column(nullable = false, length = 128)
+    private String aggregate_type;        // loan, inventory, payment
 
     @Column(nullable = false, length = 128)
     private String type;                  // z. B. "loan.requested.v1"
@@ -33,4 +50,7 @@ public class OutboxEntity {
 
     @Column(nullable = false)
     private int attempt = 0;
+
+    @Column
+    private String errorMessage;
 }

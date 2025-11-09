@@ -79,6 +79,11 @@ public class AsyncInventoryEventListener {
 
         reserveBookUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), bookTitle, duration, corralationId, causationId);
 
+
+        // Read-Model aktualisieren (in Read-DB), kann aber auch in DB durch trigger gelöst werden
+        //loanReadRepository.upsertLoanStatus(evt.getLoanId(), evt.getUserId(), evt.getBookTitle(), evt.getDurationDays(), evt.getEventId());
+
+
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
         ProcessedEventUtil.saveEvent(AsyncInventoryEventListener.class, incomingEventId);
     }

@@ -2,9 +2,13 @@ package de.demo.lending.loan.application;
 
 import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
 
+import java.time.Instant;
 import java.util.UUID;
 
-import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.demo.lending.common.adapters.out.outbox.messaging.OutboxEntity;
+import de.demo.lending.common.adapters.out.outbox.messaging.OutboxRepository;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.application.command.ReserveBookCommand;
 import de.demo.lending.loan.application.dto.LoanRequestedPayload;
@@ -21,17 +25,19 @@ import org.springframework.transaction.annotation.Transactional;
 @ConditionalOnProperty(value = "service.role", havingValue = "loan")
 public class CreateLoan {
     private final LoanRepository repo;
-    private final EventPublisher publisher; // eigenes Port-Interface, s.u.
+    private final ObjectMapper objectMapper;
+    private final OutboxRepository outboxRepository;
 
-    public CreateLoan(LoanRepository repo, EventPublisher publisher) {
+    public CreateLoan(LoanRepository repo, OutboxRepository outboxRepository, ObjectMapper objectMapper) {
         this.repo = repo;
-        this.publisher = publisher;
+        this.objectMapper = objectMapper;
+        this.outboxRepository = outboxRepository;
     }
 
     /* Application Service koordiniert die folgenden Schritte:
      1. Erzeugung & Speichern des Aggregates
      2. Domain Events -> Payload übersetzen (Domain Event -> Integration Event)
-     3. Übergabe an Outbox Publisher
+     3. a.) Übergabe an Outbox Publisher, b.) Speichern der Outbox Entity
      */
     @Transactional
     public UUID handle(ReserveBookCommand reserveBookCommand, String correlationId, String causationId) {
@@ -43,11 +49,37 @@ public class CreateLoan {
             // Fachliches Event -> Payload fürs Outbox System
             if (event instanceof LoanRequested) {
                 LoanRequestedPayload payload = LoanEventMapper.toPayload((LoanRequested) event, correlationId, causationId);
-                log.info("Publishing event to topic {}: {}", LOAN_REQUESTED_V1, payload);
-                publisher.enqueue(LOAN_REQUESTED_V1, payload);
+
+                // ############ OUTBOX Pattern ###############
+                OutboxEntity savedEntity = createOutboxEntity((LoanRequested) event, correlationId, causationId);
+                outboxRepository.save(savedEntity);
+                log.info("Event to topic {}: {} saved", LOAN_REQUESTED_V1, payload);
+
+
+                // Zuvor: Bei Verwendung des Outbox Patterns wird an dieser Stelle nicht mehr versendet.
+                //log.info("Publishing event to topic {}: {}", LOAN_REQUESTED_V1, payload);
+                //publisher.enqueue(LOAN_REQUESTED_V1, payload);
             }
         });
 
         return loan.getId().value();
+    }
+
+    private OutboxEntity createOutboxEntity(LoanRequested event, String correlationId, String causationId) {
+        OutboxEntity entity = new OutboxEntity();
+        entity.setEventId(UUID.randomUUID());
+        entity.setAggregate_type(Loan.class.getSimpleName());
+        entity.setType(LOAN_REQUESTED_V1);
+        entity.setCreatedAt(Instant.now());
+
+        try {
+            LoanRequestedPayload payload = LoanEventMapper.toPayload(event, correlationId, causationId);
+            String jsonPayload = null;
+            jsonPayload = objectMapper.writeValueAsString(payload);
+            entity.setPayload(jsonPayload);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Could not create payload for event!!!", e);
+        }
+        return entity;
     }
 }

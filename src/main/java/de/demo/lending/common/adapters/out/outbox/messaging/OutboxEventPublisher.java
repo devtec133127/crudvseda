@@ -3,23 +3,24 @@ package de.demo.lending.common.adapters.out.outbox.messaging;
 import java.time.Instant;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
  * Outbox-basierter Event Publisher für Kafka.
- * 
+ * <p>
  * Aktiviert durch Profile "kafka" (Standard für Produktion).
  * Wird durch AsyncEventPublisher ersetzt bei Profile "async".
  */
 @Component
 @Profile("kafka")  // NEU: Nur aktiv bei Kafka-Profil
-@ConditionalOnProperty(value="service.role", havingValue="loan")
 public class OutboxEventPublisher implements EventPublisher {
     private final OutboxRepository repo;
     private final ObjectMapper om = new ObjectMapper();
-    public OutboxEventPublisher(OutboxRepository repo){ this.repo = repo; }
+
+    public OutboxEventPublisher(OutboxRepository repo) {
+        this.repo = repo;
+    }
 
     @Override
     public void enqueue(String type, Object payload) {

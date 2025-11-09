@@ -1,6 +1,8 @@
-package de.demo.lending.common.adapters.out.persistence;
+package de.demo.lending.read.adapters.persistence;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,27 +10,33 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.springframework.stereotype.Service;
 
 @Entity
-@Table(name = "processed_event")
+@Table(name = "loan_status_read")
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class ProcessedEventEntity {
+@Service
+public class LoanStatusRead {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // BIGSERIAL in Postgres
     private Long id;
+
     @Column(nullable = false)
-    private String eventId;        // aus Payload/eventId header
+    private UUID loanId;
+
     @Column(nullable = false)
-    private String consumer;        // z.B. Package + Klassenname
+    private UUID customerId;
+
     @Column(nullable = false)
-    private Instant receivedAt;
+    private String loanStatus;
+
+    @Column(nullable = false)
+    private String paymentStatus;
+
+    private BigDecimal fee;
+
+    private Instant paymentPaidAt;
+
+    private Instant updatedAt;
 }
