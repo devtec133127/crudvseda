@@ -1,10 +1,10 @@
 package de.demo.lending.common.adapters.out.outbox.messaging;
 
-import java.time.Instant;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
 
 /**
  * Outbox-basierter Event Publisher für Kafka.

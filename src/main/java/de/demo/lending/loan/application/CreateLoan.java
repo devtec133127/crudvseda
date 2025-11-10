@@ -1,12 +1,8 @@
 package de.demo.lending.loan.application;
 
-import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
-
-import java.time.Instant;
-import java.util.UUID;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.adapters.out.outbox.messaging.OutboxEntity;
 import de.demo.lending.common.adapters.out.outbox.messaging.OutboxRepository;
 import de.demo.lending.common.valueobjects.UserId;
@@ -20,6 +16,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.UUID;
+
+import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
+
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "service.role", havingValue = "loan")
@@ -27,11 +28,13 @@ public class CreateLoan {
     private final LoanRepository repo;
     private final ObjectMapper objectMapper;
     private final OutboxRepository outboxRepository;
+    private final EventPublisher eventPublisher;
 
-    public CreateLoan(LoanRepository repo, OutboxRepository outboxRepository, ObjectMapper objectMapper) {
+    public CreateLoan(LoanRepository repo, OutboxRepository outboxRepository, ObjectMapper objectMapper, EventPublisher eventPublisher) {
         this.repo = repo;
         this.objectMapper = objectMapper;
         this.outboxRepository = outboxRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     /* Application Service koordiniert die folgenden Schritte:
@@ -51,14 +54,14 @@ public class CreateLoan {
                 LoanRequestedPayload payload = LoanEventMapper.toPayload((LoanRequested) event, correlationId, causationId);
 
                 // ############ OUTBOX Pattern ###############
-                OutboxEntity savedEntity = createOutboxEntity((LoanRequested) event, correlationId, causationId);
+                /*OutboxEntity savedEntity = createOutboxEntity((LoanRequested) event, correlationId, causationId);
                 outboxRepository.save(savedEntity);
                 log.info("Event to topic {}: {} saved", LOAN_REQUESTED_V1, payload);
-
+                */
 
                 // Zuvor: Bei Verwendung des Outbox Patterns wird an dieser Stelle nicht mehr versendet.
-                //log.info("Publishing event to topic {}: {}", LOAN_REQUESTED_V1, payload);
-                //publisher.enqueue(LOAN_REQUESTED_V1, payload);
+                log.info("Publishing event to topic {}: {}", LOAN_REQUESTED_V1, payload);
+                eventPublisher.enqueue(LOAN_REQUESTED_V1, payload);
             }
         });
 

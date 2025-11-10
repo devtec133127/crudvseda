@@ -57,3 +57,6 @@ Testbuch", "userId": "123e4567-e89b-12d3-a456-426614174000"}'
   writing a result back to DB after successful publish to avoid long windows.
 - Debezium caveat: Debezium reads the commit log; ensure outbox rows are visible in WAL and configured transformations (
   Outbox Event Router) applied correctly.
+
+############## READ Model ################
+curl -X GET "http://localhost:8080/de4e8262-9796-4f95-b27f-684014fe0c4a" -H "Accept: application/json"

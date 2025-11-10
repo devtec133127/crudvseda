@@ -1,10 +1,5 @@
 package de.demo.lending.inventory.adapters.in.messaging;
 
-import java.time.Instant;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
@@ -23,6 +18,11 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Kafka-basierter Event Listener für Inventory.
@@ -93,6 +93,7 @@ public class KafkaInventoryEventListener {
                     "causationId", causationId,
                     "loanId", loanId.toString(),
                     "copyId", reserved.get().value().toString());
+
             events.enqueue(Topics.INVENTORY_RESERVED_V1, payload);
             log.info("Reserved copy {} for loan {}", reserved.get().value(), loanUuid);
         } else {
@@ -105,6 +106,7 @@ public class KafkaInventoryEventListener {
                     "loanId", loanId.toString(),
                     "reason", "NO_COPY_AVAILABLE"
             );
+
             events.enqueue(Topics.INVENTORY_REJECTED_V1, payload);
             log.info("No copy available for book {} (loan {})", bookUuid, loanUuid);
         }

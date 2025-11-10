@@ -1,19 +1,10 @@
 package de.demo.lending.common.adapters.out.outbox.messaging;
 
+import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.Instant;
 import java.util.UUID;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "outbox")
@@ -31,16 +22,16 @@ public class OutboxEntity {
     @Column(name = "event_id", nullable = false, unique = true)
     private UUID eventId;
 
-    @Column(nullable = false, length = 128)
+    @Column(nullable = false)
     private String aggregate_type;        // loan, inventory, payment
 
-    @Column(nullable = false, length = 128)
+    @Column(nullable = false)
     private String type;                  // z. B. "loan.requested.v1"
 
-    @Column(columnDefinition = "jsonb", nullable = false)
+    @Column(columnDefinition = "text", nullable = false)
     private String payload;               // JSON String (Event-Payload)
 
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "text")
     private String headers;               // optional: Meta (correlationId, etc.)
 
     @Column(nullable = false)
@@ -51,6 +42,6 @@ public class OutboxEntity {
     @Column(nullable = false)
     private int attempt = 0;
 
-    @Column
+    @Column(columnDefinition = "text")
     private String errorMessage;
 }

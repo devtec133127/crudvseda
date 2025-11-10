@@ -1,8 +1,5 @@
 package de.demo.lending.inventory.adapters.in.messaging;
 
-import java.time.Duration;
-import java.util.UUID;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
@@ -12,12 +9,16 @@ import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.ReserveBook;
 import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.read.application.port.LoanStatusReadPort;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.util.UUID;
 
 /**
  * Async-basierter Event Listener für Inventory (ohne Kafka).
@@ -35,14 +36,17 @@ public class AsyncInventoryEventListener {
     private final ReserveBook reserveBookUseCase;
     private final AsyncEventBus eventBus;
     private final ProcessedEventRepository processedRepo;
+    private final LoanStatusReadPort loanStatusReadPort;
 
     public AsyncInventoryEventListener(
             ReserveBook reserveBookUseCase,
             AsyncEventBus eventBus,
-            ProcessedEventRepository processedRepo) {
+            ProcessedEventRepository processedRepo,
+            LoanStatusReadPort loanStatusReadPort) {
         this.reserveBookUseCase = reserveBookUseCase;
         this.eventBus = eventBus;
         this.processedRepo = processedRepo;
+        this.loanStatusReadPort = loanStatusReadPort;
     }
 
     @PostConstruct
@@ -78,11 +82,6 @@ public class AsyncInventoryEventListener {
         Duration duration = Duration.ofDays(durationDays);
 
         reserveBookUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), bookTitle, duration, corralationId, causationId);
-
-
-        // Read-Model aktualisieren (in Read-DB), kann aber auch in DB durch trigger gelöst werden
-        //loanReadRepository.upsertLoanStatus(evt.getLoanId(), evt.getUserId(), evt.getBookTitle(), evt.getDurationDays(), evt.getEventId());
-
 
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
         ProcessedEventUtil.saveEvent(AsyncInventoryEventListener.class, incomingEventId);

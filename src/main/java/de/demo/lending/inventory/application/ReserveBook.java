@@ -1,10 +1,5 @@
 package de.demo.lending.inventory.application;
 
-import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
-import static de.demo.lending.common.events.Topics.RESERVATION_CREATED_V1;
-
-import java.time.Duration;
-
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
@@ -17,10 +12,16 @@ import de.demo.lending.inventory.domain.Reservation;
 import de.demo.lending.inventory.domain.event.BookReserved;
 import de.demo.lending.inventory.domain.event.ReservationCreated;
 import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.read.application.port.LoanStatusReadPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+
+import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
+import static de.demo.lending.common.events.Topics.RESERVATION_CREATED_V1;
 
 @Slf4j
 @Component
@@ -29,12 +30,15 @@ public class ReserveBook {
     private final ReservationRepository reservationRepository;
     private final InventoryRepository repo;
     private final EventPublisher publisher; // eigenes Port-Interface, s.u.
+    private final LoanStatusReadPort loanStatusReadPort;
 
-    public ReserveBook(OpenLibraryClient externalClient, ReservationRepository reservationRepository, InventoryRepository repo, EventPublisher publisher) {
+    public ReserveBook(OpenLibraryClient externalClient, ReservationRepository reservationRepository,
+                       InventoryRepository repo, EventPublisher publisher, LoanStatusReadPort loanStatusReadPort) {
         this.externalClient = externalClient;
         this.repo = repo;
         this.reservationRepository = reservationRepository;
         this.publisher = publisher;
+        this.loanStatusReadPort = loanStatusReadPort;
     }
 
     /* Application Service koordiniert die folgenden Schritte:
@@ -59,9 +63,14 @@ public class ReserveBook {
 
         reservation.pullProducedEvents().forEach(event -> {
             if (event instanceof ReservationCreated) {
+                ReservationCreated rcEvent = (ReservationCreated) event;
                 ReservationCreatedPayload payload = ReservationEventMapper.toPayload((ReservationCreated) event, correlationId, causationId);
                 log.info("Publishing event to topic {}: {}", RESERVATION_CREATED_V1, payload);
                 publisher.enqueue(RESERVATION_CREATED_V1, payload);
+
+                // Read-Model aktualisieren (in Read-DB), kann aber auch in DB durch trigger gelöst werden
+                loanStatusReadPort.updateLoanStatus(rcEvent..get.get.getLoanId(), evt.getUserId(), evt.getBookTitle(), evt.getDurationDays(), evt.getEventId());
+
             }
         });
 
