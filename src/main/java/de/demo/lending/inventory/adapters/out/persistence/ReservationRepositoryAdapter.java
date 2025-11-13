@@ -30,7 +30,8 @@ public class ReservationRepositoryAdapter implements ReservationRepository {
 
         // map Entity to Domain of saved entity
         return Reservation.create(reservation.getReservationId().toString(),
-                "",
+                reservation.getLoanId(),
+                reservation.getCorrelationId(),
                 reservation.getBookTitle(),
                 reservation.getBookId(),
                 reservation.getUserId(),

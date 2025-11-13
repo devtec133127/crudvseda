@@ -1,5 +1,10 @@
 package de.demo.lending.inventory.application;
 
+import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
+import static de.demo.lending.common.events.Topics.RESERVATION_CREATED_V1;
+
+import java.time.Duration;
+
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
@@ -17,11 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Duration;
-
-import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
-import static de.demo.lending.common.events.Topics.RESERVATION_CREATED_V1;
 
 @Slf4j
 @Component
@@ -58,7 +58,7 @@ public class ReserveBook {
 
         BookId bookId = BookId.of(isbn);
 
-        var reservation = Reservation.create(correlationId, causationId, bookId, title, userId, duration);
+        var reservation = Reservation.create(loanId, correlationId, causationId, bookId, title, userId, duration);
         reservationRepository.save(reservation);
 
         reservation.pullProducedEvents().forEach(event -> {
@@ -68,8 +68,8 @@ public class ReserveBook {
                 log.info("Publishing event to topic {}: {}", RESERVATION_CREATED_V1, payload);
                 publisher.enqueue(RESERVATION_CREATED_V1, payload);
 
-                // Read-Model aktualisieren (in Read-DB), kann aber auch in DB durch trigger gelöst werden
-                loanStatusReadPort.updateLoanStatus(rcEvent..get.get.getLoanId(), evt.getUserId(), evt.getBookTitle(), evt.getDurationDays(), evt.getEventId());
+                // TODO: Read-Model aktualisieren (in Read-DB), kann aber auch in DB durch trigger gelöst werden
+                //loanStatusReadPort.updateLoanStatus(rcEvent.getLoanId(), rcEvent.getUserId(), rcEvent.getBookTitle(), rcEvent.getExpiresAt(), rcEvent.getEventId());
 
             }
         });

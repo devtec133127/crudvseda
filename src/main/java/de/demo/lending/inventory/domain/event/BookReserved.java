@@ -18,15 +18,11 @@ public class BookReserved extends BaseDomainEvent {
 
     public BookReserved(LoanId loanId, String correlationId, String causationId,
                         CopyId copyId, String bookTitle, UserId userId, BookId bookId) {
-        super(UUID.randomUUID().toString(), correlationId, causationId, Instant.now(), userId);
+        super(UUID.randomUUID().toString(), loanId, correlationId, causationId, Instant.now(), userId);
         this.loanId = loanId.value().toString();
         this.copyId = copyId.value().toString();
         this.bookTitle = Objects.requireNonNull(bookTitle);
         this.bookId = bookId.value().toString();
-    }
-
-    public String getLoanId() {
-        return loanId;
     }
 
     public String getCopyId() {

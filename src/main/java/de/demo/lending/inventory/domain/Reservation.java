@@ -8,10 +8,12 @@ import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.domain.event.ReservationCreated;
+import de.demo.lending.loan.domain.LoanId;
 
 public class Reservation extends AggregateRoot {
     public enum ReservationStatus {PENDING, CONFIRMED, CANCELLED, FAILED, EXPIRED}
 
+    private final LoanId loanId;
     private final String bookTitle;
     private final BookId bookId;
     private final UserId userId;
@@ -21,17 +23,19 @@ public class Reservation extends AggregateRoot {
     private String copyId; // optional
 
 
-    private Reservation(String id, String correlationId, BookId bookId, String bookTitle, UserId userId) {
+    private Reservation(String id, LoanId loanId, String correlationId, BookId bookId, String bookTitle, UserId userId) {
         super(id, correlationId);
+        this.loanId = loanId;
         this.bookTitle = bookTitle;
         this.bookId = bookId;
         this.userId = userId;
     }
 
-    private Reservation(String id, String correlationId, String bookTitle, BookId bookId, UserId userId,
+    private Reservation(String id, LoanId loanId, String correlationId, String bookTitle, BookId bookId, UserId userId,
                         ReservationStatus status, Instant createdAt, Instant expiresAt, String copyId) {
         super(id, correlationId);
         this.bookTitle = bookTitle;
+        this.loanId = loanId;
         this.bookId = bookId;
         this.userId = userId;
         this.status = status;
@@ -40,19 +44,19 @@ public class Reservation extends AggregateRoot {
         this.copyId = copyId;
     }
 
-    public static Reservation create(String correlationId, String causationId, BookId bookId, String bookTitle, UserId userId, Duration ttl) {
-        Reservation reservation = new Reservation(ReservationId.newId().value().toString(), correlationId, bookId, bookTitle, userId);
+    public static Reservation create(LoanId loanId, String correlationId, String causationId, BookId bookId, String bookTitle, UserId userId, Duration ttl) {
+        Reservation reservation = new Reservation(ReservationId.newId().value().toString(), loanId, correlationId, bookId, bookTitle, userId);
         reservation.status = ReservationStatus.PENDING;
         reservation.createdAt = Instant.now();
         reservation.expiresAt = reservation.createdAt.plus(ttl);
 
-        reservation.raise(new ReservationCreated(correlationId, causationId, reservation.getReservationId(), bookTitle, userId, Instant.now()));
+        reservation.raise(new ReservationCreated(loanId, correlationId, causationId, reservation.getReservationId(), bookTitle, userId, Instant.now()));
         return reservation;
     }
 
-    public static Reservation create(String id, String correlationId, String bookTitle, BookId bookId, UserId userId,
+    public static Reservation create(String id, LoanId loanId, String correlationId, String bookTitle, BookId bookId, UserId userId,
                                      ReservationStatus status, Instant createdAt, Instant expiresAt, String copyId) {
-        return new Reservation(ReservationId.newId().value().toString(), correlationId, bookTitle, bookId, userId, status, createdAt, expiresAt, copyId);
+        return new Reservation(ReservationId.newId().value().toString(), loanId, correlationId, bookTitle, bookId, userId, status, createdAt, expiresAt, copyId);
     }
 
     public void confirm(String copyId) {
@@ -101,5 +105,7 @@ public class Reservation extends AggregateRoot {
         return copyId;
     }
 
-
+    public LoanId getLoanId() {
+        return loanId;
+    }
 }

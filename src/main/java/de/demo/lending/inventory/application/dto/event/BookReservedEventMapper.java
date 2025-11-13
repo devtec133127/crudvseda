@@ -20,6 +20,6 @@ public class BookReservedEventMapper {
                 .userId(e.getUserId().value().toString())
                 .bookTitle(e.getBookTitle())
                 .bookId(e.getBookId())
-                .loanId(e.getLoanId()).build();
+                .loanId(e.getLoanId().value().toString()).build();
     }
 }
