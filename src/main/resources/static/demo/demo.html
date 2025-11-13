@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>EDA Demo - Loan System</title>
+    <link rel="stylesheet" href="demo.css">
+</head>
+<body>
+<div class="container">
+    <h1>Event-Driven Loan Request Demo</h1>
+
+    <button id="createLoanBtn" class="primary-button">
+        Neuen Loan Request erstellen
+    </button>
+
+    <div id="initialResponse" class="response-card hidden">
+        <h3>📬 Initial Response (Loan Service)</h3>
+        <div class="response-content"></div>
+    </div>
+
+    <div id="timeline" class="hidden">
+        <h3>Event Processing Timeline</h3>
+        <div id="events"></div>
+    </div>
+
+    <div id="finalStatus" class="response-card hidden success">
+        <h3>✅ Final Status</h3>
+        <div class="response-content"></div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
