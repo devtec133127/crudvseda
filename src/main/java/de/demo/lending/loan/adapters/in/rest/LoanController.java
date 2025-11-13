@@ -1,23 +1,21 @@
 package de.demo.lending.loan.adapters.in.rest;
 
-import java.util.Map;
-import java.util.UUID;
-
 import de.demo.lending.loan.adapters.in.rest.dto.ReserveBookRequest;
 import de.demo.lending.loan.application.CreateLoan;
 import de.demo.lending.loan.application.command.ReserveBookCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/loans")
-@ConditionalOnProperty(value = "service.role", havingValue = "loan")
 public class LoanController {
     private static final Logger log = LoggerFactory.getLogger(LoanController.class);
     private final CreateLoan createLoan;

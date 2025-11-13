@@ -8,6 +8,7 @@ import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.ReserveBook;
+import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.read.application.port.LoanStatusReadPort;
 import jakarta.annotation.PostConstruct;
@@ -37,16 +38,19 @@ public class AsyncInventoryEventListener {
     private final AsyncEventBus eventBus;
     private final ProcessedEventRepository processedRepo;
     private final LoanStatusReadPort loanStatusReadPort;
+    private final DemoEventSSEPublisher uiPublisher;
 
     public AsyncInventoryEventListener(
             ReserveBook reserveBookUseCase,
             AsyncEventBus eventBus,
             ProcessedEventRepository processedRepo,
-            LoanStatusReadPort loanStatusReadPort) {
+            LoanStatusReadPort loanStatusReadPort,
+            DemoEventSSEPublisher uiPublisher) {
         this.reserveBookUseCase = reserveBookUseCase;
         this.eventBus = eventBus;
         this.processedRepo = processedRepo;
         this.loanStatusReadPort = loanStatusReadPort;
+        this.uiPublisher = uiPublisher;
     }
 
     @PostConstruct
@@ -78,12 +82,13 @@ public class AsyncInventoryEventListener {
         String corralationId = node.get("correlationId").asText();
         String causationId = incomingEventId;
 
-
         Duration duration = Duration.ofDays(durationDays);
 
         reserveBookUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), bookTitle, duration, corralationId, causationId);
 
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
         ProcessedEventUtil.saveEvent(AsyncInventoryEventListener.class, incomingEventId);
+
+        uiPublisher.publishLoanCreatedToUI(loanUuid, userUuid, bookTitle, durationDays);
     }
 }

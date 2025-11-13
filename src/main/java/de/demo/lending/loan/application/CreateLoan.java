@@ -43,9 +43,9 @@ public class CreateLoan {
      3. a.) Übergabe an Outbox Publisher, b.) Speichern der Outbox Entity
      */
     @Transactional
-    public UUID handle(ReserveBookCommand reserveBookCommand, String correlationId, String causationId) {
+    public Loan handle(ReserveBookCommand reserveBookCommand, String correlationId, String causationId) {
         UUID userIdFromRequest = UUID.fromString(reserveBookCommand.userId());
-        var loan = Loan.createNew(UserId.of(userIdFromRequest), reserveBookCommand.bookTitle());
+        Loan loan = Loan.createNew(UserId.of(userIdFromRequest), reserveBookCommand.bookTitle());
         repo.save(loan);
 
         loan.pullDomainEvents().forEach(event -> {
@@ -65,7 +65,7 @@ public class CreateLoan {
             }
         });
 
-        return loan.getId().value();
+        return loan;
     }
 
     private OutboxEntity createOutboxEntity(LoanRequested event, String correlationId, String causationId) {
