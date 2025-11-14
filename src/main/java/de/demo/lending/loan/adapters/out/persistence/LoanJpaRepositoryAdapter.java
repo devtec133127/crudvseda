@@ -36,6 +36,7 @@ public class LoanJpaRepositoryAdapter implements LoanRepository {
         e.setDueDate(l.getDueDate());
         e.setCreatedAt(l.getCreatedAt());
         e.setUpdatedAt(l.getUpdatedAt());
+        e.setLoanId(l.getId().value());
         return e;
     }
 

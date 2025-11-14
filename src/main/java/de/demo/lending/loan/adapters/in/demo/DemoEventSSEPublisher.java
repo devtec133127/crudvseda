@@ -48,6 +48,43 @@ public class DemoEventSSEPublisher {
         eventStore.publishEvent(loanUuid.toString(), demoEvent);
     }
 
+    public void publishBookReservedToUI(UUID loanUuid, UUID userUuid, String bookId) {
+        // Speichere Start-Timestamp für elapsed-time Berechnung
+        loanStartTimes.put(loanUuid.toString(), System.currentTimeMillis());
+
+        // Optional: Initial Event an UI senden
+        DemoEvent demoEvent = DemoEvent.builder()
+                .type("book-reserved")
+                .loanId(loanUuid.toString())
+                .userId(userUuid.toString())
+                .bookId(bookId)
+                .message("Book Reserved erstellt - Events werden verarbeitet...")
+                .timestamp(System.currentTimeMillis())
+                .elapsedMs(calculateElapsedTime(loanUuid.toString()))
+                .build();
+
+        eventStore.publishEvent(loanUuid.toString(), demoEvent);
+    }
+
+    public void publishPaymentCapturedToUI(UUID loanUuid, UUID userUuid, String bookId, String occuredAt) {
+        // Speichere Start-Timestamp für elapsed-time Berechnung
+        loanStartTimes.put(loanUuid.toString(), System.currentTimeMillis());
+
+        // Optional: Initial Event an UI senden
+        DemoEvent demoEvent = DemoEvent.builder()
+                .type("payment-captured")
+                .loanId(loanUuid.toString())
+                .userId(userUuid.toString())
+                .bookId(bookId)
+                .message("Book Reserved erstellt - Events werden verarbeitet...")
+                .timestamp(System.currentTimeMillis())
+                .elapsedMs(calculateElapsedTime(loanUuid.toString()))
+                .occuredAt(occuredAt)
+                .build();
+
+        eventStore.publishEvent(loanUuid.toString(), demoEvent);
+    }
+
     /**
      * Reagiert auf PaymentCompletedEvent.
      * Übersetzt Domain Event in UI-freundliches DemoEvent.

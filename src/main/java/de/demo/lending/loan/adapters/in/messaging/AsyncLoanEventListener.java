@@ -7,12 +7,15 @@ import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.inventory.application.InventoryRepository;
 import de.demo.lending.inventory.application.ReserveBook;
+import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 /**
  * Async-basierter Event Listener für Loan (ohne Kafka).
@@ -31,16 +34,19 @@ public class AsyncLoanEventListener {
     private final EventPublisher events;
     private final ReserveBook reserveBookUseCase;
     private final AsyncEventBus eventBus;
+    private final DemoEventSSEPublisher uiPublisher;
 
     public AsyncLoanEventListener(
             InventoryRepository repo,
             EventPublisher events,
             ReserveBook reserveBookUseCase,
-            AsyncEventBus eventBus) {
+            AsyncEventBus eventBus,
+            DemoEventSSEPublisher uiPublisher) {
         this.repo = repo;
         this.events = events;
         this.reserveBookUseCase = reserveBookUseCase;
         this.eventBus = eventBus;
+        this.uiPublisher = uiPublisher;
     }
 
     @PostConstruct
@@ -56,10 +62,16 @@ public class AsyncLoanEventListener {
         JsonNode node = om.readTree(json);
 
         String type = node.get("type").asText();
+        UUID loanUuid = UUID.fromString(node.get("loanId").asText());
+        UUID userUuid = UUID.fromString(node.get("userId").asText());
+        //String bookTitle = node.get("bookTitle").asText();
+        String bookId = node.get("bookId").asText();
+        String occurredAt = node.get("occurredAt").asText();
 
         switch (type) {
-            case "PaymentCapturedPayload":
+            case "PaymentCaptured":
                 log.info("############ inform user about the successful lending process ############");
+                uiPublisher.publishPaymentCapturedToUI(loanUuid, userUuid, bookId, occurredAt);
                 break;
             case "PaymentFailedPayload":
                 log.warn("############ inform user about the failed lending process ############");
@@ -67,5 +79,7 @@ public class AsyncLoanEventListener {
             default:
                 log.warn("Unbekanntes Event: {}", type);
         }
+
+
     }
 }

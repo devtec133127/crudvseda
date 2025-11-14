@@ -1,7 +1,5 @@
 package de.demo.lending.payment.application.dto.event;
 
-import java.util.UUID;
-
 import de.demo.lending.payment.application.dto.PaymentCapturedPayload;
 import de.demo.lending.payment.application.dto.PaymentCreatedPayload;
 import de.demo.lending.payment.application.dto.PaymentFailedPayload;
@@ -9,6 +7,8 @@ import de.demo.lending.payment.domain.event.PaymentCaptured;
 import de.demo.lending.payment.domain.event.PaymentCreated;
 import de.demo.lending.payment.domain.event.PaymentFailed;
 import lombok.NoArgsConstructor;
+
+import java.util.UUID;
 
 @NoArgsConstructor
 public final class PaymentEventMapper {
@@ -36,6 +36,7 @@ public final class PaymentEventMapper {
                 .correlationId(correlationId)
                 .causationId(causationId)
                 .userId(e.getUserId().toString())
+                .type(PaymentCaptured.class.getSimpleName())
                 .bookId(e.getBookId().toString()).build();
     }
 

@@ -1,7 +1,5 @@
 package de.demo.lending.payment.adapter.in.messaging;
 
-import java.util.UUID;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
@@ -9,6 +7,7 @@ import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.payment.application.ExecutePayment;
 import de.demo.lending.payment.domain.PaymentMethod;
@@ -19,6 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 /**
  * Async-basierter Event Listener für Payment (ohne Kafka).
@@ -35,12 +36,15 @@ public class AsyncPaymentEventListener {
     private final ObjectMapper om = new ObjectMapper();
     private final ExecutePayment executePaymentUseCase;
     private final AsyncEventBus eventBus;
+    private final DemoEventSSEPublisher uiPublisher;
 
     public AsyncPaymentEventListener(
             ExecutePayment executePaymentUseCase,
-            AsyncEventBus eventBus) {
+            AsyncEventBus eventBus,
+            DemoEventSSEPublisher uiPublisher) {
         this.executePaymentUseCase = executePaymentUseCase;
         this.eventBus = eventBus;
+        this.uiPublisher = uiPublisher;
     }
 
     @PostConstruct
@@ -71,6 +75,7 @@ public class AsyncPaymentEventListener {
         String corralationId = node.get("correlationId").asText();
         String causationId = incomingEventId;
 
+        uiPublisher.publishBookReservedToUI(loanUuid, userUuid, bookId);
 
         executePaymentUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), BookId.of(bookId),
                 PaymentPolicy.STANDARD_FEE, PaymentMethod.PAYPAL, corralationId, causationId);

@@ -82,13 +82,13 @@ public class AsyncInventoryEventListener {
         String corralationId = node.get("correlationId").asText();
         String causationId = incomingEventId;
 
+        uiPublisher.publishLoanCreatedToUI(loanUuid, userUuid, bookTitle, durationDays);
+
         Duration duration = Duration.ofDays(durationDays);
 
         reserveBookUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), bookTitle, duration, corralationId, causationId);
 
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
         ProcessedEventUtil.saveEvent(AsyncInventoryEventListener.class, incomingEventId);
-
-        uiPublisher.publishLoanCreatedToUI(loanUuid, userUuid, bookTitle, durationDays);
     }
 }
