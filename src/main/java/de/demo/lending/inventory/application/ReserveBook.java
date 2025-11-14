@@ -13,7 +13,6 @@ import de.demo.lending.inventory.application.dto.ReservationCreatedPayload;
 import de.demo.lending.inventory.application.dto.event.BookReservedEventMapper;
 import de.demo.lending.inventory.application.dto.event.ReservationEventMapper;
 import de.demo.lending.inventory.domain.InventoryCopy;
-import de.demo.lending.inventory.domain.Reservation;
 import de.demo.lending.inventory.domain.event.BookReserved;
 import de.demo.lending.inventory.domain.event.ReservationCreated;
 import de.demo.lending.loan.domain.LoanId;
@@ -58,7 +57,7 @@ public class ReserveBook {
 
         BookId bookId = BookId.of(isbn);
 
-        var reservation = Reservation.create(loanId, correlationId, causationId, bookId, title, userId, duration);
+        /*var reservation = Reservation.create(loanId, correlationId, causationId, bookId, title, userId, duration);
         reservationRepository.save(reservation);
 
         reservation.pullProducedEvents().forEach(event -> {
@@ -72,13 +71,24 @@ public class ReserveBook {
                 //loanStatusReadPort.updateLoanStatus(rcEvent.getLoanId(), rcEvent.getUserId(), rcEvent.getBookTitle(), rcEvent.getExpiresAt(), rcEvent.getEventId());
 
             }
-        });
+        });*/
 
-        InventoryCopy copy = InventoryCopy.createNew(correlationId, causationId, loanId, BookId.of(isbn), title, userId, reservation.getReservationId());
+        InventoryCopy copy = InventoryCopy.createNew(correlationId, causationId, loanId, BookId.of(isbn), title, userId);
+        repo.save(copy);
+
+        copy.reserve(correlationId, causationId);
         repo.save(copy);
 
         copy.pullProducedEvents().forEach(event -> {
-            if (event instanceof BookReserved) {
+            if (event instanceof ReservationCreated) {
+                ReservationCreatedPayload payload = ReservationEventMapper.toPayload((ReservationCreated) event, correlationId, causationId);
+                log.info("Publishing event to topic {}: {}", RESERVATION_CREATED_V1, payload);
+                publisher.enqueue(RESERVATION_CREATED_V1, payload);
+
+                // TODO: Read-Model aktualisieren (in Read-DB), kann aber auch in DB durch trigger gelöst werden
+                //loanStatusReadPort.updateLoanStatus(rcEvent.getLoanId(), rcEvent.getUserId(), rcEvent.getBookTitle(), rcEvent.getExpiresAt(), rcEvent.getEventId());
+
+            } else if (event instanceof BookReserved) {
                 BookReservedPayload payload = BookReservedEventMapper.toPayload((BookReserved) event, correlationId, causationId);
                 log.info("Publishing event to topic {}: {}", INVENTORY_RESERVED_V1, payload);
                 publisher.enqueue(INVENTORY_RESERVED_V1, payload);

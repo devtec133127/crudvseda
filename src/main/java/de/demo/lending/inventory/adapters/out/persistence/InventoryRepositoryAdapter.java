@@ -12,6 +12,7 @@ import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.InventoryRepository;
 import de.demo.lending.inventory.domain.InventoryCopy;
 import de.demo.lending.inventory.domain.ReservationId;
+import de.demo.lending.loan.domain.LoanId;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,8 +60,8 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
     private InventoryCopy toDomain(InventoryCopyEntity e) {
         return new InventoryCopy(
                 e.getId().toString(),
+                LoanId.of(UUID.fromString(e.getLoanId())),
                 null,
-                //CopyId.of(e.getId()),
                 BookId.of(e.getBookId()),
                 UserId.of(UUID.fromString(e.getUserId())),
                 e.getBookTitle(),

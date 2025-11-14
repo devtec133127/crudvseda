@@ -176,6 +176,46 @@ function subscribeToEvents(loanId) {
         eventSource = null;
     });
 
+    eventSource.addEventListener('analytics', (e) => {
+        const data = JSON.parse(e.data);
+        displayEvent(data.type, {
+            title: data.type,
+            elapsed: data.elapsedMs,
+            message: data.message || 'Analysis',
+            details: [],
+        });
+    })
+
+    eventSource.addEventListener('notification', (e) => {
+        const data = JSON.parse(e.data);
+        displayEvent(data.type, {
+            title: data.type,
+            elapsed: data.elapsedMs,
+            message: data.message || 'Notification',
+            details: [],
+        });
+    })
+
+    eventSource.addEventListener('fraud', (e) => {
+        const data = JSON.parse(e.data);
+        displayEvent(data.type, {
+            title: data.type,
+            elapsed: data.elapsedMs,
+            message: data.message || 'Fraud Check',
+            details: [],
+        });
+    })
+
+    eventSource.addEventListener('payment-finished', (e) => {
+        const data = JSON.parse(e.data);
+        displayEvent(data.type, {
+            title: data.type,
+            elapsed: data.elapsedMs,
+            message: data.message || 'Payment finished',
+            details: [],
+        });
+    })
+
     // Error Handling
     eventSource.onerror = (error) => {
         console.error('=== SSE ERROR ===', error);
@@ -291,13 +331,20 @@ function displayEvent(type, data) {
     eventCard.innerHTML = `
         <div class="event-header">
             <span class="event-title">${icon} ${data.title}</span>
+        </div>
+        <span class="elapsed">+${data.elapsed}ms</span>
+    `;
+    
+    /*eventCard.innerHTML = `
+        <div class="event-header">
+            <span class="event-title">${icon} ${data.title}</span>
             <span class="elapsed">+${data.elapsed}ms</span>
         </div>
         <div class="event-body">
             <p class="event-message">✓ ${data.message}</p>
             ${data.details.map(detail => `<p class="event-detail">${detail}</p>`).join('')}
         </div>
-    `;
+    `;*/
 
     // WICHTIG: appendChild fügt UNTERHALB hinzu, überschreibt nicht!
     eventsContainer.appendChild(eventCard);

@@ -4,7 +4,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
+import de.demo.lending.common.events.Topics;
 import de.demo.lending.loan.adapters.in.demo.dto.DemoEvent;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,13 +28,119 @@ import org.springframework.stereotype.Component;
 @Component
 public class DemoEventSSEPublisher {
 
+    private final AsyncEventBus eventBus;
     private final DemoEventStore eventStore;
+    private final ObjectMapper objectMapper;
 
     // Speichert Start-Timestamp pro Loan für elapsed-time Berechnung
     private final Map<String, Long> loanStartTimes = new ConcurrentHashMap<>();
 
-    public DemoEventSSEPublisher(DemoEventStore eventStore) {
+    public DemoEventSSEPublisher(AsyncEventBus eventBus, DemoEventStore eventStore) {
+        this.eventBus = eventBus;
         this.eventStore = eventStore;
+        this.objectMapper = new ObjectMapper();
+    }
+
+    @PostConstruct
+    public void subscribe() {
+        eventBus.subscribe(Topics.LOAN_REQUESTED_V1, this::fireAnalyticsEvent);
+        eventBus.subscribe(Topics.LOAN_REQUESTED_V1, this::fireNotificationEvent);
+        eventBus.subscribe(Topics.LOAN_REQUESTED_V1, this::fireFraudDetection);
+        eventBus.subscribe(Topics.LOAN_REQUESTED_V1, this::firePaymentFinished);
+    }
+
+    private long randomBeetween(int min, int max) {
+        return min + (long) (Math.random() * (max - min));
+    }
+
+    private DemoEvent createDemoEvent(String eventJson, String title, String message) {
+        JsonNode node = null;
+        try {
+            node = objectMapper.readTree(eventJson);
+
+            String incomingEventId = node.has("eventId") ? node.get("eventId").asText(null) : null;
+            // mandatory fields expected: loanId, bookId
+            if (!node.has("loanId") || !node.has("bookId")) {
+                log.warn("Received event without loanId/bookId: {}", eventJson);
+            }
+
+            UUID loanUuid = UUID.fromString(node.get("loanId").asText());
+            UUID userUuid = UUID.fromString(node.get("userId").asText());
+            String reservationId = "";
+            if (node.has("reservationId")) {
+                reservationId = UUID.fromString(node.get("reservationId").asText()).toString();
+            }
+
+            String bookId = "";
+            if (node.has("bookId")) {
+                bookId = node.get("bookId").asText();
+            }
+
+            return DemoEvent.builder()
+                    .type(title)
+                    .loanId(loanUuid.toString())
+                    .userId(userUuid.toString())
+                    .message(message)
+                    .reservationId(reservationId)
+                    .bookId(bookId)
+                    .timestamp(System.currentTimeMillis())
+                    .elapsedMs(calculateElapsedTime(loanUuid.toString()))
+                    .build();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void fireAnalyticsEvent(String eventJson) {
+        try {
+            Thread.sleep(randomBeetween(100, 200));
+
+            DemoEvent demoEvent = createDemoEvent(eventJson, "analytics", "Analytics");
+
+            eventStore.publishEvent(demoEvent.getLoanId(), demoEvent);
+
+        } catch (InterruptedException e) {
+            log.error("Analytics interrupted!", e);
+        }
+    }
+
+    private void fireNotificationEvent(String eventJson) {
+        try {
+            Thread.sleep(randomBeetween(150, 250));
+
+            DemoEvent demoEvent = createDemoEvent(eventJson, "notification", "Notification");
+
+            eventStore.publishEvent(demoEvent.getLoanId(), demoEvent);
+
+        } catch (InterruptedException e) {
+            log.error("Benachrichtigung versenden interrupted!", e);
+        }
+    }
+
+    private void firePaymentFinished(String eventJson) {
+        try {
+            Thread.sleep(randomBeetween(400, 600));
+
+            DemoEvent demoEvent = createDemoEvent(eventJson, "payment-finished", "Payment Finished");
+
+            eventStore.publishEvent(demoEvent.getLoanId(), demoEvent);
+
+        } catch (InterruptedException e) {
+            log.error("Zahlung Abgeschlossen interrupted!", e);
+        }
+    }
+
+    private void fireFraudDetection(String eventJson) {
+        try {
+            Thread.sleep(randomBeetween(500, 700));
+
+            DemoEvent demoEvent = createDemoEvent(eventJson, "fraud", "Fraud Check");
+
+            eventStore.publishEvent(demoEvent.getLoanId(), demoEvent);
+
+        } catch (InterruptedException e) {
+            log.error("Zahlung Abgeschlossen interrupted!", e);
+        }
     }
 
     public void publishLoanCreatedToUI(UUID loanUuid, UUID userUuid, String bookTitle, long durationDays) {
@@ -59,7 +171,7 @@ public class DemoEventSSEPublisher {
                 .userId(userUuid.toString())
                 .bookId(bookId)
                 .reservationId(reservationId.toString())
-                .message("Book Reserved erstellt - Events werden verarbeitet...")
+                .message("Buch wurde reserviert")
                 .timestamp(System.currentTimeMillis())
                 .elapsedMs(calculateElapsedTime(loanUuid.toString()))
                 .build();
@@ -77,7 +189,7 @@ public class DemoEventSSEPublisher {
                 .loanId(loanUuid.toString())
                 .userId(userUuid.toString())
                 .bookId(bookId)
-                .message("Book Reserved erstellt - Events werden verarbeitet...")
+                .message("Zahlung erfasst")
                 .timestamp(System.currentTimeMillis())
                 //.amount((double) fee.getCent())
                 //.transactionId(transactionId.toString())
