@@ -1,12 +1,12 @@
 package de.demo.lending.loan.adapters.in.demo;
 
-import de.demo.lending.loan.adapters.in.demo.dto.DemoEvent;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import de.demo.lending.loan.adapters.in.demo.dto.DemoEvent;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * Demo Event Listener für die Präsentations-UI.
@@ -48,7 +48,7 @@ public class DemoEventSSEPublisher {
         eventStore.publishEvent(loanUuid.toString(), demoEvent);
     }
 
-    public void publishBookReservedToUI(UUID loanUuid, UUID userUuid, String bookId) {
+    public void publishBookReservedToUI(UUID loanUuid, UUID userUuid, String bookId, UUID reservationId) {
         // Speichere Start-Timestamp für elapsed-time Berechnung
         loanStartTimes.put(loanUuid.toString(), System.currentTimeMillis());
 
@@ -58,6 +58,7 @@ public class DemoEventSSEPublisher {
                 .loanId(loanUuid.toString())
                 .userId(userUuid.toString())
                 .bookId(bookId)
+                .reservationId(reservationId.toString())
                 .message("Book Reserved erstellt - Events werden verarbeitet...")
                 .timestamp(System.currentTimeMillis())
                 .elapsedMs(calculateElapsedTime(loanUuid.toString()))
@@ -78,6 +79,8 @@ public class DemoEventSSEPublisher {
                 .bookId(bookId)
                 .message("Book Reserved erstellt - Events werden verarbeitet...")
                 .timestamp(System.currentTimeMillis())
+                //.amount((double) fee.getCent())
+                //.transactionId(transactionId.toString())
                 .elapsedMs(calculateElapsedTime(loanUuid.toString()))
                 .occuredAt(occuredAt)
                 .build();

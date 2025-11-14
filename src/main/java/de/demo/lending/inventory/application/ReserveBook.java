@@ -63,7 +63,7 @@ public class ReserveBook {
 
         reservation.pullProducedEvents().forEach(event -> {
             if (event instanceof ReservationCreated) {
-                ReservationCreated rcEvent = (ReservationCreated) event;
+                //ReservationCreated rcEvent = (ReservationCreated) event;
                 ReservationCreatedPayload payload = ReservationEventMapper.toPayload((ReservationCreated) event, correlationId, causationId);
                 log.info("Publishing event to topic {}: {}", RESERVATION_CREATED_V1, payload);
                 publisher.enqueue(RESERVATION_CREATED_V1, payload);
@@ -74,7 +74,7 @@ public class ReserveBook {
             }
         });
 
-        InventoryCopy copy = InventoryCopy.createNew(correlationId, causationId, loanId, BookId.of(isbn), title, userId);
+        InventoryCopy copy = InventoryCopy.createNew(correlationId, causationId, loanId, BookId.of(isbn), title, userId, reservation.getReservationId());
         repo.save(copy);
 
         copy.pullProducedEvents().forEach(event -> {

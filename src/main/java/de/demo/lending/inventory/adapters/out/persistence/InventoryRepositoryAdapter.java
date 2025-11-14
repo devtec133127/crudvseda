@@ -11,6 +11,7 @@ import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.InventoryRepository;
 import de.demo.lending.inventory.domain.InventoryCopy;
+import de.demo.lending.inventory.domain.ReservationId;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,7 +65,8 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
                 UserId.of(UUID.fromString(e.getUserId())),
                 e.getBookTitle(),
                 //e.getCreatedAt() != null ? e.getCreatedAt() : Instant.now(),
-                e.getUpdatedAt() != null ? e.getUpdatedAt() : Instant.now()
+                e.getUpdatedAt() != null ? e.getUpdatedAt() : Instant.now(),
+                ReservationId.of(UUID.fromString(e.getReservationId()))
         );
     }
 

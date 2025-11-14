@@ -1,5 +1,7 @@
 package de.demo.lending.payment.adapter.in.messaging;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
@@ -18,8 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 /**
  * Async-basierter Event Listener für Payment (ohne Kafka).
@@ -71,11 +71,12 @@ public class AsyncPaymentEventListener {
 
         UUID loanUuid = UUID.fromString(node.get("loanId").asText());
         UUID userUuid = UUID.fromString(node.get("userId").asText());
+        UUID reservationId = UUID.fromString(node.get("reservationId").asText());
         String bookId = node.get("bookId").asText();
         String corralationId = node.get("correlationId").asText();
         String causationId = incomingEventId;
 
-        uiPublisher.publishBookReservedToUI(loanUuid, userUuid, bookId);
+        uiPublisher.publishBookReservedToUI(loanUuid, userUuid, bookId, reservationId);
 
         executePaymentUseCase.handle(UserId.of(userUuid), LoanId.of(loanUuid), BookId.of(bookId),
                 PaymentPolicy.STANDARD_FEE, PaymentMethod.PAYPAL, corralationId, causationId);

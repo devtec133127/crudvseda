@@ -8,24 +8,29 @@ import de.demo.lending.common.domain.events.BaseDomainEvent;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.domain.ReservationId;
 import de.demo.lending.loan.domain.LoanId;
 
 public class BookReserved extends BaseDomainEvent {
-    private final String loanId;
-    private final String copyId;
+    private final CopyId copyId;
     private final String bookTitle;
-    private final String bookId;
+    private final BookId bookId;
+    private final ReservationId reservationId;
 
     public BookReserved(LoanId loanId, String correlationId, String causationId,
-                        CopyId copyId, String bookTitle, UserId userId, BookId bookId) {
+                        CopyId copyId, String bookTitle, UserId userId, BookId bookId, ReservationId reservationId) {
         super(UUID.randomUUID().toString(), loanId, correlationId, causationId, Instant.now(), userId);
-        this.loanId = loanId.value().toString();
-        this.copyId = copyId.value().toString();
+        this.copyId = copyId;
         this.bookTitle = Objects.requireNonNull(bookTitle);
-        this.bookId = bookId.value().toString();
+        this.bookId = bookId;
+        this.reservationId = reservationId;
     }
 
-    public String getCopyId() {
+    public ReservationId getReservationId() {
+        return reservationId;
+    }
+
+    public CopyId getCopyId() {
         return copyId;
     }
 
@@ -33,7 +38,7 @@ public class BookReserved extends BaseDomainEvent {
         return bookTitle;
     }
 
-    public String getBookId() {
+    public BookId getBookId() {
         return bookId;
     }
 }

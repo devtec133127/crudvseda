@@ -17,6 +17,7 @@ public final class ReservationEventMapper {
                 .eventId(UUID.randomUUID().toString())
                 .occurredAt(e.getOccurredAt().toString())
                 .correlationId(correlationId)
+                .reservationId(e.getReservationId().value().toString())
                 .causationId(causationId)
                 .userId(e.getUserId().toString())
                 .bookTitle(e.getBookTitle()).build();

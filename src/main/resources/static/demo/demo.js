@@ -25,6 +25,7 @@ document.getElementById('createLoanBtn').addEventListener('click', async () => {
     try {
         console.log('Sending POST request to:', `${API_BASE}/loans`);
 
+        const bookTitle = document.getElementById('bookTitleInput').value.trim();
         // POST Request zum Backend
         const response = await fetch(`${API_BASE}/loans`, {
             method: 'POST',
@@ -33,7 +34,7 @@ document.getElementById('createLoanBtn').addEventListener('click', async () => {
             },
             body: JSON.stringify({
                 userId: '518aeace-387a-4a16-a0b8-b6d6fa9e8bc3',
-                bookTitle: 'Java'
+                bookTitle: bookTitle
             })
         });
 
@@ -509,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Debug Helper
 // =============================================================================
 
-window.debugSSE = function() {
+window.debugSSE = function () {
     console.log('=== DEBUG INFO ===');
     console.log('Current Loan ID:', currentLoanId);
     console.log('EventSource status:', eventSource ? eventSource.readyState : 'null');
@@ -517,7 +518,7 @@ window.debugSSE = function() {
     console.log('Events container children:', document.getElementById('events')?.children.length);
 };
 
-window.testEvent = function() {
+window.testEvent = function () {
     console.log('=== TEST EVENT ===');
     displayEvent('payment', {
         title: 'TEST Payment Service',

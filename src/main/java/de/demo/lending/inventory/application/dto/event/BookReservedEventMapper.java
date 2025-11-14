@@ -19,7 +19,8 @@ public class BookReservedEventMapper {
                 .causationId(causationId)
                 .userId(e.getUserId().value().toString())
                 .bookTitle(e.getBookTitle())
-                .bookId(e.getBookId())
+                .bookId(e.getBookId().value())
+                .reservationId(e.getReservationId().value().toString())
                 .loanId(e.getLoanId().value().toString()).build();
     }
 }

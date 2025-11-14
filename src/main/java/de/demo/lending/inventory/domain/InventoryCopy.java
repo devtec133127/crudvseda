@@ -18,26 +18,28 @@ public class InventoryCopy extends AggregateRoot {
     private InventoryState state;
     private Instant updatedAt;
     private final String bookTitle;
+    private final ReservationId reservationId;
 
     private final java.util.List<Object> domainEvents = new java.util.ArrayList<>();
 
     public InventoryCopy(String id, String correlationId, BookId bookId, UserId userId,
-                         String bookTitle, Instant updatedAt) {
+                         String bookTitle, Instant updatedAt, ReservationId reservationId) {
         super(id, correlationId);
 
         this.bookId = bookId;
         this.userId = userId;
         this.updatedAt = updatedAt;
         this.bookTitle = bookTitle;
+        this.reservationId = reservationId;
     }
 
     public static InventoryCopy createNew(String correlationId, String causationId, LoanId loanId,
-                                          BookId bookId, String bookTitle, UserId userId) {
+                                          BookId bookId, String bookTitle, UserId userId, ReservationId reservationId) {
         var now = Instant.now();
         InventoryCopy newInventory = new InventoryCopy(CopyId.newId().toString(), correlationId, bookId, userId,
-                bookTitle, now);
+                bookTitle, now, reservationId);
         newInventory.state = InventoryState.RESERVED;
-        newInventory.raise(new BookReserved(loanId, correlationId, causationId, newInventory.getCopyId(), bookTitle, userId, bookId));
+        newInventory.raise(new BookReserved(loanId, correlationId, causationId, newInventory.getCopyId(), bookTitle, userId, bookId, reservationId));
         return newInventory;
     }
 
