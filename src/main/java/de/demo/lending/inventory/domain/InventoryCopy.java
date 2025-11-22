@@ -1,15 +1,15 @@
 package de.demo.lending.inventory.domain;
 
-import java.time.Instant;
-import java.util.UUID;
-
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.domain.event.BookAvailabilityCheckedEvent;
 import de.demo.lending.inventory.domain.event.BookReserved;
-import de.demo.lending.inventory.domain.event.ReservationCreated;
 import de.demo.lending.loan.domain.LoanId;
+
+import java.time.Instant;
+import java.util.UUID;
 
 public class InventoryCopy extends AggregateRoot {
     public enum InventoryState {IN_TRANSIENT, AVAILABLE, RESERVED, LOANED}
@@ -42,7 +42,7 @@ public class InventoryCopy extends AggregateRoot {
         InventoryCopy newInventory = new InventoryCopy(CopyId.newId().toString(), loanId, correlationId, bookId, userId,
                 bookTitle, now, ReservationId.newId());
         newInventory.state = InventoryState.IN_TRANSIENT;
-        newInventory.raise(new ReservationCreated(loanId, correlationId, causationId, ReservationId.newId(), bookTitle, userId, Instant.now()));
+        newInventory.raise(new BookAvailabilityCheckedEvent(loanId, correlationId, causationId, true, bookTitle, userId));
         return newInventory;
     }
 

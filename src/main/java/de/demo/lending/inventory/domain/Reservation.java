@@ -1,14 +1,14 @@
 package de.demo.lending.inventory.domain;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.UUID;
-
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.domain.event.ReservationCreated;
+import de.demo.lending.inventory.domain.event.BookAvailabilityCheckedEvent;
 import de.demo.lending.loan.domain.LoanId;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.UUID;
 
 public class Reservation extends AggregateRoot {
     public enum ReservationStatus {PENDING, CONFIRMED, CANCELLED, FAILED, EXPIRED}
@@ -50,7 +50,7 @@ public class Reservation extends AggregateRoot {
         reservation.createdAt = Instant.now();
         reservation.expiresAt = reservation.createdAt.plus(ttl);
 
-        reservation.raise(new ReservationCreated(loanId, correlationId, causationId, reservation.getReservationId(), bookTitle, userId, Instant.now()));
+        reservation.raise(new BookAvailabilityCheckedEvent(loanId, correlationId, causationId, true, bookTitle, userId));
         return reservation;
     }
 

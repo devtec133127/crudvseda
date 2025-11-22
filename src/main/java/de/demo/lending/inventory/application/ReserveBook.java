@@ -1,10 +1,5 @@
 package de.demo.lending.inventory.application;
 
-import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
-import static de.demo.lending.common.events.Topics.RESERVATION_CREATED_V1;
-
-import java.time.Duration;
-
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
@@ -13,14 +8,19 @@ import de.demo.lending.inventory.application.dto.ReservationCreatedPayload;
 import de.demo.lending.inventory.application.dto.event.BookReservedEventMapper;
 import de.demo.lending.inventory.application.dto.event.ReservationEventMapper;
 import de.demo.lending.inventory.domain.InventoryCopy;
+import de.demo.lending.inventory.domain.event.BookAvailabilityCheckedEvent;
 import de.demo.lending.inventory.domain.event.BookReserved;
-import de.demo.lending.inventory.domain.event.ReservationCreated;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.read.application.port.LoanStatusReadPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+
+import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
+import static de.demo.lending.common.events.Topics.RESERVATION_CREATED_V1;
 
 @Slf4j
 @Component
@@ -80,8 +80,8 @@ public class ReserveBook {
         repo.save(copy);
 
         copy.pullProducedEvents().forEach(event -> {
-            if (event instanceof ReservationCreated) {
-                ReservationCreatedPayload payload = ReservationEventMapper.toPayload((ReservationCreated) event, correlationId, causationId);
+            if (event instanceof BookAvailabilityCheckedEvent) {
+                ReservationCreatedPayload payload = ReservationEventMapper.toPayload((BookAvailabilityCheckedEvent) event, correlationId, causationId);
                 log.info("Publishing event to topic {}: {}", RESERVATION_CREATED_V1, payload);
                 publisher.enqueue(RESERVATION_CREATED_V1, payload);
 
