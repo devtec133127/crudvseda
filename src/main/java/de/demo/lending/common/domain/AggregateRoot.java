@@ -1,13 +1,9 @@
 package de.demo.lending.common.domain;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
 import de.demo.lending.common.domain.events.BaseDomainEvent;
+
+import java.time.Instant;
+import java.util.*;
 
 /**
  * Basis für echte DDD-Aggregate (kein JPA). Hält gemeinsame Metadaten + event-bag.
@@ -16,7 +12,7 @@ public abstract class AggregateRoot {
     private final String id;                       // aggregate id (z.B. reservationId, copyId)
     private final String correlationId;            // meist requestId
     private final Instant createdAt;
-    private String lastProcessedEventId;           // optional, für idempotenz/audit
+    private UUID lastProcessedEventId;           // optional, für idempotenz/audit
 
     // transient: während Lebenszyklus des Aggregats gesammelte Domain-Events
     private final List<BaseDomainEvent> producedEvents = new ArrayList<>();
@@ -28,10 +24,21 @@ public abstract class AggregateRoot {
     }
 
     // --- getters ---
-    public String getId() { return id; }
-    public String getCorrelationId() { return correlationId; }
-    public Instant getCreatedAt() { return createdAt; }
-    public String getLastProcessedEventId() { return lastProcessedEventId; }
+    public String getId() {
+        return id;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public UUID getLastProcessedEventId() {
+        return lastProcessedEventId;
+    }
 
     // --- produced events handling ---
     protected void raise(BaseDomainEvent evt) {

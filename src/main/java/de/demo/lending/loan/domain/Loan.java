@@ -1,11 +1,12 @@
 package de.demo.lending.loan.domain;
 
-import java.time.Instant;
-import java.time.LocalDate;
-
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.event.LoanRequested;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.UUID;
 
 public class Loan {
     private final LoanId id;
@@ -36,11 +37,13 @@ public class Loan {
         this.updatedAt = updatedAt;
     }
 
-    public static Loan createNew(UserId userId, String bookTitle) {
+    public static Loan createNew(UserId userId, String bookTitle, String correlationId, String causationId) {
         var now = Instant.now();
         Loan newLoan = new Loan(LoanId.newId(), userId, bookTitle, null, Status.REQUESTED, null, now, now);
         newLoan.status = Status.REQUESTED;
-        newLoan.raise(new LoanRequested(newLoan.getId(), userId, bookTitle, Instant.now(), LoanPolicy.STANDARD_DURATION));
+
+        newLoan.raise(new LoanRequested(UUID.randomUUID(), newLoan.getId(), correlationId, causationId, Instant.now(),
+                userId, bookTitle, LoanPolicy.STANDARD_DURATION));
         return newLoan;
     }
 

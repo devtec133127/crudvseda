@@ -18,14 +18,19 @@ spring:
       hibernate.jdbc.time_zone: UTC
 
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    bootstrap-servers: localhost:9092
     consumer:
       auto-offset-reset: earliest
+      enable-auto-commit: false  # Wichtig für Transaktionen!
       properties:
         isolation.level: read_committed
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
     producer:
       acks: all
-      retries: 5
+      retries: 3
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         enable.idempotence: true
 

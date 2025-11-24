@@ -1,11 +1,12 @@
 package de.demo.lending.common.adapters.out.outbox.messaging;
 
-import java.time.Instant;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.UUID;
 
 @Service
 public class OutboxMarker {
@@ -17,7 +18,7 @@ public class OutboxMarker {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markAsSent(long messageId, Instant sentAt) {
+    public void markAsSent(UUID messageId, Instant sentAt) {
 
         repo.findById(messageId).ifPresent(e -> {
             e.setPublishedAt(sentAt);
@@ -26,7 +27,7 @@ public class OutboxMarker {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void incrementAttempt(long messageId, String errorMessage) {
+    public void incrementAttempt(UUID messageId, String errorMessage) {
         repo.findById(messageId).ifPresent(e -> {
             e.setAttempt(e.getAttempt() + 1);
             e.setErrorMessage(errorMessage);

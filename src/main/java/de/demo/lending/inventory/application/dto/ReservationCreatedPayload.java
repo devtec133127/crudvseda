@@ -10,9 +10,4 @@ public class ReservationCreatedPayload extends DtoPayload {
     private static final String TYPE = "ReservationCreatedPayload";
     private final String bookTitle;
     private final boolean isAvailable;
-
-    /*public ReservationCreatedPayload(String eventId, String occurredAt, String correlationId, String causationId, String userId, String bookTitle) {
-        super(eventId, occurredAt, correlationId, causationId, userId, TYPE);
-        this.bookTitle = bookTitle;
-    }*/
 }

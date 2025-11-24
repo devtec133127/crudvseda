@@ -45,7 +45,8 @@ public class CreateLoan {
     @Transactional
     public Loan handle(ReserveBookCommand reserveBookCommand, String correlationId, String causationId) {
         UUID userIdFromRequest = UUID.fromString(reserveBookCommand.userId());
-        Loan loan = Loan.createNew(UserId.of(userIdFromRequest), reserveBookCommand.bookTitle());
+        Loan loan = Loan.createNew(UserId.of(userIdFromRequest), reserveBookCommand.bookTitle(),
+                correlationId, causationId);
         repo.save(loan);
 
         loan.pullDomainEvents().forEach(event -> {

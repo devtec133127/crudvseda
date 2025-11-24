@@ -14,7 +14,7 @@ public final class ReservationEventMapper {
             BookAvailabilityCheckedEvent e, String correlationId, String causationId) {
 
         return ReservationCreatedPayload.builder()
-                .eventId(UUID.randomUUID().toString())
+                .eventId(UUID.randomUUID())
                 .occurredAt(e.getOccurredAt().toString())
                 .correlationId(correlationId)
                 .isAvailable(e.isAvailable())

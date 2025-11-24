@@ -54,7 +54,7 @@ public class Payment extends AggregateRoot {
 
         Payment payment = new Payment(id, loanId, bookId, userId, amount, method, correlationId);
         payment.status = PaymentStatus.CREATED;
-        payment.raise(new PaymentCreated(id, loanId, bookId, userId, correlationId, Instant.now()));
+        payment.raise(new PaymentCreated(UUID.randomUUID(), loanId, bookId, userId, correlationId, Instant.now()));
         return payment;
     }
 
@@ -65,7 +65,7 @@ public class Payment extends AggregateRoot {
         this.status = PaymentStatus.AUTHORIZED;
         this.updatedAt = Instant.now();
 
-        this.raise(new PaymentAuthorized(id, loanId, userId, getCorrelationId(), Instant.now()));
+        this.raise(new PaymentAuthorized(UUID.randomUUID(), loanId, userId, getCorrelationId(), Instant.now()));
     }
 
     public void capture(Money captureAmount) {
@@ -76,7 +76,7 @@ public class Payment extends AggregateRoot {
         }
         this.status = PaymentStatus.CAPTURED;
         this.updatedAt = Instant.now();
-        this.raise(new PaymentCaptured(id, loanId, userId, bookId, getCorrelationId(), Instant.now()));
+        this.raise(new PaymentCaptured(UUID.randomUUID(), loanId, userId, bookId, getCorrelationId(), Instant.now()));
     }
 
     public void fail(String reason) {
@@ -86,7 +86,7 @@ public class Payment extends AggregateRoot {
         this.status = PaymentStatus.FAILED;
         this.updatedAt = Instant.now();
 
-        this.raise(new PaymentFailed(id, loanId, bookId, userId, correlationId, Instant.now(), reason));
+        this.raise(new PaymentFailed(UUID.randomUUID(), loanId, bookId, userId, correlationId, Instant.now(), reason));
     }
 
     /*public void refund(Money amountToRefund) {

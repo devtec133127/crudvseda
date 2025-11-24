@@ -13,9 +13,45 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
+      retries: 5
+    networks:
+      - lending-network
+
+  # Kafka (nur für kafka-Profile benötigt)
+  #zookeeper:
+  #  image: confluentinc/cp-zookeeper:latest
+  #  container_name: lending-zookeeper
+  #  environment:
+  #    ZOOKEEPER_CLIENT_PORT: 2181
+  #    ZOOKEEPER_TICK_TIME: 2000
+  #  networks:
+  #    - lending-network
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: lending-kafka
+    #depends_on:
+    #  - zookeeper
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_PROCESS_ROLES: "broker, controller"
+      KAFKA_BROKER_ID: 1
+      #KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Listen auf diese Interfaces/Ports (bind)
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@localhost:9093"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: [ "CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list" ]
+      interval: 10s
+      timeout: 10s
       retries: 5
     networks:
       - lending-network

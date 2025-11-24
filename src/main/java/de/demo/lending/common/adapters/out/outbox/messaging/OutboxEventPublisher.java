@@ -1,7 +1,7 @@
 package de.demo.lending.common.adapters.out.outbox.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.context.annotation.Profile;
+import de.demo.lending.common.application.dto.DtoPayload;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -13,7 +13,6 @@ import java.time.Instant;
  * Wird durch AsyncEventPublisher ersetzt bei Profile "async".
  */
 @Component
-@Profile("kafka")  // NEU: Nur aktiv bei Kafka-Profil
 public class OutboxEventPublisher implements EventPublisher {
     private final OutboxRepository repo;
     private final ObjectMapper om = new ObjectMapper();
@@ -23,11 +22,13 @@ public class OutboxEventPublisher implements EventPublisher {
     }
 
     @Override
-    public void enqueue(String type, Object payload) {
+    public void enqueue(String type, DtoPayload payload) {
         try {
             String json = om.writeValueAsString(payload);
             repo.save(OutboxEntity.builder()
                     .type(type)  // FIX: type dynamisch nutzen statt hardcoded "loan.requested.v1"
+                    .eventId(payload.getEventId())
+                    .aggregate_type(payload.getType())
                     .payload(json)
                     .headers(null)
                     .createdAt(Instant.now())

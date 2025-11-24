@@ -1,11 +1,11 @@
 package de.demo.lending.inventory.application.dto.event;
 
-import java.util.UUID;
-
 import de.demo.lending.inventory.application.dto.BookReservedPayload;
 import de.demo.lending.inventory.domain.event.BookReserved;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+
+import java.util.UUID;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BookReservedEventMapper {
@@ -13,7 +13,7 @@ public class BookReservedEventMapper {
             BookReserved e, String correlationId, String causationId) {
 
         return BookReservedPayload.builder()
-                .eventId(UUID.randomUUID().toString())
+                .eventId(UUID.randomUUID())
                 .occurredAt(e.getOccurredAt().toString())
                 .correlationId(correlationId)
                 .causationId(causationId)

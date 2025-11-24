@@ -17,7 +17,7 @@ public final class PaymentEventMapper {
             PaymentCreated e, String correlationId, String causationId) {
 
         return PaymentCreatedPayload.builder()
-                .eventId(UUID.randomUUID().toString())
+                .eventId(UUID.randomUUID())
                 .loanId(e.getLoanId().toString())
                 .occurredAt(e.getOccurredAt().toString())
                 .correlationId(correlationId)
@@ -30,7 +30,7 @@ public final class PaymentEventMapper {
             PaymentCaptured e, String correlationId, String causationId) {
 
         return PaymentCapturedPayload.builder()
-                .eventId(UUID.randomUUID().toString())
+                .eventId(UUID.randomUUID())
                 .loanId(e.getLoanId().toString())
                 .occurredAt(e.getOccurredAt().toString())
                 .correlationId(correlationId)
@@ -44,7 +44,7 @@ public final class PaymentEventMapper {
             PaymentFailed e, String correlationId, String causationId) {
 
         return PaymentFailedPayload.builder()
-                .eventId(UUID.randomUUID().toString())
+                .eventId(UUID.randomUUID())
                 .loanId(e.getLoanId().toString())
                 .occurredAt(e.getOccurredAt().toString())
                 .correlationId(correlationId)

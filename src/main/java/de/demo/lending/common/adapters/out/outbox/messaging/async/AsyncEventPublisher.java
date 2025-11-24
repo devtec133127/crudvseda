@@ -3,11 +3,10 @@ package de.demo.lending.common.adapters.out.outbox.messaging.async;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.adapters.out.outbox.messaging.OutboxMarker;
+import de.demo.lending.common.application.dto.DtoPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
 
 /**
  * In-Memory Event Publisher für lokale Performance-Tests.
@@ -15,8 +14,8 @@ import org.springframework.stereotype.Component;
  * <p>
  * Austauschbar mit OutboxEventPublisher durch Spring Profile "async".
  */
-@Component
-@Profile("async")
+//@Component
+//@Profile("async")
 public class AsyncEventPublisher implements EventPublisher {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncEventPublisher.class);
@@ -32,7 +31,7 @@ public class AsyncEventPublisher implements EventPublisher {
 
     @Override
     @Async  // Asynchrone Verarbeitung wie bei Kafka
-    public void enqueue(String topic, Object payload) {
+    public void enqueue(String topic, DtoPayload payload) {
         try {
             String json = objectMapper.writeValueAsString(payload);
             log.debug("Publishing async event to topic '{}': {}", topic, json);

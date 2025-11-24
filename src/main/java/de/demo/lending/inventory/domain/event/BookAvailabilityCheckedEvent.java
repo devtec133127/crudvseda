@@ -16,7 +16,7 @@ public final class BookAvailabilityCheckedEvent extends BaseDomainEvent {
 
     public BookAvailabilityCheckedEvent(LoanId loanId, String correlationId, String causationId,
                                         boolean available, String bookTitle, UserId userId) {
-        super(UUID.randomUUID().toString(), loanId, correlationId, causationId, Instant.now(), userId);
+        super(UUID.randomUUID(), loanId, correlationId, causationId, Instant.now(), userId);
         this.available = available;
         this.bookTitle = Objects.requireNonNull(bookTitle);
         this.userId = userId;

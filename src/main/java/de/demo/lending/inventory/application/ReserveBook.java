@@ -48,6 +48,7 @@ public class ReserveBook {
     @Transactional
     public void handle(UserId userId, LoanId loanId, String bookTitle, Duration duration, String correlationId, String causationId) {
 
+        // TODO: prüfen, ob das InventoryCopy bereits existiert.
         Pair<String, String> bookInfo = this.externalClient.searchBook(bookTitle);
 
         log.info("Buch {} vorhanden", bookInfo.getSecond());

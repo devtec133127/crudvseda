@@ -1,27 +1,25 @@
 package de.demo.lending.loan.application.dto.event;
 
-import de.demo.lending.loan.domain.event.LoanRequested;
 import de.demo.lending.loan.application.dto.LoanRequestedPayload;
-
-import java.util.UUID;
+import de.demo.lending.loan.domain.event.LoanRequested;
 
 public final class LoanEventMapper {
-    private LoanEventMapper() {}
+    private LoanEventMapper() {
+    }
 
     public static LoanRequestedPayload toPayload(
             LoanRequested e, String correlationId, String causationId) {
 
-        return new LoanRequestedPayload(
-                "loan.requested",
-                1,
-                UUID.randomUUID().toString(),          // eventId
-                e.occurredAt().toString(),
-                correlationId,
-                causationId,
-                e.loanId().toString(),
-                e.userId().toString(),
-                e.bookTitle(),
-                e.duration().toDays()
-        );
+        LoanRequestedPayload payload = LoanRequestedPayload.builder()
+                .type("loan.requested")
+                .eventId(e.getEventId())
+                .occurredAt(e.getOccurredAt().toString())
+                .correlationId(correlationId)
+                .causationId(causationId)
+                .loanId(e.getLoanId().value().toString())
+                .userId(e.getUserId().value().toString())
+                .bookTitle(e.getBookTitle())
+                .duration(e.getDuration().toDays()).build();
+        return payload;
     }
 }
