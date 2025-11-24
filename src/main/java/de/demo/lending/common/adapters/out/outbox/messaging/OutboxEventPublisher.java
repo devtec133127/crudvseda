@@ -1,10 +1,10 @@
 package de.demo.lending.common.adapters.out.outbox.messaging;
 
+import java.time.Instant;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.application.dto.DtoPayload;
 import org.springframework.stereotype.Component;
-
-import java.time.Instant;
 
 /**
  * Outbox-basierter Event Publisher für Kafka.
@@ -29,6 +29,7 @@ public class OutboxEventPublisher implements EventPublisher {
                     .type(type)  // FIX: type dynamisch nutzen statt hardcoded "loan.requested.v1"
                     .eventId(payload.getEventId())
                     .aggregate_type(payload.getType())
+                    .loanId(payload.getLoanId())
                     .payload(json)
                     .headers(null)
                     .createdAt(Instant.now())

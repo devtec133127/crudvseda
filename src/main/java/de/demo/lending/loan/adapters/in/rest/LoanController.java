@@ -1,5 +1,8 @@
 package de.demo.lending.loan.adapters.in.rest;
 
+import java.util.Map;
+import java.util.UUID;
+
 import de.demo.lending.loan.adapters.in.rest.dto.ReserveBookRequest;
 import de.demo.lending.loan.application.CreateLoan;
 import de.demo.lending.loan.application.command.ReserveBookCommand;
@@ -11,9 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-import java.util.UUID;
-
+/*
+    Der Rest Controller ist der Inbound Adapter in unserer hexagonalen Architektur.
+    Er verwendet den Inbound Port (dieser liegt im Domain core), um den Use Case zu triggern.
+    Der UseCase Service implmentiert den Inbound Port und referenziert das Aggregat.
+    Damit ist die Abhängigkeit von Außen nach Innen gerichtet und der Domain core kommt komplett
+    ohne Abhängigkeiten aus.
+ */
 @RestController
 @RequestMapping("/loans")
 public class LoanController {

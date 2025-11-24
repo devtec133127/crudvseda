@@ -1,46 +1,66 @@
 package de.demo.lending.common.adapters.out.outbox.messaging.kafka;
 
-import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
-import de.demo.lending.common.adapters.out.outbox.messaging.OutboxMarker;
-import de.demo.lending.common.application.dto.DtoPayload;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
-
 import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
 
-public class KafkaEventPublisher implements EventPublisher {
+import de.demo.lending.common.adapters.out.outbox.messaging.OutboxEntity;
+import de.demo.lending.common.adapters.out.outbox.messaging.OutboxRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
-    private final KafkaTemplate<String, String> kafka;
-    private final OutboxMarker marker;
+@Slf4j
+@Component
+public class KafkaEventPublisher {
 
-    public KafkaEventPublisher(KafkaTemplate<String, String> kafka, OutboxMarker marker) {
-        this.kafka = kafka;
-        this.marker = marker;
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private KafkaTemplate kafkaTemplate;
+
+    //private final KafkaTemplate<String, String> kafka;
+    private final OutboxRepository outboxRepository;
+    //private final OutboxMarker marker;
+
+    public KafkaEventPublisher(OutboxRepository outboxRepository) {
+        //this.kafka = kafka;
+        this.outboxRepository = outboxRepository;
     }
 
-    /*public void enqueue(long eventId, String type, Object payload) {
-        ProducerRecord<String, String> record = new ProducerRecord<>("orders-topic", type, payload.toString());
-        CompletableFuture<SendResult<String, String>> future = kafka.send(record);
+    //@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Scheduled(fixedDelay = 1000)
+    public void publish() {
 
-        // Callback: bei Erfolg -> flag setzen; bei Fehler -> attempt_count++
-        future.thenAccept(result -> {
+        List<OutboxEntity> events = outboxRepository.findUnpublished(1);
+        for (OutboxEntity event : events) {
+            // fachlicher Key = z. B. loanId
+            String key = event.getLoanId();
 
-                    //publisher.enqueue(LOAN_REQUESTED_V1, payload);
-                    marker.markAsSent(eventId, Instant.now());
-                })
-                .exceptionally(ex -> {
-                    marker.incrementAttempt(eventId, ex.getMessage());
+            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+            try {
+                transactionTemplate.execute(status -> {
+                    kafkaTemplate.executeInTransaction(kt -> {
+                        kafkaTemplate.send(event.getType(), key, event.getPayload());
+                        return true;
+                    });
+
+                    event.setPublishedAt(Instant.now());
+                    outboxRepository.save(event);
+
                     return null;
                 });
-    }*/
+            } catch (Exception e) {
+                // Retry beim nächsten Scheduler-Lauf
+                log.error("Failed to publish outbox event {}", event.getId(), e);
+            }
+        }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Override
-    public void enqueue(String topic, DtoPayload payload) {
-        String kafkaKey = payload.getEventId().toString();
+        /*String kafkaKey = payload.getEventId().toString();
 
         CompletableFuture<SendResult<String, String>> future = kafka.send(topic, kafkaKey, payload.toString());
 
@@ -53,6 +73,6 @@ public class KafkaEventPublisher implements EventPublisher {
                 .exceptionally(ex -> {
                     marker.incrementAttempt(payload.getEventId(), ex.getMessage());
                     return null;
-                });
+                });*/
     }
 }
