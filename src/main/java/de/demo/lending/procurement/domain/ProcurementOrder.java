@@ -1,5 +1,11 @@
 package de.demo.lending.procurement.domain;
 
+import static java.util.Objects.requireNonNull;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.domain.events.BaseDomainEvent;
 import de.demo.lending.common.valueobjects.BookId;
@@ -8,13 +14,6 @@ import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.event.BookOrderedExternally;
 import de.demo.lending.procurement.domain.event.ProcurementInitiated;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Aggregate Root - Procurement Order
@@ -32,7 +31,7 @@ public class ProcurementOrder extends AggregateRoot {
     }
 
     private final LoanId loanId;
-    private final UserId userId;
+    private UserId userId;
     private final BookTitle bookTitle;
 
     private ExternalLibraryId externalLibraryId;
@@ -55,21 +54,35 @@ public class ProcurementOrder extends AggregateRoot {
     private ProcurementOrder(
             ProcurementOrderId id,
             LoanId loanId,
-            UserId userId,
             BookTitle bookTitle
     ) {
-        super(id.value().toString(), "");
+        super(id.value(), "");
         this.loanId = requireNonNull(loanId);
-        this.userId = requireNonNull(userId);
         this.bookTitle = requireNonNull(bookTitle);
         this.status = ProcurementStatus.INITIATED;
+        this.orderedAt = Instant.now();
+        this.estimatedArrival = 0L;
     }
 
     // === Factory Methods ===
+    public static ProcurementOrder create(ProcurementOrderId id, LoanId loanId, BookTitle bookTitle,
+                                          ExternalLibraryId externalLibraryId, String externalOrderId, BookId isbn, ProcurementStatus status,
+                                          Instant orderedAt, long estimatedArrival, Instant receivedAt, String receivedBy) {
+
+        ProcurementOrder order = new ProcurementOrder(id, loanId, bookTitle);
+        order.externalLibraryId = externalLibraryId;
+        order.externalOrderId = externalOrderId;
+        order.isbn = isbn;
+        order.status = status;
+        order.orderedAt = orderedAt;
+        order.estimatedArrival = estimatedArrival;
+        order.receivedAt = receivedAt;
+        order.receivedBy = receivedBy;
+        return order;
+    }
 
     public static ProcurementOrder initiate(
             LoanId loanId,
-            UserId userId,
             BookTitle bookTitle
             //ExternalLibraryId externalLibraryId,
 
@@ -77,15 +90,13 @@ public class ProcurementOrder extends AggregateRoot {
         ProcurementOrder order = new ProcurementOrder(
                 ProcurementOrderId.newId(),
                 loanId,
-                userId,
                 bookTitle
         );
 
         order.raise(ProcurementInitiated.of(
-                ProcurementOrderId.of(UUID.fromString(order.getId())),
+                ProcurementOrderId.of(order.getId()),
                 order.bookTitle,
-                order.loanId,
-                userId
+                order.loanId
         ));
 
         return order;
@@ -110,7 +121,7 @@ public class ProcurementOrder extends AggregateRoot {
         this.status = ProcurementStatus.ORDERED;
 
         raise(BookOrderedExternally.of(
-                ProcurementOrderId.of(UUID.fromString(getId())),
+                ProcurementOrderId.of(getId()),
                 this.externalOrderId,
                 this.loanId,
                 this.userId,
@@ -192,4 +203,54 @@ public class ProcurementOrder extends AggregateRoot {
         ));
     }*/
 
+
+    // getter
+
+    public ProcurementOrderId getProcurementOrderId() {
+        return ProcurementOrderId.of(getId());
+    }
+
+    public LoanId getLoanId() {
+        return loanId;
+    }
+
+    public UserId getUserId() {
+        return userId;
+    }
+
+    public BookTitle getBookTitle() {
+        return bookTitle;
+    }
+
+    public ExternalLibraryId getExternalLibraryId() {
+        return externalLibraryId;
+    }
+
+    public String getExternalOrderId() {
+        return externalOrderId;
+    }
+
+    public BookId getIsbn() {
+        return isbn;
+    }
+
+    public ProcurementStatus getStatus() {
+        return status;
+    }
+
+    public Instant getOrderedAt() {
+        return orderedAt;
+    }
+
+    public long getEstimatedArrival() {
+        return estimatedArrival;
+    }
+
+    public Instant getReceivedAt() {
+        return receivedAt;
+    }
+
+    public String getReceivedBy() {
+        return receivedBy;
+    }
 }

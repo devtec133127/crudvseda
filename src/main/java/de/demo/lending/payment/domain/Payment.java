@@ -1,5 +1,9 @@
 package de.demo.lending.payment.domain;
 
+import java.time.Instant;
+import java.util.Objects;
+import java.util.UUID;
+
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
@@ -9,13 +13,8 @@ import de.demo.lending.payment.domain.event.PaymentCaptured;
 import de.demo.lending.payment.domain.event.PaymentCreated;
 import de.demo.lending.payment.domain.event.PaymentFailed;
 
-import java.time.Instant;
-import java.util.Objects;
-import java.util.UUID;
-
 
 public class Payment extends AggregateRoot {
-    private final String id;
     private final LoanId loanId;       // referenz zur Domäne (z.B. loanId / reservationId)
     private final UserId userId;
     private final BookId bookId;
@@ -26,13 +25,10 @@ public class Payment extends AggregateRoot {
     private Instant createdAt;
     private Instant updatedAt;
 
-    // Domain-Events nur intern sammeln (keine Framework-Abh.)
-    private final java.util.List<Object> domainEvents = new java.util.ArrayList<>();
 
-    private Payment(String id, LoanId loanId, BookId bookId, UserId userId, Money amount, PaymentMethod method,
+    private Payment(UUID id, LoanId loanId, BookId bookId, UserId userId, Money amount, PaymentMethod method,
                     String correlationId) {
         super(id, correlationId);
-        this.id = Objects.requireNonNull(id);
         this.loanId = Objects.requireNonNull(loanId);
         this.bookId = Objects.requireNonNull(bookId);
         this.userId = Objects.requireNonNull(userId);
@@ -44,11 +40,11 @@ public class Payment extends AggregateRoot {
         this.updatedAt = createdAt;
     }
 
-    public static Payment create(String id, LoanId loanId, BookId bookId, UserId userId, Money amount, PaymentMethod method) {
+    public static Payment create(UUID id, LoanId loanId, BookId bookId, UserId userId, Money amount, PaymentMethod method) {
         return new Payment(id, loanId, bookId, userId, amount, method, null);
     }
 
-    public static Payment createNew(String id, LoanId loanId, BookId bookId, UserId userId, Money amount, PaymentMethod method, String correlationId) {
+    public static Payment createNew(UUID id, LoanId loanId, BookId bookId, UserId userId, Money amount, PaymentMethod method, String correlationId) {
         // invariants
         if (amount.getCents() <= 0) throw new IllegalArgumentException("Amount must be positive");
 
@@ -99,8 +95,7 @@ public class Payment extends AggregateRoot {
     }*/
 
     public PaymentId getPaymentId() {
-        UUID uuid = UUID.fromString(super.getId());
-        return PaymentId.of(uuid);
+        return PaymentId.of(getId());
     }
 
     public LoanId getLoanId() {

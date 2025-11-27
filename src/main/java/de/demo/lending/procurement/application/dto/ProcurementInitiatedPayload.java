@@ -1,4 +1,4 @@
-package de.demo.lending.inventory.application.dto;
+package de.demo.lending.procurement.application.dto;
 
 import java.util.UUID;
 
@@ -10,12 +10,12 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder
-public class BookNotFoundLocallyPayload extends DtoPayload {
-    private static final String TYPE = "BookNotFoundLocallyPayload";
+public class ProcurementInitiatedPayload extends DtoPayload {
+    private static final String TYPE = "ProcurementInitiatedPayload";
     private final String bookTitle;
 
     @JsonCreator
-    public BookNotFoundLocallyPayload(
+    public ProcurementInitiatedPayload(
             @JsonProperty("eventId") UUID eventId,
             @JsonProperty("occurredAt") String occurredAt,
             @JsonProperty("correlationId") String correlationId,

@@ -9,6 +9,7 @@ public final class Topics {
     public static final String INVENTORY_BOOK_NOT_FOUND_V1 = "inventory.book_not_found.v1";
     public static final String INVENTORY_RESERVED_V1 = "inventory.reserved.v1";
     public static final String INVENTORY_REJECTED_V1 = "inventory.rejected.v1";
+    public static final String PROCUREMENT_INITIATED_V1 = "procurement.initiated.v1";
     public static final String PAYMENT_V1 = "payment.v1";
     public static final String LOAN_CHECKED_OUT_V1 = "loan.checked_out.v1";
     public static final String LOAN_RETURNED_V1 = "loan.returned.v1";

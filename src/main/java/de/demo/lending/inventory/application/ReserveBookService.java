@@ -1,7 +1,12 @@
 package de.demo.lending.inventory.application;
 
+import static de.demo.lending.common.events.Topics.INVENTORY_BOOK_NOT_FOUND_V1;
+import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
+
+import java.time.Duration;
+import java.util.Optional;
+
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
-import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.dto.BookNotFoundLocallyPayload;
 import de.demo.lending.inventory.application.dto.BookReservedPayload;
@@ -15,15 +20,8 @@ import de.demo.lending.inventory.domain.port.out.ReservationRepository;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.read.application.port.LoanStatusReadPort;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Duration;
-import java.util.Optional;
-
-import static de.demo.lending.common.events.Topics.INVENTORY_BOOK_NOT_FOUND_V1;
-import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
 
 @Slf4j
 @Service
@@ -60,43 +58,20 @@ public class ReserveBookService implements de.demo.lending.inventory.domain.port
             log.info("Buch {} im local store vorhanden", localCopy.getBookTitle());
             localCopy.reserve(correlationId, causationId);
             repo.save(localCopy);
+
+            localCopy.pullProducedEvents().forEach(event -> {
+                if (event instanceof BookReserved) {
+                    BookReservedPayload payload = BookReservedEventMapper.toPayload((BookReserved) event, correlationId, causationId);
+                    log.info("Publishing event to topic {}: {}", INVENTORY_RESERVED_V1, payload);
+                    publisher.enqueue(INVENTORY_RESERVED_V1, payload);
+                }
+            });
         } else {
 
             BookNotFoundLocally notFoundEvent = new BookNotFoundLocally(loanId, correlationId, causationId, bookTitle, userId);
             BookNotFoundLocallyPayload payload = BookNotFoundLocallyMapper.toPayload(notFoundEvent, correlationId, causationId);
             log.info("Publishing BookNotFoundLocally to topic {}: {}", INVENTORY_BOOK_NOT_FOUND_V1, payload);
             publisher.enqueue(INVENTORY_BOOK_NOT_FOUND_V1, payload);
-
-            // TODO: Auslagern in Procurement Context
-            Pair<String, String> bookInfo = this.externalClient.searchBook(bookTitle);
-            log.info("Buch {} im external store gefunden", bookInfo.getSecond());
-
-            String title = bookInfo.getSecond();
-            String isbn = bookInfo.getFirst();
-
-            localCopy = InventoryCopy.createNew(correlationId, causationId, loanId, BookId.of(isbn), title, userId);
-            repo.save(localCopy);
         }
-
-        localCopy.pullProducedEvents().forEach(event -> {
-            if (event instanceof BookReserved) {
-                BookReservedPayload payload = BookReservedEventMapper.toPayload((BookReserved) event, correlationId, causationId);
-                log.info("Publishing event to topic {}: {}", INVENTORY_RESERVED_V1, payload);
-                publisher.enqueue(INVENTORY_RESERVED_V1, payload);
-            }
-            /*if (event instanceof ProcurementRequested) {
-                ReservationCreatedPayload payload = ReservationEventMapper.toPayload((ProcurementRequested) event, correlationId, causationId);
-                log.info("Publishing event to topic {}: {}", RESERVATION_CREATED_V1, payload);
-                publisher.enqueue(RESERVATION_CREATED_V1, payload);
-
-                // TODO: Read-Model aktualisieren (in Read-DB), kann aber auch in DB durch trigger gelöst werden
-                //loanStatusReadPort.updateLoanStatus(rcEvent.getLoanId(), rcEvent.getUserId(), rcEvent.getBookTitle(), rcEvent.getExpiresAt(), rcEvent.getEventId());
-
-            } else if (event instanceof BookReserved) {
-                BookReservedPayload payload = BookReservedEventMapper.toPayload((BookReserved) event, correlationId, causationId);
-                log.info("Publishing event to topic {}: {}", INVENTORY_RESERVED_V1, payload);
-                publisher.enqueue(INVENTORY_RESERVED_V1, payload);
-            }*/
-        });
     }
 }

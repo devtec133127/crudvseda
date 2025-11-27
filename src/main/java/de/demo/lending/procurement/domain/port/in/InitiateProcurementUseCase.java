@@ -1,17 +1,16 @@
 package de.demo.lending.procurement.domain.port.in;
 
-import de.demo.lending.common.valueobjects.BookTitle;
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.loan.domain.LoanId;
-import de.demo.lending.procurement.domain.ProcurementOrderId;
+import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-import static java.util.Objects.requireNonNull;
+import de.demo.lending.common.valueobjects.BookTitle;
+import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.procurement.domain.ProcurementOrderId;
 
 public interface InitiateProcurementUseCase {
 
-    void execute(InitiateProcurementCommand command);
+    ProcurementResult execute(InitiateProcurementCommand command);
 
     /**
      * Command für Procurement-Initiierung
@@ -22,36 +21,28 @@ public interface InitiateProcurementUseCase {
     final class InitiateProcurementCommand {
 
         private final LoanId loanId;
-        private final UserId userId;
         private final BookTitle bookTitle;
 
         private InitiateProcurementCommand(
                 LoanId loanId,
-                UserId userId,
                 BookTitle bookTitle
         ) {
             this.loanId = requireNonNull(loanId, "loanId must not be null");
-            this.userId = requireNonNull(userId, "userId must not be null");
             this.bookTitle = requireNonNull(bookTitle, "bookTitle must not be null");
         }
 
         // Factory Method
         public static InitiateProcurementCommand of(
                 LoanId loanId,
-                UserId userId,
                 BookTitle bookTitle
         ) {
-            return new InitiateProcurementCommand(loanId, userId, bookTitle);
+            return new InitiateProcurementCommand(loanId, bookTitle);
         }
 
         // Getters
 
         public LoanId getLoanId() {
             return loanId;
-        }
-
-        public UserId getUserId() {
-            return userId;
         }
 
         public BookTitle getBookTitle() {
@@ -66,13 +57,12 @@ public interface InitiateProcurementUseCase {
             if (o == null || getClass() != o.getClass()) return false;
             InitiateProcurementCommand that = (InitiateProcurementCommand) o;
             return Objects.equals(loanId, that.loanId) &&
-                    Objects.equals(userId, that.userId) &&
                     Objects.equals(bookTitle, that.bookTitle);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(loanId, userId, bookTitle);
+            return Objects.hash(loanId, bookTitle);
         }
 
         @Override
@@ -80,7 +70,6 @@ public interface InitiateProcurementUseCase {
             return "InitiateProcurementCommand{" +
                     "loanId=" + loanId +
                     ", bookTitle=" + bookTitle +
-                    ", userId=" + userId +
                     '}';
         }
     }

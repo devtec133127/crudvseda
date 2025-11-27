@@ -1,15 +1,17 @@
 package de.demo.lending.procurement.adapters.in.messaging;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.domain.port.in.ReserveBookUseCase;
+import de.demo.lending.common.valueobjects.BookTitle;
+import de.demo.lending.inventory.application.dto.BookNotFoundLocallyPayload;
 import de.demo.lending.inventory.domain.port.out.InventoryRepository;
 import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
-import de.demo.lending.loan.application.dto.LoanRequestedPayload;
 import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.procurement.domain.port.in.InitiateProcurementUseCase;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,9 +19,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
-
-import java.time.Duration;
-import java.util.UUID;
 
 /**
  * Kafka-basierter Event Listener für Inventory.
@@ -36,20 +35,20 @@ public class KafkaProcurementEventListener {
     private final InventoryRepository repo;
     private final EventPublisher events;
     private final DemoEventSSEPublisher uiPublisher;
-    private final ReserveBookUseCase reserveBookUseCase;
+    private final InitiateProcurementUseCase initiateProcurementUseCase;
 
-    public KafkaProcurementEventListener(ReserveBookUseCase reserveBookUseCase,
+    public KafkaProcurementEventListener(InitiateProcurementUseCase initiateProcurementUseCase,
                                          InventoryRepository repo,
                                          EventPublisher events,
                                          DemoEventSSEPublisher uiPublisher) {
-        this.reserveBookUseCase = reserveBookUseCase;
+        this.initiateProcurementUseCase = initiateProcurementUseCase;
         this.repo = repo;
         this.events = events;
         this.uiPublisher = uiPublisher;
     }
 
     @KafkaListener(
-            topics = {Topics.LOAN_REQUESTED_V1},
+            topics = {Topics.INVENTORY_BOOK_NOT_FOUND_V1},
             groupId = "inventory")
     @Transactional
     public void onLoanRequested(String json,
@@ -57,30 +56,61 @@ public class KafkaProcurementEventListener {
                                 @Header(value = KafkaHeaders.RECEIVED_KEY, required = false) String key,
                                 @Header(value = KafkaHeaders.OFFSET, required = false) long offset) throws Exception {
 
-        LoanRequestedPayload payload = om.readValue(json, LoanRequestedPayload.class);
+        BookNotFoundLocallyPayload payload = om.readValue(json, BookNotFoundLocallyPayload.class);
+        log.info("Received BookNotFoundLocally event for loan: {}, book: {}", payload.getLoanId(), payload.getBookTitle());
 
         String incomingEventId = payload.getEventId().toString();
-        incomingEventId = payload.getEventId().toString();
 
         // ########## Indempotenz - Event schon verarbeitet? - Inbox Tabelle abfragen ##########
         ProcessedEventUtil.checkEvent(KafkaProcurementEventListener.class, incomingEventId);
 
-        // mandatory fields expected: loanId, bookId
-        if (payload.getLoanId() == null || payload.getBookTitle() == null) {
-            log.warn("Received loan.requested without loanId/bookId: {}", json);
-            return;
-        }
-
         LoanId loanId = LoanId.of(UUID.fromString(payload.getLoanId()));
-        UserId userId = UserId.of(UUID.fromString(payload.getUserId()));
+        BookTitle bookTitle = BookTitle.of(payload.getBookTitle());
 
-        uiPublisher.publishLoanCreatedToUI(loanId.value(), userId.value(), payload.getBookTitle(), payload.getDuration());
+        if (shouldProcure(loanId, bookTitle)) {
+            log.info("Initiating procurement for book: {}", bookTitle);
 
-        Duration duration = Duration.ofDays(payload.getDuration());
+            // Starte Procurement
+            InitiateProcurementUseCase.InitiateProcurementCommand command = InitiateProcurementUseCase.InitiateProcurementCommand.of(
+                    loanId,
+                    bookTitle
+            );
 
-        reserveBookUseCase.reserveBook(userId, loanId, payload.getBookTitle(), duration, payload.getCorrelationId(), payload.getEventId().toString());
+            InitiateProcurementUseCase.ProcurementResult result = initiateProcurementUseCase.execute(command);
+
+            uiPublisher.publishProcurementInitiatedToUI(loanId.value(), payload.getBookTitle());
+
+            if (result.isSuccess()) {
+                log.info("Procurement initiated successfully. OrderId: {}",
+                        result.getProcurementOrderId()
+                );
+                // Use Case hat bereits procurement.initiated.v1 published
+            } else {
+                log.warn("Procurement failed: {}", result.getFailureReason());
+                // Optional: Publish procurement.failed.v1
+            }
+        } else {
+            log.info("Decided NOT to procure book: {}", bookTitle);
+            // Optional: Publish procurement.declined.v1
+        }
 
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
         ProcessedEventUtil.saveEvent(KafkaProcurementEventListener.class, incomingEventId);
+    }
+
+    /**
+     * Business-Logik: Soll dieses Buch beschafft werden?
+     */
+    private boolean shouldProcure(LoanId loanId, BookTitle bookTitle) {
+        // Beispiel-Logik (kann komplex sein):
+
+        // 1. Immer procuren (für Demo)
+        return true;
+
+        // 2. Oder: Prüfe Business Rules
+        // - Ist der User berechtigt?
+        // - Ist das Budget vorhanden?
+        // - Ist die Kategorie erlaubt?
+        // - etc.
     }
 }

@@ -1,6 +1,11 @@
 package de.demo.lending.inventory.adapters.out.persistence;
 
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
@@ -10,11 +15,6 @@ import de.demo.lending.inventory.domain.port.out.InventoryRepository;
 import de.demo.lending.loan.domain.LoanId;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Component
 public class InventoryRepositoryAdapter implements InventoryRepository {
@@ -68,7 +68,7 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
     // -------------------------
     private InventoryCopy toDomain(InventoryCopyEntity e) {
         return new InventoryCopy(
-                e.getId().toString(),
+                e.getId(),
                 LoanId.of(UUID.fromString(e.getLoanId())),
                 null,
                 BookId.of(e.getBookId()),
@@ -82,7 +82,7 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
 
     private InventoryCopyEntity toEntity(InventoryCopy d) {
         return InventoryCopyEntity.builder()
-                .id(UUID.fromString(d.getId()))
+                .id(d.getId())
                 .bookId(d.getBookId().value())
                 .bookTitle(d.getBookTitle())
                 .userId(d.getUserId().toString())

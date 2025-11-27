@@ -1,5 +1,9 @@
 package de.demo.lending.payment.application;
 
+import static de.demo.lending.common.events.Topics.PAYMENT_V1;
+
+import java.util.UUID;
+
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
@@ -18,10 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
-import static de.demo.lending.common.events.Topics.PAYMENT_V1;
-
 @Slf4j
 @Component
 public class ExecutePayment {
@@ -39,7 +39,7 @@ public class ExecutePayment {
     public Payment createPayment(UserId userId, LoanId loanId, BookId bookId, Money amount, PaymentMethod method,
                                  String correlationId, String causationId) {
         // 1. Aggregate erzeugen
-        Payment payment = Payment.createNew(UUID.randomUUID().toString(), loanId, bookId, userId, amount, method, correlationId);
+        Payment payment = Payment.createNew(UUID.randomUUID(), loanId, bookId, userId, amount, method, correlationId);
         paymentRepository.save(payment);
         payment.pullProducedEvents().forEach(event -> {
             if (event instanceof PaymentCreated) {

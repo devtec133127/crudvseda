@@ -1,5 +1,7 @@
 package de.demo.lending.payment.adapter.out.persistence;
 
+import java.util.UUID;
+
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.LoanId;
@@ -8,8 +10,6 @@ import de.demo.lending.payment.domain.Money;
 import de.demo.lending.payment.domain.Payment;
 import de.demo.lending.payment.domain.PaymentMethod;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 @Component
 public class PaymentRepositoryAdapter implements PaymentRepository {
@@ -24,7 +24,7 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
     public Payment save(Payment payment) {
         // map Domain -> Entity und save
         PaymentEntity e = new PaymentEntity();
-        e.setId(payment.getPaymentId().value().toString());
+        e.setId(payment.getPaymentId().value());
         e.setState(payment.getStatus().name());
         e.setUpdatedAt(payment.getUpdatedAt());
         e.setCreatedAt(payment.getCreatedAt());

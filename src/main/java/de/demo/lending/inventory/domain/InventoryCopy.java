@@ -1,5 +1,8 @@
 package de.demo.lending.inventory.domain;
 
+import java.time.Instant;
+import java.util.UUID;
+
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.CopyId;
@@ -7,11 +10,8 @@ import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.domain.event.BookReserved;
 import de.demo.lending.loan.domain.LoanId;
 
-import java.time.Instant;
-import java.util.UUID;
-
 public class InventoryCopy extends AggregateRoot {
-    public enum InventoryState {IN_TRANSIENT, AVAILABLE, RESERVED, LOANED}
+    public enum InventoryState {IN_TRANSIENT, NOT_LOCALLY_AVAILABLE, AVAILABLE, RESERVED, LOANED}
 
     private final BookId bookId;
     private final UserId userId;
@@ -23,7 +23,7 @@ public class InventoryCopy extends AggregateRoot {
 
     private final java.util.List<Object> domainEvents = new java.util.ArrayList<>();
 
-    public InventoryCopy(String id, LoanId loanId, String correlationId, BookId bookId, UserId userId,
+    public InventoryCopy(UUID id, LoanId loanId, String correlationId, BookId bookId, UserId userId,
                          String bookTitle, Instant updatedAt, ReservationId reservationId) {
         super(id, correlationId);
 
@@ -38,17 +38,16 @@ public class InventoryCopy extends AggregateRoot {
     public static InventoryCopy createNew(String correlationId, String causationId, LoanId loanId,
                                           BookId bookId, String bookTitle, UserId userId) {
         var now = Instant.now();
-        InventoryCopy newInventory = new InventoryCopy(CopyId.newId().toString(), loanId, correlationId, bookId, userId,
+        InventoryCopy newInventory = new InventoryCopy(CopyId.newId().value(), loanId, correlationId, bookId, userId,
                 bookTitle, now, ReservationId.newId());
-        newInventory.state = InventoryState.IN_TRANSIENT;
+        newInventory.state = InventoryState.NOT_LOCALLY_AVAILABLE;
         // Hier könnten wir ein technisches Event erstellen, aber kein Domain Event !!!
         //newInventory.raise(new ProcurementRequestedEvent(loanId, correlationId, causationId, true, bookTitle, userId));
         return newInventory;
     }
 
     public CopyId getCopyId() {
-        UUID uuid = UUID.fromString(super.getId());
-        return CopyId.of(uuid);
+        return CopyId.of(getId());
     }
 
     public BookId getBookId() {

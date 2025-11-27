@@ -10,6 +10,5 @@ public class BookReservedPayload extends DtoPayload {
     private static final String TYPE = "BookReservedPayload";
     private final String bookTitle;
     private final String bookId;
-    private final String loanId;
     private final String reservationId;
 }

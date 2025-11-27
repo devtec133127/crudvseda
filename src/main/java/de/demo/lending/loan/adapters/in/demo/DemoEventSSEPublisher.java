@@ -200,6 +200,25 @@ public class DemoEventSSEPublisher {
         eventStore.publishEvent(loanUuid.toString(), demoEvent);
     }
 
+    public void publishProcurementInitiatedToUI(UUID loanUuid, String bookId) {
+        // Speichere Start-Timestamp für elapsed-time Berechnung
+        loanStartTimes.put(loanUuid.toString(), System.currentTimeMillis());
+
+        // Optional: Initial Event an UI senden
+        DemoEvent demoEvent = DemoEvent.builder()
+                .type("procurement-initiated")
+                .loanId(loanUuid.toString())
+                .userId("")
+                .bookId(bookId)
+                .reservationId("")
+                .message("Procurement wurde beauftragt!")
+                .timestamp(System.currentTimeMillis())
+                .elapsedMs(calculateElapsedTime(loanUuid.toString()))
+                .build();
+
+        eventStore.publishEvent(loanUuid.toString(), demoEvent);
+    }
+
     /**
      * Reagiert auf PaymentCompletedEvent.
      * Übersetzt Domain Event in UI-freundliches DemoEvent.

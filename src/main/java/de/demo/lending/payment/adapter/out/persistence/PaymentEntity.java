@@ -1,12 +1,17 @@
 package de.demo.lending.payment.adapter.out.persistence;
 
+import java.time.Instant;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.*;
-
-import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -17,7 +22,7 @@ import java.time.Instant;
 @Table(name = "payments")
 public class PaymentEntity {
     @Id
-    private String id;
+    private UUID id;
 
     @Column(name = "loan_id", nullable = false)
     private String loanId;

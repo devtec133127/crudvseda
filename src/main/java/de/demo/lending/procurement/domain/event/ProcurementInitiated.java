@@ -1,13 +1,13 @@
 package de.demo.lending.procurement.domain.event;
 
+import java.time.Instant;
+import java.util.UUID;
+
 import de.demo.lending.common.domain.events.BaseDomainEvent;
 import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.ProcurementOrderId;
-
-import java.time.Instant;
-import java.util.UUID;
 
 public class ProcurementInitiated extends BaseDomainEvent {
 
@@ -22,14 +22,14 @@ public class ProcurementInitiated extends BaseDomainEvent {
     }
 
     public static ProcurementInitiated of(ProcurementOrderId procurementOrderId,
-                                          BookTitle bookTitle, LoanId loanId, UserId userId) {
+                                          BookTitle bookTitle, LoanId loanId) {
         return new ProcurementInitiated(
                 UUID.randomUUID(),
                 procurementOrderId,
                 bookTitle,
                 loanId,
                 Instant.now(),
-                userId
+                null
         );
     }
 
