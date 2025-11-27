@@ -8,14 +8,14 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-public final class BookAvailabilityCheckedEvent extends BaseDomainEvent {
+public final class ProcurementRequested extends BaseDomainEvent {
 
     private final String bookTitle;
     private final UserId userId;
     private final boolean available;
 
-    public BookAvailabilityCheckedEvent(LoanId loanId, String correlationId, String causationId,
-                                        boolean available, String bookTitle, UserId userId) {
+    public ProcurementRequested(LoanId loanId, String correlationId, String causationId,
+                                boolean available, String bookTitle, UserId userId) {
         super(UUID.randomUUID(), loanId, correlationId, causationId, Instant.now(), userId);
         this.available = available;
         this.bookTitle = Objects.requireNonNull(bookTitle);

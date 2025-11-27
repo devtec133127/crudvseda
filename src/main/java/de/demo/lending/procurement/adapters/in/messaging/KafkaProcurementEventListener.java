@@ -1,4 +1,4 @@
-package de.demo.lending.inventory.adapters.in.messaging;
+package de.demo.lending.procurement.adapters.in.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
@@ -28,9 +28,9 @@ import java.util.UUID;
  * Wird durch AsyncInventoryEventListener ersetzt bei Profile "async".
  */
 @Component
-public class KafkaInventoryEventListener {
+public class KafkaProcurementEventListener {
 
-    private static final Logger log = LoggerFactory.getLogger(KafkaInventoryEventListener.class);
+    private static final Logger log = LoggerFactory.getLogger(KafkaProcurementEventListener.class);
 
     private final ObjectMapper om = new ObjectMapper();
     private final InventoryRepository repo;
@@ -38,10 +38,10 @@ public class KafkaInventoryEventListener {
     private final DemoEventSSEPublisher uiPublisher;
     private final ReserveBookUseCase reserveBookUseCase;
 
-    public KafkaInventoryEventListener(ReserveBookUseCase reserveBookUseCase,
-                                       InventoryRepository repo,
-                                       EventPublisher events,
-                                       DemoEventSSEPublisher uiPublisher) {
+    public KafkaProcurementEventListener(ReserveBookUseCase reserveBookUseCase,
+                                         InventoryRepository repo,
+                                         EventPublisher events,
+                                         DemoEventSSEPublisher uiPublisher) {
         this.reserveBookUseCase = reserveBookUseCase;
         this.repo = repo;
         this.events = events;
@@ -63,7 +63,7 @@ public class KafkaInventoryEventListener {
         incomingEventId = payload.getEventId().toString();
 
         // ########## Indempotenz - Event schon verarbeitet? - Inbox Tabelle abfragen ##########
-        ProcessedEventUtil.checkEvent(KafkaInventoryEventListener.class, incomingEventId);
+        ProcessedEventUtil.checkEvent(KafkaProcurementEventListener.class, incomingEventId);
 
         // mandatory fields expected: loanId, bookId
         if (payload.getLoanId() == null || payload.getBookTitle() == null) {
@@ -81,6 +81,6 @@ public class KafkaInventoryEventListener {
         reserveBookUseCase.reserveBook(userId, loanId, payload.getBookTitle(), duration, payload.getCorrelationId(), payload.getEventId().toString());
 
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
-        ProcessedEventUtil.saveEvent(KafkaInventoryEventListener.class, incomingEventId);
+        ProcessedEventUtil.saveEvent(KafkaProcurementEventListener.class, incomingEventId);
     }
 }

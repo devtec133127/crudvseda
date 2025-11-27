@@ -3,7 +3,7 @@ package de.demo.lending.inventory.domain;
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.domain.event.BookAvailabilityCheckedEvent;
+import de.demo.lending.inventory.domain.event.ProcurementRequested;
 import de.demo.lending.loan.domain.LoanId;
 
 import java.time.Duration;
@@ -50,7 +50,7 @@ public class Reservation extends AggregateRoot {
         reservation.createdAt = Instant.now();
         reservation.expiresAt = reservation.createdAt.plus(ttl);
 
-        reservation.raise(new BookAvailabilityCheckedEvent(loanId, correlationId, causationId, true, bookTitle, userId));
+        reservation.raise(new ProcurementRequested(loanId, correlationId, causationId, true, bookTitle, userId));
         return reservation;
     }
 

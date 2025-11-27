@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.adapters.out.outbox.messaging.async.AsyncEventBus;
 import de.demo.lending.common.events.Topics;
-import de.demo.lending.inventory.application.InventoryRepository;
-import de.demo.lending.inventory.application.ReserveBook;
+import de.demo.lending.inventory.application.ReserveBookService;
+import de.demo.lending.inventory.domain.port.out.InventoryRepository;
 import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
@@ -32,14 +32,14 @@ public class AsyncLoanEventListener {
     private final ObjectMapper om = new ObjectMapper();
     private final InventoryRepository repo;
     private final EventPublisher events;
-    private final ReserveBook reserveBookUseCase;
+    private final ReserveBookService reserveBookUseCase;
     private final AsyncEventBus eventBus;
     private final DemoEventSSEPublisher uiPublisher;
 
     public AsyncLoanEventListener(
             InventoryRepository repo,
             EventPublisher events,
-            ReserveBook reserveBookUseCase,
+            ReserveBookService reserveBookUseCase,
             AsyncEventBus eventBus,
             DemoEventSSEPublisher uiPublisher) {
         this.repo = repo;

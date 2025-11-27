@@ -1,7 +1,7 @@
 package de.demo.lending.inventory.application.dto.event;
 
 import de.demo.lending.inventory.application.dto.ReservationCreatedPayload;
-import de.demo.lending.inventory.domain.event.BookAvailabilityCheckedEvent;
+import de.demo.lending.inventory.domain.event.ProcurementRequested;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +11,7 @@ import java.util.UUID;
 public final class ReservationEventMapper {
 
     public static ReservationCreatedPayload toPayload(
-            BookAvailabilityCheckedEvent e, String correlationId, String causationId) {
+            ProcurementRequested e, String correlationId, String causationId) {
 
         return ReservationCreatedPayload.builder()
                 .eventId(UUID.randomUUID())

@@ -1,20 +1,20 @@
 package de.demo.lending.inventory.adapters.out.persistence;
 
 
+import de.demo.lending.common.valueobjects.BookId;
+import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.domain.InventoryCopy;
+import de.demo.lending.inventory.domain.ReservationId;
+import de.demo.lending.inventory.domain.port.out.InventoryRepository;
+import de.demo.lending.loan.domain.LoanId;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import de.demo.lending.common.valueobjects.BookId;
-import de.demo.lending.common.valueobjects.CopyId;
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.application.InventoryRepository;
-import de.demo.lending.inventory.domain.InventoryCopy;
-import de.demo.lending.inventory.domain.ReservationId;
-import de.demo.lending.loan.domain.LoanId;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class InventoryRepositoryAdapter implements InventoryRepository {
@@ -44,6 +44,15 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
     @Override
     public Optional<InventoryCopy> findById(CopyId id) {
         return jpa.findById(id.value()).map(this::toDomain);
+    }
+
+    @Override
+    public Optional<InventoryCopy> lookupForBookInLocal(String bookTitle) {
+        List<InventoryCopyEntity> foundBook = jpa.findByBookTitle(bookTitle);
+        if (!foundBook.isEmpty()) {
+            return Optional.of(toDomain(foundBook.get(1)));
+        }
+        return Optional.empty();
     }
 
     @Override

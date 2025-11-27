@@ -4,7 +4,6 @@ import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.domain.event.BookAvailabilityCheckedEvent;
 import de.demo.lending.inventory.domain.event.BookReserved;
 import de.demo.lending.loan.domain.LoanId;
 
@@ -42,7 +41,8 @@ public class InventoryCopy extends AggregateRoot {
         InventoryCopy newInventory = new InventoryCopy(CopyId.newId().toString(), loanId, correlationId, bookId, userId,
                 bookTitle, now, ReservationId.newId());
         newInventory.state = InventoryState.IN_TRANSIENT;
-        newInventory.raise(new BookAvailabilityCheckedEvent(loanId, correlationId, causationId, true, bookTitle, userId));
+        // Hier könnten wir ein technisches Event erstellen, aber kein Domain Event !!!
+        //newInventory.raise(new ProcurementRequestedEvent(loanId, correlationId, causationId, true, bookTitle, userId));
         return newInventory;
     }
 

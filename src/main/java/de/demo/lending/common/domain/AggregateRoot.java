@@ -55,6 +55,7 @@ public abstract class AggregateRoot {
      */
     public List<BaseDomainEvent> pullProducedEvents() {
         List<BaseDomainEvent> copy = new ArrayList<>(producedEvents);
+        // wichtig
         producedEvents.clear();
         return Collections.unmodifiableList(copy);
     }

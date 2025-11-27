@@ -1,4 +1,4 @@
-package de.demo.lending.inventory.application;
+package de.demo.lending.inventory.domain.port.out;
 
 import de.demo.lending.inventory.domain.Reservation;
 

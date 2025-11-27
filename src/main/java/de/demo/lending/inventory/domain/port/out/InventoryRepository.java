@@ -1,4 +1,4 @@
-package de.demo.lending.inventory.application;
+package de.demo.lending.inventory.domain.port.out;
 
 
 import de.demo.lending.common.valueobjects.BookId;
@@ -18,6 +18,8 @@ public interface InventoryRepository {
      * Liefert eine Kopie als Domain-Objekt (z.B. für Read-Model oder Details).
      */
     Optional<InventoryCopy> findById(CopyId id);
+
+    Optional<InventoryCopy> lookupForBookInLocal(String BookTitle);
 
     /**
      * Persistiert Aktualisierungen einer InventoryCopy (z.B. Statuswechsel).

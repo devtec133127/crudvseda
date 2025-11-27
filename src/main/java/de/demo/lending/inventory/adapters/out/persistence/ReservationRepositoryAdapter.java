@@ -1,7 +1,7 @@
 package de.demo.lending.inventory.adapters.out.persistence;
 
-import de.demo.lending.inventory.application.ReservationRepository;
 import de.demo.lending.inventory.domain.Reservation;
+import de.demo.lending.inventory.domain.port.out.ReservationRepository;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -7,7 +7,7 @@ import de.demo.lending.common.adapters.out.persistence.ProcessedEventRepository;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.application.ReserveBook;
+import de.demo.lending.inventory.application.ReserveBookService;
 import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.read.application.port.LoanStatusReadPort;
@@ -34,14 +34,14 @@ public class AsyncInventoryEventListener {
     private static final Logger log = LoggerFactory.getLogger(AsyncInventoryEventListener.class);
 
     private final ObjectMapper om = new ObjectMapper();
-    private final ReserveBook reserveBookUseCase;
+    private final ReserveBookService reserveBookUseCase;
     private final AsyncEventBus eventBus;
     private final ProcessedEventRepository processedRepo;
     private final LoanStatusReadPort loanStatusReadPort;
     private final DemoEventSSEPublisher uiPublisher;
 
     public AsyncInventoryEventListener(
-            ReserveBook reserveBookUseCase,
+            ReserveBookService reserveBookUseCase,
             AsyncEventBus eventBus,
             ProcessedEventRepository processedRepo,
             LoanStatusReadPort loanStatusReadPort,
