@@ -130,6 +130,62 @@ function subscribeToEvents(loanId) {
         }
     });
 
+    eventSource.addEventListener('procurement-initiated', (e) => {
+        console.log('=== SSE EVENT: procurement-initiated ===');
+        console.log('Raw data:', e.data);
+
+        try {
+            const data = JSON.parse(e.data);
+            console.log('Parsed data:', data);
+
+            const elapsed = Date.now() - startTime;
+
+            displayEvent('procurement', {
+                title: 'Procurement Service - Verfügbarkeit geprüft',
+                message: data.message || 'Buch extern angefragt',
+                details: [
+                    //`Reservation-ID: ${data.reservationId || 'N/A'}`,
+                    `Artikel: ${data.article || data.bookTitle || 'Buch'}`
+                ],
+                elapsed: data.elapsedMs || elapsed
+            });
+
+            receivedEvents.inventory = true;
+            console.log('Inventory event processed. Received events:', receivedEvents);
+            checkCompletion(receivedEvents);
+        } catch (error) {
+            console.error('Error processing inventory event:', error);
+        }
+    });
+
+    eventSource.addEventListener('book-externally-ordered', (e) => {
+        console.log('=== SSE EVENT: book-externally-ordered ===');
+        console.log('Raw data:', e.data);
+
+        try {
+            const data = JSON.parse(e.data);
+            console.log('Parsed data:', data);
+
+            const elapsed = Date.now() - startTime;
+
+            displayEvent('procurement', {
+                title: 'Procurement Service - beauftragt',
+                message: data.message || 'Buch extern beauftragt',
+                details: [
+                    //`Reservation-ID: ${data.reservationId || 'N/A'}`,
+                    `Artikel: ${data.article || data.bookTitle || 'Buch'}`
+                ],
+                elapsed: data.elapsedMs || elapsed
+            });
+
+            receivedEvents.inventory = true;
+            console.log('Inventory event processed. Received events:', receivedEvents);
+            checkCompletion(receivedEvents);
+        } catch (error) {
+            console.error('Error processing inventory event:', error);
+        }
+    });
+
     // 3. Inventory Reserved
     eventSource.addEventListener('book-reserved', (e) => {
         console.log('=== SSE EVENT: book-reserved ===');
@@ -334,7 +390,7 @@ function displayEvent(type, data) {
         </div>
         <span class="elapsed">+${data.elapsed}ms</span>
     `;
-    
+
     /*eventCard.innerHTML = `
         <div class="event-header">
             <span class="event-title">${icon} ${data.title}</span>

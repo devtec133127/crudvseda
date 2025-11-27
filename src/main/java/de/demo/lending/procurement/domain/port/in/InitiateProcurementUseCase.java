@@ -7,9 +7,11 @@ import java.util.Objects;
 import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.ProcurementOrderId;
+import jakarta.transaction.Transactional;
 
 public interface InitiateProcurementUseCase {
 
+    @Transactional
     ProcurementResult execute(InitiateProcurementCommand command);
 
     /**

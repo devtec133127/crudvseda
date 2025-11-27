@@ -125,7 +125,8 @@ public class ProcurementOrder extends AggregateRoot {
                 this.externalOrderId,
                 this.loanId,
                 this.userId,
-                this.estimatedArrival
+                this.estimatedArrival,
+                this.isbn
         ));
     }
 

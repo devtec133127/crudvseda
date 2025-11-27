@@ -219,6 +219,26 @@ public class DemoEventSSEPublisher {
         eventStore.publishEvent(loanUuid.toString(), demoEvent);
     }
 
+    public void publishBookOrderedExternallyToUI(UUID loanUuid, String bookId, String estimatedArrival) {
+        // Speichere Start-Timestamp für elapsed-time Berechnung
+        loanStartTimes.put(loanUuid.toString(), System.currentTimeMillis());
+
+        // Optional: Initial Event an UI senden
+        DemoEvent demoEvent = DemoEvent.builder()
+                .type("book-externally-ordered")
+                .loanId(loanUuid.toString())
+                .userId("")
+                .reservationId("")
+                .bookId(bookId)
+                //.estimatedArrival(estimatedArrival)
+                .message("Procurement wurde beauftragt!")
+                .timestamp(System.currentTimeMillis())
+                .elapsedMs(calculateElapsedTime(loanUuid.toString()))
+                .build();
+
+        eventStore.publishEvent(loanUuid.toString(), demoEvent);
+    }
+
     /**
      * Reagiert auf PaymentCompletedEvent.
      * Übersetzt Domain Event in UI-freundliches DemoEvent.

@@ -78,7 +78,7 @@ public class KafkaProcurementEventListener {
 
             InitiateProcurementUseCase.ProcurementResult result = initiateProcurementUseCase.execute(command);
 
-            uiPublisher.publishProcurementInitiatedToUI(loanId.value(), payload.getBookTitle());
+            //uiPublisher.publishProcurementInitiatedToUI(loanId.value(), payload.getBookTitle());
 
             if (result.isSuccess()) {
                 log.info("Procurement initiated successfully. OrderId: {}",
