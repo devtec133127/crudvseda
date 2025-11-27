@@ -17,7 +17,6 @@ import de.demo.lending.procurement.domain.event.ProcurementInitiated;
 import de.demo.lending.procurement.domain.port.in.InitiateProcurementUseCase;
 import de.demo.lending.procurement.domain.port.out.ProcurementOrderRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -39,7 +38,7 @@ public class InitiateProcurementService implements InitiateProcurementUseCase {
     @Override
     public ProcurementResult execute(InitiateProcurementCommand command) {
 
-        Pair<String, String> externalBookInfo = externalClient.searchBook(command.getBookTitle().toString());
+        OpenLibraryClient.ExternalBookInfo externalBookInfo = externalClient.searchBook(command.getBookTitle().toString());
         if (externalBookInfo == null) {
             log.warn("Book not available in external libraries: {}", command.getBookTitle());
             return ProcurementResult.notAvailable();
@@ -53,7 +52,7 @@ public class InitiateProcurementService implements InitiateProcurementUseCase {
 
         String externalOrderId = "";
         long estimatedArrival = 0L;
-        BookId bookId = BookId.of(externalBookInfo.getSecond());
+        BookId bookId = BookId.of(externalBookInfo.getIsbn());
         // Update Aggregat mit externer Order-ID
         order.confirmExternalOrder(externalOrderId, bookId, estimatedArrival);
         // Aggregat hat book.ordered_externally.v1 registriert

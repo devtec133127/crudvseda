@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.util.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
@@ -25,7 +24,7 @@ public class OpenLibraryClient {
         this.restTemplate = restTemplate;
     }
 
-    public Pair<String, String> searchBook(String query) {
+    public ExternalBookInfo searchBook(String query) {
         String url = apiBaseUrl + "/search.json?title=" +
                 URLEncoder.encode(query, StandardCharsets.UTF_8) +
                 "&limit=1&fields=title,isbn";
@@ -39,7 +38,7 @@ public class OpenLibraryClient {
                 Object docsObj = response.getBody().get("docs");
                 if (!(docsObj instanceof List)) {
                     log.warn("Keine Dokumente gefunden");
-                    return Pair.of("N/A", "N/A");
+                    return new ExternalBookInfo("N/A", "N/A");
                 }
 
                 List<?> docs = (List<?>) docsObj;
@@ -47,11 +46,11 @@ public class OpenLibraryClient {
                 docs.stream().limit(5).forEach(d -> log.debug("Doc: {}", d));
                 if (docs.isEmpty()) {
                     log.warn("Keine Bücher gefunden");
-                    return Pair.of("", "");
+                    return new ExternalBookInfo("", "");
                 }
 
                 // 3. Jedes Element sicher casten und mappen
-                List<Pair<String, String>> bookInfos = docs.stream()
+                List<ExternalBookInfo> bookInfos = docs.stream()
                         .filter(o -> o instanceof Map)
                         .map(o -> mapToBook((Map<String, Object>) o))
                         .collect(Collectors.toList());
@@ -66,26 +65,26 @@ public class OpenLibraryClient {
                 log.debug("Error: {}", response.getBody().toString());
             }
             log.debug("Search returned {} documents", response.getBody().size());
-            return Pair.of("", "");
+            return new ExternalBookInfo("", "");
         } catch (HttpServerErrorException e) {
             log.error("OpenLibrary API Fehler: {}", e.getStatusCode(), e);
-            return Pair.of("", "");
+            return new ExternalBookInfo("", "");
         }
     }
 
-    private Pair<String, String> determineBook(List<Pair<String, String>> bookInfos, String searchBootTitle) {
+    private ExternalBookInfo determineBook(List<ExternalBookInfo> bookInfos, String searchBootTitle) {
         if (bookInfos.isEmpty()) {
             log.warn("Book title {} not found", searchBootTitle);
             return null;
         }
 
-        bookInfos.stream().forEach(p -> log.debug("Found Book: {} with ISBN: {}", p.getSecond(), p.getFirst()));
+        bookInfos.stream().forEach(p -> log.debug("Found Book: {} with ISBN: {}", p.getTitle(), p.getIsbn()));
 
-        Optional<Pair<String, String>> firstValidBook = bookInfos.stream()
-                .filter(p -> !"N/A".equals(p.getFirst()))
+        Optional<ExternalBookInfo> firstValidBook = bookInfos.stream()
+                .filter(p -> !"N/A".equals(p.getIsbn()))
                 .findFirst();
         firstValidBook.ifPresentOrElse(
-                b -> System.out.println("Gefundenes Buch: " + b.getSecond() + " / ISBN: " + b.getFirst()),
+                b -> System.out.println("Gefundenes Buch: " + b.getTitle() + " / ISBN: " + b.getIsbn()),
                 () -> System.out.println("Kein Buch mit gültiger ISBN gefunden")
         );
 
@@ -98,7 +97,7 @@ public class OpenLibraryClient {
         return firstValidBook.get();
     }
 
-    private Pair<String, String> mapToBook(Map doc) {
+    private ExternalBookInfo mapToBook(Map doc) {
         String title = (String) doc.get("title");
         String isbn = "N/A";
 
@@ -124,6 +123,24 @@ public class OpenLibraryClient {
 
         log.debug("Book mapped {}", isbn);
 
-        return Pair.of(isbn, title);
+        return new ExternalBookInfo(isbn, title);
+    }
+
+    public class ExternalBookInfo {
+        private String title;
+        private String isbn;
+
+        public ExternalBookInfo(String title, String isbn) {
+            this.title = title;
+            this.isbn = isbn;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public String getIsbn() {
+            return isbn;
+        }
     }
 }

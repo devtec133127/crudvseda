@@ -1,14 +1,14 @@
 package de.demo.lending.loan.adapters.in.demo;
 
-import de.demo.lending.loan.adapters.in.demo.dto.DemoEvent;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import de.demo.lending.loan.adapters.in.demo.dto.DemoEvent;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * In-Memory Event Store für Demo-Zwecke.
@@ -27,7 +27,7 @@ public class DemoEventStore {
      * Öffnet SSE-Stream für einen Loan
      */
     public SseEmitter subscribe(String loanId) {
-        SseEmitter emitter = new SseEmitter(60000L);
+        SseEmitter emitter = new SseEmitter(600000L);
 
         // Emitter registrieren
         emitters.computeIfAbsent(loanId, k -> new CopyOnWriteArrayList<>())
