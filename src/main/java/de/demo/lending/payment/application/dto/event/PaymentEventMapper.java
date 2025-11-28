@@ -23,7 +23,7 @@ public final class PaymentEventMapper {
                 .correlationId(correlationId)
                 .causationId(causationId)
                 .userId(e.getUserId().toString())
-                .bookId(e.getBookId().toString()).build();
+                .bookId(e.getBookId().value()).build();
     }
 
     public static PaymentCapturedPayload toPayload(
@@ -37,7 +37,7 @@ public final class PaymentEventMapper {
                 .causationId(causationId)
                 .userId(e.getUserId().toString())
                 .type(PaymentCaptured.class.getSimpleName())
-                .bookId(e.getBookId().toString()).build();
+                .bookId(e.getBookId().value()).build();
     }
 
     public static PaymentFailedPayload toPayload(
@@ -50,6 +50,6 @@ public final class PaymentEventMapper {
                 .correlationId(correlationId)
                 .causationId(causationId)
                 .userId(e.getUserId().toString())
-                .bookId(e.getBookId().toString()).build();
+                .bookId(e.getBookId().value()).build();
     }
 }

@@ -1,31 +1,29 @@
 package de.demo.lending.procurement.application.dto.event;
 
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.procurement.application.dto.BookOrderedExternallyPayload;
-import de.demo.lending.procurement.domain.event.BookOrderedExternally;
+import de.demo.lending.procurement.application.dto.BookReceivedPayload;
+import de.demo.lending.procurement.domain.event.BookReceived;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BookOrderedExternallyMapper {
+public class BookReceivedMapper {
 
-    private BookOrderedExternallyMapper() {
+    private BookReceivedMapper() {
     }
 
-    public static BookOrderedExternallyPayload toPayload(
-            BookOrderedExternally e, String correlationId, String causationId) {
+    public static BookReceivedPayload toPayload(
+            BookReceived e, String correlationId, String causationId) {
 
         UserId userId = e.getUserId();
-        BookOrderedExternallyPayload payload = BookOrderedExternallyPayload.builder()
-                .type("book.ordered.externally")
+        return BookReceivedPayload.builder()
                 .eventId(e.getEventId())
+                .type("procurement.book.received.v1")
                 .occurredAt(e.getOccurredAt().toString())
                 .correlationId(correlationId)
                 .causationId(causationId)
                 .loanId(e.getLoanId().value().toString())
                 .userId(userId != null ? e.getUserId().value().toString() : null)
                 .bookId(e.getBookId().value())
-                //.estimatedArrival(Long.toString(e.getEstimatedArrival()))
                 .build();
-        return payload;
     }
 }

@@ -1,11 +1,5 @@
 package de.demo.lending.inventory.application;
 
-import static de.demo.lending.common.events.Topics.INVENTORY_BOOK_NOT_FOUND_V1;
-import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
-
-import java.time.Duration;
-import java.util.Optional;
-
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.dto.BookNotFoundLocallyPayload;
@@ -18,21 +12,28 @@ import de.demo.lending.inventory.domain.event.BookReserved;
 import de.demo.lending.inventory.domain.port.out.InventoryRepository;
 import de.demo.lending.inventory.domain.port.out.ReservationRepository;
 import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.procurement.adapters.out.external.OpenLibraryClientAdapter;
 import de.demo.lending.read.application.port.LoanStatusReadPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.util.Optional;
+
+import static de.demo.lending.common.events.Topics.INVENTORY_BOOK_NOT_FOUND_V1;
+import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
+
 @Slf4j
 @Service
 public class ReserveBookService implements de.demo.lending.inventory.domain.port.in.ReserveBookUseCase {
-    private final OpenLibraryClient externalClient;
+    private final OpenLibraryClientAdapter externalClient;
     private final ReservationRepository reservationRepository;
     private final InventoryRepository repo;
     private final EventPublisher publisher; // eigenes Port-Interface, s.u.
     private final LoanStatusReadPort loanStatusReadPort;
 
-    public ReserveBookService(OpenLibraryClient externalClient, ReservationRepository reservationRepository,
+    public ReserveBookService(OpenLibraryClientAdapter externalClient, ReservationRepository reservationRepository,
                               InventoryRepository repo, EventPublisher publisher, LoanStatusReadPort loanStatusReadPort) {
         this.externalClient = externalClient;
         this.repo = repo;
@@ -67,7 +68,6 @@ public class ReserveBookService implements de.demo.lending.inventory.domain.port
                 }
             });
         } else {
-
             BookNotFoundLocally notFoundEvent = new BookNotFoundLocally(loanId, correlationId, causationId, bookTitle, userId);
             BookNotFoundLocallyPayload payload = BookNotFoundLocallyMapper.toPayload(notFoundEvent, correlationId, causationId);
             log.info("Publishing BookNotFoundLocally to topic {}: {}", INVENTORY_BOOK_NOT_FOUND_V1, payload);

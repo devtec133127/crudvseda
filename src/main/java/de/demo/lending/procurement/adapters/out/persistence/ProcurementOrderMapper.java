@@ -1,7 +1,5 @@
 package de.demo.lending.procurement.adapters.out.persistence;
 
-import java.util.UUID;
-
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.loan.domain.LoanId;
@@ -9,6 +7,8 @@ import de.demo.lending.procurement.domain.ExternalLibraryId;
 import de.demo.lending.procurement.domain.ProcurementOrder;
 import de.demo.lending.procurement.domain.ProcurementOrderId;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Component
 public class ProcurementOrderMapper {
@@ -30,7 +30,6 @@ public class ProcurementOrderMapper {
         entity.setOrderedAt(domain.getOrderedAt());
         entity.setEstimatedArrival(domain.getEstimatedArrival());
         entity.setReceivedAt(domain.getReceivedAt());
-        entity.setReceivedBy(domain.getReceivedBy());
 
         return entity;
     }

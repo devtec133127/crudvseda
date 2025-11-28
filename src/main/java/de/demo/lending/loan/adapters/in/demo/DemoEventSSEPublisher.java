@@ -1,9 +1,5 @@
 package de.demo.lending.loan.adapters.in.demo;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,6 +9,10 @@ import de.demo.lending.loan.adapters.in.demo.dto.DemoEvent;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Demo Event Listener für die Präsentations-UI.
@@ -160,6 +160,25 @@ public class DemoEventSSEPublisher {
         eventStore.publishEvent(loanUuid.toString(), demoEvent);
     }
 
+    public void publishBookRegisteredToUI(UUID loanUuid, UUID userUuid, String bookId, UUID reservationId) {
+        // Speichere Start-Timestamp für elapsed-time Berechnung
+        loanStartTimes.put(loanUuid.toString(), System.currentTimeMillis());
+
+        // Optional: Initial Event an UI senden
+        DemoEvent demoEvent = DemoEvent.builder()
+                .type("book-registered")
+                .loanId(loanUuid.toString())
+                .userId(userUuid.toString())
+                .bookId(bookId)
+                .reservationId(reservationId.toString())
+                .message("Buch wurde erfasst")
+                .timestamp(System.currentTimeMillis())
+                .elapsedMs(calculateElapsedTime(loanUuid.toString()))
+                .build();
+
+        eventStore.publishEvent(loanUuid.toString(), demoEvent);
+    }
+
     public void publishBookReservedToUI(UUID loanUuid, UUID userUuid, String bookId, UUID reservationId) {
         // Speichere Start-Timestamp für elapsed-time Berechnung
         loanStartTimes.put(loanUuid.toString(), System.currentTimeMillis());
@@ -233,6 +252,26 @@ public class DemoEventSSEPublisher {
                 //.estimatedArrival(estimatedArrival)
                 .message("Procurement wurde beauftragt!")
                 .timestamp(System.currentTimeMillis())
+                .elapsedMs(calculateElapsedTime(loanUuid.toString()))
+                .build();
+
+        eventStore.publishEvent(loanUuid.toString(), demoEvent);
+    }
+
+    public void publishOrderReceivedToUI(UUID loanUuid, String bookId) {//, String externalOrderId) {
+        // Speichere Start-Timestamp für elapsed-time Berechnung
+        loanStartTimes.put(loanUuid.toString(), System.currentTimeMillis());
+
+        // Optional: Initial Event an UI senden
+        DemoEvent demoEvent = DemoEvent.builder()
+                .type("order-received")
+                .loanId(loanUuid.toString())
+                .userId("")
+                .bookId(bookId)
+                .reservationId("")
+                .message("Das Buch ist angekommen!")
+                .timestamp(System.currentTimeMillis())
+                //.externalOrderId(externalOrderId);
                 .elapsedMs(calculateElapsedTime(loanUuid.toString()))
                 .build();
 

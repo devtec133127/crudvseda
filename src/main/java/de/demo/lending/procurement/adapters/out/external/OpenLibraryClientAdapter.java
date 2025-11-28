@@ -1,33 +1,35 @@
-package de.demo.lending.inventory.application;
+package de.demo.lending.procurement.adapters.out.external;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
+import de.demo.lending.procurement.domain.port.out.ProcurementClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
-public class OpenLibraryClient {
+public class OpenLibraryClientAdapter implements ProcurementClient {
 
     private final RestTemplate restTemplate;
     private final String apiBaseUrl = "https://openlibrary.org";
 
-    public OpenLibraryClient(RestTemplate restTemplate) {
+    public OpenLibraryClientAdapter(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     public ExternalBookInfo searchBook(String query) {
         String url = apiBaseUrl + "/search.json?title=" +
                 URLEncoder.encode(query, StandardCharsets.UTF_8) +
-                "&limit=1&fields=title,isbn";
+                "&limit=1&fields=title,isbn,key";
         try {
             log.info("Synchroner REST-Call zu Payment-Service | Endpoint: {}", url);
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
@@ -38,7 +40,7 @@ public class OpenLibraryClient {
                 Object docsObj = response.getBody().get("docs");
                 if (!(docsObj instanceof List)) {
                     log.warn("Keine Dokumente gefunden");
-                    return new ExternalBookInfo("N/A", "N/A");
+                    return new ExternalBookInfo("N/A", "N/A", "N/A");
                 }
 
                 List<?> docs = (List<?>) docsObj;
@@ -46,7 +48,7 @@ public class OpenLibraryClient {
                 docs.stream().limit(5).forEach(d -> log.debug("Doc: {}", d));
                 if (docs.isEmpty()) {
                     log.warn("Keine Bücher gefunden");
-                    return new ExternalBookInfo("", "");
+                    return new ExternalBookInfo("", "", "");
                 }
 
                 // 3. Jedes Element sicher casten und mappen
@@ -65,11 +67,20 @@ public class OpenLibraryClient {
                 log.debug("Error: {}", response.getBody().toString());
             }
             log.debug("Search returned {} documents", response.getBody().size());
-            return new ExternalBookInfo("", "");
+            return new ExternalBookInfo("", "", "");
         } catch (HttpServerErrorException e) {
             log.error("OpenLibrary API Fehler: {}", e.getStatusCode(), e);
-            return new ExternalBookInfo("", "");
+            return new ExternalBookInfo("", "", "");
         }
+    }
+
+    public String orderBook(String externalBookId) {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            // logging
+        }
+        return UUID.randomUUID().toString();
     }
 
     private ExternalBookInfo determineBook(List<ExternalBookInfo> bookInfos, String searchBootTitle) {
@@ -99,6 +110,7 @@ public class OpenLibraryClient {
 
     private ExternalBookInfo mapToBook(Map doc) {
         String title = (String) doc.get("title");
+        String externalBookId = (String) doc.get("key");
         String isbn = "N/A";
 
         //book.setAuthor((String) ((List) doc.get("author_name")).get(0)); // Erster Autor
@@ -123,16 +135,18 @@ public class OpenLibraryClient {
 
         log.debug("Book mapped {}", isbn);
 
-        return new ExternalBookInfo(isbn, title);
+        return new ExternalBookInfo(title, isbn, externalBookId);
     }
 
     public class ExternalBookInfo {
         private String title;
         private String isbn;
+        private String externalBookId;
 
-        public ExternalBookInfo(String title, String isbn) {
+        public ExternalBookInfo(String title, String isbn, String externalBookId) {
             this.title = title;
             this.isbn = isbn;
+            this.externalBookId = externalBookId;
         }
 
         public String getTitle() {
@@ -141,6 +155,10 @@ public class OpenLibraryClient {
 
         public String getIsbn() {
             return isbn;
+        }
+
+        public String getExternalBookId() {
+            return externalBookId;
         }
     }
 }

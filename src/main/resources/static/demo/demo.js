@@ -186,6 +186,34 @@ function subscribeToEvents(loanId) {
         }
     });
 
+    eventSource.addEventListener('book-registered', (e) => {
+        console.log('=== SSE EVENT: book-registered ===');
+        console.log('Raw data:', e.data);
+
+        try {
+            const data = JSON.parse(e.data);
+            console.log('Parsed data:', data);
+
+            const elapsed = Date.now() - startTime;
+
+            displayEvent('inventory', {
+                title: 'Inventory Service',
+                message: data.message || 'Buch wurde registriert',
+                details: [
+                    `Reservation-ID: ${data.reservationId || 'N/A'}`,
+                    `Artikel: ${data.bookTitle || 'Buch'}`
+                ],
+                elapsed: data.elapsedMs || elapsed
+            });
+
+            receivedEvents.inventory = true;
+            console.log('Inventory event processed. Received events:', receivedEvents);
+            checkCompletion(receivedEvents);
+        } catch (error) {
+            console.error('Error processing inventory event:', error);
+        }
+    });
+
     // 3. Inventory Reserved
     eventSource.addEventListener('book-reserved', (e) => {
         console.log('=== SSE EVENT: book-reserved ===');
@@ -271,6 +299,16 @@ function subscribeToEvents(loanId) {
             details: [],
         });
     })
+
+    eventSource.addEventListener('order-received', (e) => {
+            const data = JSON.parse(e.data);
+            displayEvent(data.type, {
+                title: data.type,
+                elapsed: data.elapsedMs,
+                message: data.message || 'Das Buch ist angekommen!',
+                details: [],
+            });
+        })
 
     // Error Handling
     eventSource.onerror = (error) => {

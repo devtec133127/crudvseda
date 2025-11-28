@@ -1,12 +1,12 @@
 package de.demo.lending.common.domain.events;
 
-import java.time.Instant;
-import java.util.Objects;
-import java.util.UUID;
-
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.LoanId;
 import lombok.Getter;
+
+import java.time.Instant;
+import java.util.Objects;
+import java.util.UUID;
 
 @Getter
 public abstract class BaseDomainEvent {
@@ -25,5 +25,9 @@ public abstract class BaseDomainEvent {
         this.causationId = Objects.requireNonNull(causationId);
         this.occurredAt = Objects.requireNonNull(occurredAt);
         this.userId = userId;
+    }
+
+    protected BaseDomainEvent(UUID eventId, LoanId loanId, String correlationId, String causationId, Instant occurredAt) {
+        this(eventId, loanId, correlationId, causationId, occurredAt, null);
     }
 }

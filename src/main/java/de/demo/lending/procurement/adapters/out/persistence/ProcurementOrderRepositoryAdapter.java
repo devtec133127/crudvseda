@@ -1,5 +1,6 @@
 package de.demo.lending.procurement.adapters.out.persistence;
 
+import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.ProcurementOrder;
 import de.demo.lending.procurement.domain.port.out.ProcurementOrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,12 @@ public class ProcurementOrderRepositoryAdapter implements ProcurementOrderReposi
 
     private final SpringProcurementOrderRepository jpaRepo;
     private final ProcurementOrderMapper mapper;
+
+    @Override
+    public ProcurementOrder findByLoanId(LoanId loanId) {
+        ProcurementOrderEntity byLoanId = jpaRepo.findByLoanId(loanId.value());
+        return mapper.toDomain(byLoanId);
+    }
 
     @Override
     public void save(ProcurementOrder order) {

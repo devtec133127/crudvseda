@@ -1,19 +1,17 @@
 package de.demo.lending.procurement.domain;
 
-import static java.util.Objects.requireNonNull;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
 import de.demo.lending.common.domain.AggregateRoot;
-import de.demo.lending.common.domain.events.BaseDomainEvent;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.event.BookOrderedExternally;
+import de.demo.lending.procurement.domain.event.BookReceived;
 import de.demo.lending.procurement.domain.event.ProcurementInitiated;
+
+import java.time.Instant;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Aggregate Root - Procurement Order
@@ -44,11 +42,6 @@ public class ProcurementOrder extends AggregateRoot {
     private long estimatedArrival;
     private Instant receivedAt;
 
-    //private ShelfLocation targetLocation;
-    //private PhysicalCondition physicalCondition;
-    private String receivedBy;
-
-    private final List<BaseDomainEvent> domainEvents = new ArrayList<>();
 
     // Private constructor - nur via Factory Methods
     private ProcurementOrder(
@@ -77,7 +70,6 @@ public class ProcurementOrder extends AggregateRoot {
         order.orderedAt = orderedAt;
         order.estimatedArrival = estimatedArrival;
         order.receivedAt = receivedAt;
-        order.receivedBy = receivedBy;
         return order;
     }
 
@@ -144,13 +136,9 @@ public class ProcurementOrder extends AggregateRoot {
                 this.loanId,
                 this.externalLibraryId
         ));
-    }
+    }*/
 
-    public void markAsReceived(
-            ShelfLocation location,
-            PhysicalCondition condition,
-            String receivedByStaff
-    ) {
+    public void markAsReceived() {
         if (this.status != ProcurementStatus.IN_TRANSIT
                 && this.status != ProcurementStatus.ORDERED) {
             throw new IllegalStateException(
@@ -160,20 +148,12 @@ public class ProcurementOrder extends AggregateRoot {
 
         this.status = ProcurementStatus.RECEIVED;
         this.receivedAt = Instant.now();
-        this.targetLocation = requireNonNull(location);
-        this.physicalCondition = requireNonNull(condition);
-        this.receivedBy = requireNonNull(receivedByStaff);
 
-        registerEvent(new BookReceivedEvent(
-                this.id,
-                this.loanId,
-                this.isbn,
-                this.bookTitle,
-                this.targetLocation
-        ));
+
+        raise(BookReceived.of(getProcurementOrderId(), getExternalOrderId(), getLoanId(), getIsbn()));
     }
 
-    public void complete() {
+    /*public void complete() {
         if (this.status != ProcurementStatus.RECEIVED) {
             throw new IllegalStateException(
                     "Can only complete after receiving"
@@ -249,9 +229,5 @@ public class ProcurementOrder extends AggregateRoot {
 
     public Instant getReceivedAt() {
         return receivedAt;
-    }
-
-    public String getReceivedBy() {
-        return receivedBy;
     }
 }

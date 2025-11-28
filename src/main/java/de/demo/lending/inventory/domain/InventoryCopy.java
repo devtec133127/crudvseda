@@ -1,30 +1,32 @@
 package de.demo.lending.inventory.domain;
 
-import java.time.Instant;
-import java.util.UUID;
-
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
+import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.domain.event.BookRegistered;
 import de.demo.lending.inventory.domain.event.BookReserved;
 import de.demo.lending.loan.domain.LoanId;
 
+import java.time.Instant;
+import java.util.UUID;
+
 public class InventoryCopy extends AggregateRoot {
-    public enum InventoryState {IN_TRANSIENT, NOT_LOCALLY_AVAILABLE, AVAILABLE, RESERVED, LOANED}
+    public enum InventoryState {IN_TRANSIENT, NOT_LOCALLY_AVAILABLE, REGISTERED, AVAILABLE, RESERVED, LOANED}
 
     private final BookId bookId;
     private final UserId userId;
     private InventoryState state;
     private Instant updatedAt;
-    private final String bookTitle;
+    private final BookTitle bookTitle;
     private final LoanId loanId;
     private final ReservationId reservationId;
 
     private final java.util.List<Object> domainEvents = new java.util.ArrayList<>();
 
     public InventoryCopy(UUID id, LoanId loanId, String correlationId, BookId bookId, UserId userId,
-                         String bookTitle, Instant updatedAt, ReservationId reservationId) {
+                         BookTitle bookTitle, Instant updatedAt, ReservationId reservationId) {
         super(id, correlationId);
 
         this.bookId = bookId;
@@ -36,7 +38,7 @@ public class InventoryCopy extends AggregateRoot {
     }
 
     public static InventoryCopy createNew(String correlationId, String causationId, LoanId loanId,
-                                          BookId bookId, String bookTitle, UserId userId) {
+                                          BookId bookId, BookTitle bookTitle, UserId userId) {
         var now = Instant.now();
         InventoryCopy newInventory = new InventoryCopy(CopyId.newId().value(), loanId, correlationId, bookId, userId,
                 bookTitle, now, ReservationId.newId());
@@ -44,6 +46,11 @@ public class InventoryCopy extends AggregateRoot {
         // Hier könnten wir ein technisches Event erstellen, aber kein Domain Event !!!
         //newInventory.raise(new ProcurementRequestedEvent(loanId, correlationId, causationId, true, bookTitle, userId));
         return newInventory;
+    }
+
+    public static InventoryCopy createNew(String correlationId, String causationId, LoanId loanId,
+                                          BookId bookId, BookTitle bookTitle) {
+        return createNew(correlationId, causationId, loanId, bookId, bookTitle, null);
     }
 
     public CopyId getCopyId() {
@@ -70,20 +77,43 @@ public class InventoryCopy extends AggregateRoot {
     /**
      * Wird aufgerufen, wenn das Buch phyisch ankommt
      */
+    public void registerBook() {
+        if (this.state != InventoryState.IN_TRANSIENT && this.state != InventoryState.NOT_LOCALLY_AVAILABLE)
+            throw new IllegalStateException("Copy not ordered!");
+        this.state = InventoryState.REGISTERED;
+        this.updatedAt = Instant.now();
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        // BookArrived Event senden
+        raise(new BookRegistered(loanId, "", "", getCopyId(), getBookId(), ReservationId.newId()));
+    }
+
+    /**
+     * Wird aufgerufen, wenn das Buch erfasst wurde
+     */
     public void markAsAvailable() {
-        if (this.state != InventoryState.IN_TRANSIENT) throw new IllegalStateException("Copy not ordered!");
+        if (this.state != InventoryState.REGISTERED) throw new IllegalStateException("Copy not ordered!");
         this.state = InventoryState.AVAILABLE;
         this.updatedAt = Instant.now();
 
         // BookArrived Event senden
-        //raise(new BookReserved(loanId, correlationId, causationId, newInventory.getCopyId(), bookTitle, userId, bookId, newInventory.reservationId));
+        raise(new BookReserved(loanId, "", "", getCopyId(), getBookTitle(), getUserId(), getBookId(), ReservationId.newId()));
     }
 
     public UserId getUserId() {
         return userId;
     }
 
-    public String getBookTitle() {
+    public BookTitle getBookTitle() {
         return bookTitle;
+    }
+
+    public ReservationId getReservationId() {
+        return reservationId;
     }
 }
