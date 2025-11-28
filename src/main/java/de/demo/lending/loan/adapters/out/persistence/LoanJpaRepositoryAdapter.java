@@ -1,6 +1,7 @@
 package de.demo.lending.loan.adapters.out.persistence;
 
-import de.demo.lending.common.valueobjects.CopyId;
+import java.util.Optional;
+
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.application.LoanRepository;
 import de.demo.lending.loan.domain.Loan;
@@ -23,10 +24,21 @@ public class LoanJpaRepositoryAdapter implements LoanRepository {
         jpa.save(toEntity(loan));
     }
 
+    @Override
+    public Loan findByLoanId(LoanId loanId) {
+        Optional<LoanEntity> entityList = jpa.findByLoanId(loanId.value());
+        if (entityList.isEmpty()) {
+            return null;
+        }
+
+        LoanEntity entity = entityList.get();
+        return toDomain(entity);
+    }
+
     private LoanEntity toEntity(Loan l) {
         log.debug("toEntity(loan={})", l);
         var e = new LoanEntity();
-        e.setId(l.getId().value());
+        e.setId(l.getLoanId().value());
         e.setUserId(l.getUserId().value());
         e.setBookTitle(l.getBookTitle());
         if (l.getCopyId() != null) {
@@ -36,14 +48,14 @@ public class LoanJpaRepositoryAdapter implements LoanRepository {
         e.setDueDate(l.getDueDate());
         e.setCreatedAt(l.getCreatedAt());
         e.setUpdatedAt(l.getUpdatedAt());
-        e.setLoanId(l.getId().value());
+        e.setLoanId(l.getLoanId().value());
         return e;
     }
 
     private Loan toDomain(LoanEntity e) {
         log.debug("toDomain(loan={})", e);
         // Re-Konstruktor: über Factory-Methode oder Package-private ctor
-        return Loan.restore(LoanId.of(e.getId()), UserId.of(e.getUserId()), e.getBookTitle(),
-                CopyId.of(e.getCopyId()), Loan.Status.valueOf(e.getStatus()), e.getDueDate(), e.getCreatedAt(), e.getUpdatedAt());
+        return Loan.restore(LoanId.of(e.getLoanId()), UserId.of(e.getUserId()), e.getBookTitle(),
+                Loan.Status.valueOf(e.getStatus()), e.getDueDate(), e.getCreatedAt(), e.getUpdatedAt());
     }
 }

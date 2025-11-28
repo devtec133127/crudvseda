@@ -214,6 +214,34 @@ function subscribeToEvents(loanId) {
         }
     });
 
+    eventSource.addEventListener('loan-activated', (e) => {
+        console.log('=== SSE EVENT: loan-activated ===');
+        console.log('Raw data:', e.data);
+
+        try {
+            const data = JSON.parse(e.data);
+            console.log('Parsed data:', data);
+
+            const elapsed = Date.now() - startTime;
+
+            displayEvent('inventory', {
+                title: data.type,
+                message: data.message || 'Die Ausleihe wurde aktiviert. Der User wird informiert!',
+                details: [
+                    `Reservation-ID: ${data.reservationId || 'N/A'}`,
+                    `Artikel: ${data.bookTitle || 'Buch'}`
+                ],
+                elapsed: data.elapsedMs || elapsed
+            });
+
+            receivedEvents.inventory = true;
+            console.log('Loan event processed. Received events:', receivedEvents);
+            checkCompletion(receivedEvents);
+        } catch (error) {
+            console.error('Error processing inventory event:', error);
+        }
+    });
+
     // 3. Inventory Reserved
     eventSource.addEventListener('book-reserved', (e) => {
         console.log('=== SSE EVENT: book-reserved ===');

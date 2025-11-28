@@ -1,27 +1,27 @@
-package de.demo.lending.inventory.application.dto.event;
+package de.demo.lending.loan.application.dto.event;
 
 import java.util.UUID;
 
-import de.demo.lending.inventory.application.dto.BookReservedPayload;
 import de.demo.lending.inventory.domain.event.BookReserved;
+import de.demo.lending.loan.application.dto.LoanActivatedPayload;
+import de.demo.lending.loan.domain.event.LoanActivated;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class BookReservedEventMapper {
-    public static BookReservedPayload toPayload(
-            BookReserved e, String correlationId, String causationId) {
+public class LoanActivatedEventMapper {
+    public static LoanActivatedPayload toPayload(
+            LoanActivated e, String correlationId, String causationId) {
 
-        return BookReservedPayload.builder()
+        return LoanActivatedPayload.builder()
                 .eventId(UUID.randomUUID())
                 .occurredAt(e.getOccurredAt().toString())
                 .type(BookReserved.class.getCanonicalName())
                 .correlationId(correlationId)
                 .causationId(causationId)
                 .userId(e.getUserId() != null ? e.getUserId().value().toString() : null)
-                .bookTitle(e.getBookTitle().toString())
                 .copyId(e.getCopyId().value().toString())
-                .reservationId(e.getReservationId().value().toString())
+                .dueDate(e.getDueDate() != null ? e.getDueDate().toString() : null)
                 .loanId(e.getLoanId().value().toString()).build();
     }
 }

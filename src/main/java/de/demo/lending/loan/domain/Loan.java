@@ -1,15 +1,19 @@
 package de.demo.lending.loan.domain;
 
-import de.demo.lending.common.valueobjects.CopyId;
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.loan.domain.event.LoanRequested;
-
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
-public class Loan {
-    private final LoanId id;
+import de.demo.lending.common.domain.AggregateRoot;
+import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.loan.domain.event.LoanActivated;
+import de.demo.lending.loan.domain.event.LoanRequested;
+
+public class Loan extends AggregateRoot {
+    private static final int RANGE_IN_DAYS = 14;
+
     private final UserId userId;
     private final String bookTitle;
 
@@ -19,15 +23,12 @@ public class Loan {
     private final Instant createdAt;
     private Instant updatedAt;
 
-    public enum Status {REQUESTED, RESERVED, CHECKED_OUT, RETURNED, FAILED}
-
-    // Domain-Events nur intern sammeln (keine Framework-Abh.)
-    private final java.util.List<Object> domainEvents = new java.util.ArrayList<>();
+    public enum Status {REQUESTED, ACTIVE, EXTENDED, OVERDUE, CLOSED}
 
     private Loan(LoanId id, UserId userId, String bookTitle,
                  CopyId copyId, Status status,
                  LocalDate dueDate, Instant createdAt, Instant updatedAt) {
-        this.id = id;
+        super(id.value(), "");
         this.userId = userId;
         this.bookTitle = bookTitle;
         this.copyId = copyId;
@@ -42,54 +43,37 @@ public class Loan {
         Loan newLoan = new Loan(LoanId.newId(), userId, bookTitle, null, Status.REQUESTED, null, now, now);
         newLoan.status = Status.REQUESTED;
 
-        newLoan.raise(new LoanRequested(UUID.randomUUID(), newLoan.getId(), correlationId, causationId, Instant.now(),
+        newLoan.raise(new LoanRequested(UUID.randomUUID(), newLoan.getLoanId(), correlationId, causationId, Instant.now(),
                 userId, bookTitle, LoanPolicy.STANDARD_DURATION));
         return newLoan;
     }
 
-    public static Loan restore(LoanId id, UserId userId, String bookTitle, CopyId copyId,
+    public static Loan restore(LoanId id, UserId userId, String bookTitle,
                                Status status, LocalDate dueDate, Instant createdAt, Instant updatedAt) {
-        return new Loan(id, userId, bookTitle, copyId, status, dueDate, createdAt, updatedAt);
+        return new Loan(id, userId, bookTitle, null, status, dueDate, createdAt, updatedAt);
     }
 
-    private void raise(Object event) {
-        domainEvents.add(event);
-    }
-
-    public java.util.List<Object> pullDomainEvents() {
-        var copy = java.util.List.copyOf(domainEvents);
-        domainEvents.clear();
-        return copy;
-    }
-
-    public void markReserved(CopyId copyId) {
+    public void activate(CopyId copyId) {
         if (status != Status.REQUESTED) throw new IllegalStateException("Not in REQUESTED");
         this.copyId = copyId;
-        this.status = Status.RESERVED;
+        this.status = Status.ACTIVE;
         this.updatedAt = Instant.now();
+
+        raise(new LoanActivated(getLoanId(), this.copyId, this.dueDate));
     }
 
-    public void checkOut(LocalDate dueDate) {
-        if (status != Status.RESERVED) throw new IllegalStateException("Not in RESERVED");
-        this.status = Status.CHECKED_OUT;
-        this.dueDate = dueDate;
-        this.updatedAt = Instant.now();
-    }
-
-    public void markReturned() {
-        if (status != Status.CHECKED_OUT) throw new IllegalStateException("Not in CHECKED_OUT");
-        this.status = Status.RETURNED;
-        this.updatedAt = Instant.now();
-    }
-
-    public void fail() {
+    /*public void fail() {
         this.status = Status.FAILED;
         this.updatedAt = Instant.now();
+    }*/
+
+    private Instant calculateDueDate() {
+        return Instant.now().plus(RANGE_IN_DAYS, ChronoUnit.DAYS);
     }
 
     // Getter
-    public LoanId getId() {
-        return id;
+    public LoanId getLoanId() {
+        return LoanId.of(super.getId());
     }
 
     public UserId getUserId() {
@@ -123,7 +107,7 @@ public class Loan {
     @Override
     public String toString() {
         return "Loan{" +
-                "id=" + id +
+                "id=" + getLoanId() +
                 ", userId=" + userId +
                 ", bookTitle=" + bookTitle +
                 ", copyId=" + copyId +

@@ -1,5 +1,10 @@
 package de.demo.lending.loan.application;
 
+import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
+
+import java.time.Instant;
+import java.util.UUID;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
@@ -15,11 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.UUID;
-
-import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
 
 @Slf4j
 @Component
@@ -49,7 +49,7 @@ public class CreateLoan {
                 correlationId, causationId);
         repo.save(loan);
 
-        loan.pullDomainEvents().forEach(event -> {
+        loan.pullProducedEvents().forEach(event -> {
             // Fachliches Event -> Payload fürs Outbox System
             if (event instanceof LoanRequested) {
                 LoanRequestedPayload payload = LoanEventMapper.toPayload((LoanRequested) event, correlationId, causationId);

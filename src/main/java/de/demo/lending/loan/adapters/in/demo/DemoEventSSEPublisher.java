@@ -160,6 +160,24 @@ public class DemoEventSSEPublisher {
         eventStore.publishEvent(loanUuid.toString(), demoEvent);
     }
 
+    public void publishLoanActivatedToUI(UUID loanUuid, UUID copyIdUuid, String dueDate) {
+        // Speichere Start-Timestamp für elapsed-time Berechnung
+        loanStartTimes.put(loanUuid.toString(), System.currentTimeMillis());
+
+        // Optional: Initial Event an UI senden
+        DemoEvent demoEvent = DemoEvent.builder()
+                .type("loan-activated")
+                .loanId(loanUuid.toString())
+                //.copyId(copyIdUuid.toString())
+                //.dueDate(dueDate)
+                .message("Die Ausleihe wurde aktiviert. Der User wird informiert.")
+                .timestamp(System.currentTimeMillis())
+                .elapsedMs(calculateElapsedTime(loanUuid.toString()))
+                .build();
+
+        eventStore.publishEvent(loanUuid.toString(), demoEvent);
+    }
+
     public void publishBookRegisteredToUI(UUID loanUuid, UUID userUuid, String bookId, UUID reservationId) {
         // Speichere Start-Timestamp für elapsed-time Berechnung
         loanStartTimes.put(loanUuid.toString(), System.currentTimeMillis());

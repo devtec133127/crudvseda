@@ -1,4 +1,4 @@
-package de.demo.lending.inventory.application.dto;
+package de.demo.lending.loan.application.dto;
 
 import java.util.UUID;
 
@@ -10,13 +10,13 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @SuperBuilder
-public class BookRegisteredPayload extends DtoPayload {
-    private static final String TYPE = "BookRegisteredPayload";
-    private final String bookId;
-    private final String reservationId;
+public class LoanActivatedPayload extends DtoPayload {
+    private static final String TYPE = "LoanActivatedPayload";
+    private final String copyId;
+    private final String dueDate;
 
     @JsonCreator
-    public BookRegisteredPayload(
+    public LoanActivatedPayload(
             @JsonProperty("eventId") UUID eventId,
             @JsonProperty("occurredAt") String occurredAt,
             @JsonProperty("correlationId") String correlationId,
@@ -24,11 +24,11 @@ public class BookRegisteredPayload extends DtoPayload {
             @JsonProperty("type") String type,
             @JsonProperty("loanId") String loanId,
             @JsonProperty("userId") String userId,
-            @JsonProperty("bookId") String bookId,
-            @JsonProperty("reservationId") String reservationId
+            @JsonProperty("copyId") String copyId,
+            @JsonProperty("dueDate") String dueDate
     ) {
         super(eventId, occurredAt, correlationId, causationId, loanId, userId, type);
-        this.bookId = bookId;
-        this.reservationId = reservationId;
+        this.copyId = copyId;
+        this.dueDate = dueDate;
     }
 }
