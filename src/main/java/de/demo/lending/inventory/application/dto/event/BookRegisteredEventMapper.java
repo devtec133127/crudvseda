@@ -1,11 +1,11 @@
 package de.demo.lending.inventory.application.dto.event;
 
+import java.util.UUID;
+
 import de.demo.lending.inventory.application.dto.BookRegisteredPayload;
 import de.demo.lending.inventory.domain.event.BookRegistered;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BookRegisteredEventMapper {
@@ -14,6 +14,7 @@ public class BookRegisteredEventMapper {
 
         return BookRegisteredPayload.builder()
                 .eventId(UUID.randomUUID())
+                .type(BookRegistered.class.getCanonicalName())
                 .occurredAt(e.getOccurredAt().toString())
                 .correlationId(correlationId)
                 .causationId(causationId)

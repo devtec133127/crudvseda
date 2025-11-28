@@ -1,6 +1,11 @@
 package de.demo.lending.inventory.adapters.out.persistence;
 
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.common.valueobjects.CopyId;
@@ -11,11 +16,6 @@ import de.demo.lending.inventory.domain.port.out.InventoryRepository;
 import de.demo.lending.loan.domain.LoanId;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Component
 public class InventoryRepositoryAdapter implements InventoryRepository {
@@ -84,12 +84,14 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
     private InventoryCopyEntity toEntity(InventoryCopy d) {
         return InventoryCopyEntity.builder()
                 .id(d.getId())
+                .loanId(d.getLoanId().value().toString())
                 .bookId(d.getBookId().value())
                 .bookTitle(d.getBookTitle().toString())
                 .userId(d.getUserId() != null ? d.getUserId().toString() : null)
                 .state(d.getState().name())
                 .createdAt(d.getCreatedAt() != null ? d.getCreatedAt() : Instant.now())
                 .updatedAt(Instant.now())
+                .reservationId(d.getReservationId().value().toString())
                 .build();
     }
 }

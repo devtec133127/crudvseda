@@ -29,8 +29,7 @@ public class InventoryCopyEntity {
 
     @Column(nullable = false)
     private String loanId;
-
-    @Column(nullable = false)
+    
     private String userId;
 
     @Column(nullable = false)

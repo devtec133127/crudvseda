@@ -1,5 +1,8 @@
 package de.demo.lending.inventory.domain;
 
+import java.time.Instant;
+import java.util.UUID;
+
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.BookTitle;
@@ -8,9 +11,6 @@ import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.domain.event.BookRegistered;
 import de.demo.lending.inventory.domain.event.BookReserved;
 import de.demo.lending.loan.domain.LoanId;
-
-import java.time.Instant;
-import java.util.UUID;
 
 public class InventoryCopy extends AggregateRoot {
     public enum InventoryState {IN_TRANSIENT, NOT_LOCALLY_AVAILABLE, REGISTERED, AVAILABLE, RESERVED, LOANED}
@@ -59,6 +59,10 @@ public class InventoryCopy extends AggregateRoot {
 
     public BookId getBookId() {
         return bookId;
+    }
+
+    public LoanId getLoanId() {
+        return loanId;
     }
 
     public InventoryState getState() {

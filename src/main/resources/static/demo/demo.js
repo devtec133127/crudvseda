@@ -141,7 +141,7 @@ function subscribeToEvents(loanId) {
             const elapsed = Date.now() - startTime;
 
             displayEvent('procurement', {
-                title: 'Procurement Service - Verfügbarkeit geprüft',
+                title: data.type,
                 message: data.message || 'Buch extern angefragt',
                 details: [
                     //`Reservation-ID: ${data.reservationId || 'N/A'}`,
@@ -169,7 +169,7 @@ function subscribeToEvents(loanId) {
             const elapsed = Date.now() - startTime;
 
             displayEvent('procurement', {
-                title: 'Procurement Service - beauftragt',
+                title: data.type,
                 message: data.message || 'Buch extern beauftragt',
                 details: [
                     //`Reservation-ID: ${data.reservationId || 'N/A'}`,
@@ -197,7 +197,7 @@ function subscribeToEvents(loanId) {
             const elapsed = Date.now() - startTime;
 
             displayEvent('inventory', {
-                title: 'Inventory Service',
+                title: data.type,
                 message: data.message || 'Buch wurde registriert',
                 details: [
                     `Reservation-ID: ${data.reservationId || 'N/A'}`,
@@ -226,7 +226,7 @@ function subscribeToEvents(loanId) {
             const elapsed = Date.now() - startTime;
 
             displayEvent('inventory', {
-                title: 'Inventory Service',
+                title: data.type,
                 message: data.message || 'Buch reserviert',
                 details: [
                     `Reservation-ID: ${data.reservationId || 'N/A'}`,
@@ -301,14 +301,14 @@ function subscribeToEvents(loanId) {
     })
 
     eventSource.addEventListener('order-received', (e) => {
-            const data = JSON.parse(e.data);
-            displayEvent(data.type, {
-                title: data.type,
-                elapsed: data.elapsedMs,
-                message: data.message || 'Das Buch ist angekommen!',
-                details: [],
-            });
-        })
+        const data = JSON.parse(e.data);
+        displayEvent(data.type, {
+            title: data.type,
+            elapsed: data.elapsedMs,
+            message: data.message || 'Das Buch ist angekommen!',
+            details: [],
+        });
+    })
 
     // Error Handling
     eventSource.onerror = (error) => {

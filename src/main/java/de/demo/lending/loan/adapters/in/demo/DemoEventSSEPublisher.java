@@ -1,5 +1,9 @@
 package de.demo.lending.loan.adapters.in.demo;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,10 +13,6 @@ import de.demo.lending.loan.adapters.in.demo.dto.DemoEvent;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Demo Event Listener für die Präsentations-UI.
@@ -168,7 +168,7 @@ public class DemoEventSSEPublisher {
         DemoEvent demoEvent = DemoEvent.builder()
                 .type("book-registered")
                 .loanId(loanUuid.toString())
-                .userId(userUuid.toString())
+                .userId(userUuid != null ? userUuid.toString() : "")
                 .bookId(bookId)
                 .reservationId(reservationId.toString())
                 .message("Buch wurde erfasst")
@@ -187,7 +187,7 @@ public class DemoEventSSEPublisher {
         DemoEvent demoEvent = DemoEvent.builder()
                 .type("book-reserved")
                 .loanId(loanUuid.toString())
-                .userId(userUuid.toString())
+                .userId(userUuid != null ? userUuid.toString() : "")
                 .bookId(bookId)
                 .reservationId(reservationId.toString())
                 .message("Buch wurde reserviert")
