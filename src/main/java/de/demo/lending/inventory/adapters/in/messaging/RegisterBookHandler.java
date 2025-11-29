@@ -1,13 +1,13 @@
 package de.demo.lending.inventory.adapters.in.messaging;
 
-import java.util.UUID;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.BookTitle;
+import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.domain.port.in.RegisterBookUseCase;
+import de.demo.lending.inventory.domain.port.in.ReserveBookUseCase;
 import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.application.dto.BookReceivedPayload;
@@ -17,16 +17,20 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 public class RegisterBookHandler {
 
     private final ObjectMapper om = new ObjectMapper();
     private final DemoEventSSEPublisher uiPublisher;
     private final RegisterBookUseCase registerBookUseCase;
+    private final ReserveBookUseCase reserveBookUseCase;
 
-    public RegisterBookHandler(DemoEventSSEPublisher uiPublisher, RegisterBookUseCase registerBookUseCase) {
+    public RegisterBookHandler(DemoEventSSEPublisher uiPublisher, RegisterBookUseCase registerBookUseCase, ReserveBookUseCase reserveBookUseCase) {
         this.uiPublisher = uiPublisher;
         this.registerBookUseCase = registerBookUseCase;
+        this.reserveBookUseCase = reserveBookUseCase;
     }
 
     @KafkaListener(
@@ -53,6 +57,10 @@ public class RegisterBookHandler {
 
         RegisterBookUseCase.RegisterBookCommand registerBookCommand = RegisterBookUseCase.RegisterBookCommand.of(loanId, bookTitle, bookId);
         registerBookUseCase.registerBook(registerBookCommand);
+
+        UserId userId = UserId.of(UUID.fromString(payload.getUserId()));
+
+        reserveBookUseCase.reserveBook(userId, loanId, bookTitle);
 
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
         ProcessedEventUtil.saveEvent(RegisterBookHandler.class, incomingEventId);

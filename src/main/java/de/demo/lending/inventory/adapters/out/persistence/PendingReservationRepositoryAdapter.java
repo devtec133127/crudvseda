@@ -1,0 +1,61 @@
+package de.demo.lending.inventory.adapters.out.persistence;
+
+import de.demo.lending.common.valueobjects.BookTitle;
+import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.domain.PendingReservation;
+import de.demo.lending.inventory.domain.PendingReservationId;
+import de.demo.lending.inventory.domain.port.out.PendingReservationRepository;
+import de.demo.lending.loan.domain.LoanId;
+import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+
+@Component
+public class PendingReservationRepositoryAdapter implements PendingReservationRepository {
+
+    private final SpringPendingReservationRepository jpa;
+
+    public PendingReservationRepositoryAdapter(SpringPendingReservationRepository jpa) {
+        this.jpa = jpa;
+    }
+
+    @Override
+    public Optional<PendingReservation> findByBookTitle(BookTitle bookTitle) {
+        return jpa.findByBookTitle(bookTitle.toString())
+                .map(this::toDomain);
+    }
+
+    @Override
+    public Optional<PendingReservation> findById(PendingReservationId id) {
+        return jpa.findById(id.value()).map(this::toDomain);
+    }
+
+    @Override
+    public PendingReservation save(PendingReservation pendingReservation) {
+        PendingReservationEntity e = PendingReservationEntity.builder()
+                .id(pendingReservation.getPendingReservationId().value())
+                .bookTitle(pendingReservation.getTitle().toString())
+                .loanId(pendingReservation.getLoanId().value())
+                .userId(pendingReservation.getUserId().value())
+                .dueDate(pendingReservation.getDueDate())
+                .build();
+
+        PendingReservationEntity saved = jpa.save(e);
+        return toDomain(saved);
+    }
+
+    @Override
+    public void deleteById(PendingReservationId id) {
+        jpa.deleteById(id.value());
+    }
+
+    private PendingReservation toDomain(PendingReservationEntity e) {
+        // map entity -> domain
+        PendingReservationId id = PendingReservationId.of(e.getId());
+        LoanId loanId = (e.getLoanId() == null) ? null : LoanId.of(e.getLoanId());
+        UserId userId = UserId.of(e.getUserId());
+        BookTitle bookTitle = BookTitle.of(e.getBookTitle());
+        return PendingReservation.reconstitute(id, bookTitle, loanId, userId, e.getDueDate());
+    }
+}
+

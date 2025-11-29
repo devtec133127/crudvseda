@@ -21,7 +21,6 @@ public class BookReceived extends BaseDomainEvent {
         this.procurementOrderId = procurementOrderId;
         this.externalOrderId = externalOrderId;
         this.bookId = bookId;
-
     }
 
     public static BookReceived of(ProcurementOrderId procurementOrderId,

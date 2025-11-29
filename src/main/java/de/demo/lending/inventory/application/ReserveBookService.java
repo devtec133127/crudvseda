@@ -1,15 +1,15 @@
 package de.demo.lending.inventory.application;
 
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
+import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.application.dto.BookNotFoundLocallyPayload;
 import de.demo.lending.inventory.application.dto.BookReservedPayload;
-import de.demo.lending.inventory.application.dto.event.BookNotFoundLocallyMapper;
 import de.demo.lending.inventory.application.dto.event.BookReservedEventMapper;
 import de.demo.lending.inventory.domain.InventoryCopy;
-import de.demo.lending.inventory.domain.event.BookNotFoundLocally;
+import de.demo.lending.inventory.domain.PendingReservation;
 import de.demo.lending.inventory.domain.event.BookReserved;
 import de.demo.lending.inventory.domain.port.out.InventoryRepository;
+import de.demo.lending.inventory.domain.port.out.PendingReservationRepository;
 import de.demo.lending.inventory.domain.port.out.ReservationRepository;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.adapters.out.external.OpenLibraryClientAdapter;
@@ -18,10 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.util.Optional;
 
-import static de.demo.lending.common.events.Topics.INVENTORY_BOOK_NOT_FOUND_V1;
 import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
 
 @Slf4j
@@ -32,14 +30,16 @@ public class ReserveBookService implements de.demo.lending.inventory.domain.port
     private final InventoryRepository repo;
     private final EventPublisher publisher; // eigenes Port-Interface, s.u.
     private final LoanStatusReadPort loanStatusReadPort;
+    private final PendingReservationRepository pendingReservationRepository;
 
     public ReserveBookService(OpenLibraryClientAdapter externalClient, ReservationRepository reservationRepository,
-                              InventoryRepository repo, EventPublisher publisher, LoanStatusReadPort loanStatusReadPort) {
+                              InventoryRepository repo, EventPublisher publisher, LoanStatusReadPort loanStatusReadPort, PendingReservationRepository pendingReservationRepository) {
         this.externalClient = externalClient;
         this.repo = repo;
         this.reservationRepository = reservationRepository;
         this.publisher = publisher;
         this.loanStatusReadPort = loanStatusReadPort;
+        this.pendingReservationRepository = pendingReservationRepository;
     }
 
     /* Application Service koordiniert die folgenden Schritte:
@@ -50,28 +50,51 @@ public class ReserveBookService implements de.demo.lending.inventory.domain.port
      3. Wenn nicht vorhanden, event werfen (hier macht dann Procurement weiter)
      */
     @Transactional
-    public void reserveBook(UserId userId, LoanId loanId, String bookTitle, Duration duration, String correlationId, String causationId) {
+    public void reserveBook(UserId userId, LoanId loanId, BookTitle bookTitle) {
 
-        Optional<InventoryCopy> foundBook = repo.lookupForBookInLocal(bookTitle);
+        Optional<InventoryCopy> foundBook = repo.lookupForBookInLocal(bookTitle.toString());
+
         final InventoryCopy localCopy;
         if (foundBook.isPresent()) {
             localCopy = foundBook.get();
             log.info("Buch {} im local store vorhanden", localCopy.getBookTitle());
-            localCopy.reserve(correlationId, causationId);
+
+            PendingReservation pending = pendingReservationRepository.findByBookTitle(localCopy.getBookTitle())
+                    .orElseThrow(() -> new RuntimeException("pending reservation for bookId {} " + localCopy.getBookId().value() + " not found"));
+
+            localCopy.reserve("", "", pending.getDueDate());
             repo.save(localCopy);
 
             localCopy.pullProducedEvents().forEach(event -> {
                 if (event instanceof BookReserved) {
-                    BookReservedPayload payload = BookReservedEventMapper.toPayload((BookReserved) event, correlationId, causationId);
+                    BookReservedPayload payload = BookReservedEventMapper.toPayload((BookReserved) event, "", "");
                     log.info("Publishing event to topic {}: {}", INVENTORY_RESERVED_V1, payload);
                     publisher.enqueue(INVENTORY_RESERVED_V1, payload);
                 }
             });
-        } else {
-            BookNotFoundLocally notFoundEvent = new BookNotFoundLocally(loanId, correlationId, causationId, bookTitle, userId);
-            BookNotFoundLocallyPayload payload = BookNotFoundLocallyMapper.toPayload(notFoundEvent, correlationId, causationId);
-            log.info("Publishing BookNotFoundLocally to topic {}: {}", INVENTORY_BOOK_NOT_FOUND_V1, payload);
-            publisher.enqueue(INVENTORY_BOOK_NOT_FOUND_V1, payload);
+        }
+    }
+
+    @Transactional
+    public void reserveBook(UserId userId, LoanId loanId, BookTitle bookTitle, long durationInDays) {
+
+        Optional<InventoryCopy> foundBook = repo.lookupForBookInLocal(bookTitle.toString());
+
+        final InventoryCopy localCopy;
+        if (foundBook.isPresent()) {
+            localCopy = foundBook.get();
+            log.info("Buch {} im local store vorhanden", localCopy.getBookTitle());
+
+            localCopy.reserve("", "", durationInDays);
+            repo.save(localCopy);
+
+            localCopy.pullProducedEvents().forEach(event -> {
+                if (event instanceof BookReserved) {
+                    BookReservedPayload payload = BookReservedEventMapper.toPayload((BookReserved) event, "", "");
+                    log.info("Publishing event to topic {}: {}", INVENTORY_RESERVED_V1, payload);
+                    publisher.enqueue(INVENTORY_RESERVED_V1, payload);
+                }
+            });
         }
     }
 }
