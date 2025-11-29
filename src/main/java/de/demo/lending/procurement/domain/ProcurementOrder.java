@@ -1,5 +1,9 @@
 package de.demo.lending.procurement.domain;
 
+import static java.util.Objects.requireNonNull;
+
+import java.time.Instant;
+
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.BookTitle;
@@ -8,10 +12,6 @@ import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.event.BookOrderedExternally;
 import de.demo.lending.procurement.domain.event.BookReceived;
 import de.demo.lending.procurement.domain.event.ProcurementInitiated;
-
-import java.time.Instant;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Aggregate Root - Procurement Order
@@ -75,7 +75,8 @@ public class ProcurementOrder extends AggregateRoot {
 
     public static ProcurementOrder initiate(
             LoanId loanId,
-            BookTitle bookTitle
+            BookTitle bookTitle,
+            UserId userId
             //ExternalLibraryId externalLibraryId,
 
     ) {
@@ -84,11 +85,13 @@ public class ProcurementOrder extends AggregateRoot {
                 loanId,
                 bookTitle
         );
+        order.userId = userId;
 
         order.raise(ProcurementInitiated.of(
                 ProcurementOrderId.of(order.getId()),
                 order.bookTitle,
-                order.loanId
+                order.loanId,
+                order.userId
         ));
 
         return order;

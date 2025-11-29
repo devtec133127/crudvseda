@@ -214,6 +214,34 @@ function subscribeToEvents(loanId) {
         }
     });
 
+    eventSource.addEventListener('payment-initiated', (e) => {
+        console.log('=== SSE EVENT: payment-initiated ===');
+        console.log('Raw data:', e.data);
+
+        try {
+            const data = JSON.parse(e.data);
+            console.log('Parsed data:', data);
+
+            const elapsed = Date.now() - startTime;
+
+            displayEvent('inventory', {
+                title: data.type,
+                message: data.message || 'Die Zahlung wurde initiiert. Die Gebühr kann nun abgebucht werden.!',
+                details: [
+                    `Reservation-ID: ${data.reservationId || 'N/A'}`,
+                    `Artikel: ${data.bookTitle || 'Buch'}`
+                ],
+                elapsed: data.elapsedMs || elapsed
+            });
+
+            receivedEvents.inventory = true;
+            console.log('Payment initiated processed. Received events:', receivedEvents);
+            checkCompletion(receivedEvents);
+        } catch (error) {
+            console.error('Error processing payment event:', error);
+        }
+    });
+
     eventSource.addEventListener('loan-activated', (e) => {
         console.log('=== SSE EVENT: loan-activated ===');
         console.log('Raw data:', e.data);

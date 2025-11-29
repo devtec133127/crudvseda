@@ -27,9 +27,6 @@ public class PaymentEntity {
     @Column(name = "loan_id", nullable = false)
     private String loanId;
 
-    @Column(name = "book_id", nullable = false)
-    private String bookId;
-
     @Column(name = "user_id", nullable = false)
     private String userId;
 
@@ -51,4 +48,3 @@ public class PaymentEntity {
     @Column(name = "updated_at")
     private Instant updatedAt;
 }
-

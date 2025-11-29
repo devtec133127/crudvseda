@@ -18,6 +18,10 @@ public class Money {
         return new Money(this.cents + other.cents, currency);
     }
 
+    public static Money zero() {
+        return new Money(0, "EUR");
+    }
+
     private void requireSameCurrency(Money other) {
         if (!this.currency.equals(other.currency)) throw new IllegalArgumentException("Currency mismatch");
     }

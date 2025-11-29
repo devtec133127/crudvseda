@@ -143,6 +143,23 @@ public class DemoEventSSEPublisher {
         }
     }
 
+    public void publishPaymentInitiatedToUI(UUID loanUuid, UUID userUuid) {
+        // Speichere Start-Timestamp für elapsed-time Berechnung
+        loanStartTimes.put(loanUuid.toString(), System.currentTimeMillis());
+
+        // Optional: Initial Event an UI senden
+        DemoEvent demoEvent = DemoEvent.builder()
+                .type("payment-initiated")
+                .loanId(loanUuid.toString())
+                .userId(userUuid.toString())
+                .message("Zahlung initiiert - Events werden verarbeitet...")
+                .timestamp(System.currentTimeMillis())
+                .elapsedMs(calculateElapsedTime(loanUuid.toString()))
+                .build();
+
+        eventStore.publishEvent(loanUuid.toString(), demoEvent);
+    }
+
     public void publishLoanCreatedToUI(UUID loanUuid, UUID userUuid, String bookTitle, long durationDays) {
         // Speichere Start-Timestamp für elapsed-time Berechnung
         loanStartTimes.put(loanUuid.toString(), System.currentTimeMillis());

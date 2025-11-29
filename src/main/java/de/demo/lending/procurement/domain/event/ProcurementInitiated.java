@@ -22,14 +22,14 @@ public class ProcurementInitiated extends BaseDomainEvent {
     }
 
     public static ProcurementInitiated of(ProcurementOrderId procurementOrderId,
-                                          BookTitle bookTitle, LoanId loanId) {
+                                          BookTitle bookTitle, LoanId loanId, UserId userId) {
         return new ProcurementInitiated(
                 UUID.randomUUID(),
                 procurementOrderId,
                 bookTitle,
                 loanId,
                 Instant.now(),
-                null
+                userId
         );
     }
 

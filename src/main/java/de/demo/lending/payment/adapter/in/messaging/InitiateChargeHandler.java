@@ -1,15 +1,14 @@
-package de.demo.lending.loan.adapters.in.messaging;
+package de.demo.lending.payment.adapter.in.messaging;
 
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
-import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.dto.BookReservedPayload;
-import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import de.demo.lending.loan.domain.LoanId;
-import de.demo.lending.loan.domain.port.in.ActivateLoanUseCase;
+import de.demo.lending.payment.domain.port.in.InitiateChargeUseCase;
 import jakarta.transaction.Transactional;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -17,20 +16,18 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BookReservedListener {
+public class InitiateChargeHandler {
 
     private final ObjectMapper om = new ObjectMapper();
-    private final DemoEventSSEPublisher uiPublisher;
-    private final ActivateLoanUseCase activateLoanUseCase;
+    private final InitiateChargeUseCase initiateChargeUseCase;
 
-    public BookReservedListener(DemoEventSSEPublisher uiPublisher, ActivateLoanUseCase activateLoanUseCase) {
-        this.uiPublisher = uiPublisher;
-        this.activateLoanUseCase = activateLoanUseCase;
+    public InitiateChargeHandler(InitiateChargeUseCase initiateChargeUseCase) {
+        this.initiateChargeUseCase = initiateChargeUseCase;
     }
 
     @KafkaListener(
-            topics = {Topics.INVENTORY_RESERVED_V1},
-            groupId = "inventory")
+            topics = {Topics.LOAN_ACTIVATED_V1},
+            groupId = "loan")
     @Transactional
     public void onBookReceived(String json,
                                @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
@@ -39,20 +36,19 @@ public class BookReservedListener {
         BookReservedPayload payload = om.readValue(json, BookReservedPayload.class);
 
         String incomingEventId = payload.getEventId().toString();
+
         // ########## Indempotenz - Event schon verarbeitet? - Inbox Tabelle abfragen ##########
-        ProcessedEventUtil.checkEvent(BookReservedListener.class, incomingEventId);
+        ProcessedEventUtil.checkEvent(InitiateChargeHandler.class, incomingEventId);
 
         UUID loanIdUUId = UUID.fromString(payload.getLoanId());
-        UUID copyIdUUId = UUID.fromString(payload.getCopyId());
-
-        //uiPublisher.publishOrderReceivedToUI(loanIdUUId, payload.getBookId()); //, pay.getExternalOrderId());
+        UUID userIdUUId = UUID.fromString(payload.getUserId());
 
         LoanId loanId = LoanId.of(loanIdUUId);
-        CopyId copyId = CopyId.of(copyIdUUId);
-        ActivateLoanUseCase.ActivateLoanCommand command = ActivateLoanUseCase.ActivateLoanCommand.of(loanId, copyId);
-        activateLoanUseCase.activate(command);
+        UserId userId = UserId.of(userIdUUId);
+        InitiateChargeUseCase.InitiateChargeCommand command = InitiateChargeUseCase.InitiateChargeCommand.of(loanId, userId);
+        initiateChargeUseCase.initiate(command);
 
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
-        ProcessedEventUtil.saveEvent(BookReservedListener.class, incomingEventId);
+        ProcessedEventUtil.saveEvent(InitiateChargeHandler.class, incomingEventId);
     }
 }

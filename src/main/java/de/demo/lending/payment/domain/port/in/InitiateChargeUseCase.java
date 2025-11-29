@@ -1,19 +1,16 @@
-package de.demo.lending.procurement.domain.port.in;
+package de.demo.lending.payment.domain.port.in;
 
 import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.LoanId;
-import de.demo.lending.procurement.domain.ProcurementOrderId;
-import jakarta.transaction.Transactional;
+import de.demo.lending.payment.domain.Payment;
 
-public interface InitiateProcurementUseCase {
+public interface InitiateChargeUseCase {
 
-    @Transactional
-    ProcurementResult execute(InitiateProcurementCommand command);
+    Payment initiate(InitiateChargeCommand command);
 
     /**
      * Command für Procurement-Initiierung
@@ -21,29 +18,25 @@ public interface InitiateProcurementUseCase {
      * Immutable Value Object das alle notwendigen Daten
      * für die Initiierung eines Procurement-Prozesses enthält.
      */
-    final class InitiateProcurementCommand {
+    final class InitiateChargeCommand {
 
         private final LoanId loanId;
         private final UserId userId;
-        private final BookTitle bookTitle;
 
-        private InitiateProcurementCommand(
+        private InitiateChargeCommand(
                 LoanId loanId,
-                UserId userId,
-                BookTitle bookTitle
+                UserId userId
         ) {
             this.loanId = requireNonNull(loanId, "loanId must not be null");
             this.userId = requireNonNull(userId, "userId must not be null");
-            this.bookTitle = requireNonNull(bookTitle, "bookTitle must not be null");
         }
 
         // Factory Method
-        public static InitiateProcurementCommand of(
+        public static InitiateChargeUseCase.InitiateChargeCommand of(
                 LoanId loanId,
-                UserId userId,
-                BookTitle bookTitle
+                UserId userId
         ) {
-            return new InitiateProcurementCommand(loanId, userId, bookTitle);
+            return new InitiateChargeUseCase.InitiateChargeCommand(loanId, userId);
         }
 
         // Getters
@@ -56,33 +49,27 @@ public interface InitiateProcurementUseCase {
             return userId;
         }
 
-        public BookTitle getBookTitle() {
-            return bookTitle;
-        }
-
         // Equality
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            InitiateProcurementCommand that = (InitiateProcurementCommand) o;
+            InitiateChargeUseCase.InitiateChargeCommand that = (InitiateChargeUseCase.InitiateChargeCommand) o;
             return Objects.equals(loanId, that.loanId) &&
-                    Objects.equals(userId, that.userId) &&
-                    Objects.equals(bookTitle, that.bookTitle);
+                    Objects.equals(userId, that.userId);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(loanId, userId, bookTitle);
+            return Objects.hash(loanId, userId);
         }
 
         @Override
         public String toString() {
-            return "InitiateProcurementCommand{" +
+            return "InitiateChargeCommand{" +
                     "loanId=" + loanId +
                     "userId=" + userId +
-                    ", bookTitle=" + bookTitle +
                     '}';
         }
     }
@@ -90,47 +77,47 @@ public interface InitiateProcurementUseCase {
     /**
      * Result des Procurement-Initiierungs-Prozesses
      */
-    final class ProcurementResult {
+    final class PaymentResult {
 
         private final boolean success;
-        private final ProcurementOrderId procurementOrderId;
+        private final LoanId loanId;
         private final String failureReason;
 
-        private ProcurementResult(
+        private PaymentResult(
                 boolean success,
-                ProcurementOrderId procurementOrderId,
+                LoanId loanId,
                 String failureReason
         ) {
             this.success = success;
-            this.procurementOrderId = procurementOrderId;
+            this.loanId = loanId;
             this.failureReason = failureReason;
         }
 
-        public static ProcurementResult success(ProcurementOrderId procurementOrderId) {
-            return new ProcurementResult(true, procurementOrderId, null);
+        public static InitiateChargeUseCase.PaymentResult success(LoanId loanId) {
+            return new InitiateChargeUseCase.PaymentResult(true, loanId, null);
         }
 
-        public static ProcurementResult notAvailable() {
-            return new ProcurementResult(
+        public static InitiateChargeUseCase.PaymentResult notAvailable() {
+            return new InitiateChargeUseCase.PaymentResult(
                     false,
                     null,
                     "Book not available in external libraries"
             );
         }
 
-        public static ProcurementResult failed(String reason) {
-            return new ProcurementResult(false, null, reason);
+        public static InitiateChargeUseCase.PaymentResult failed(String reason) {
+            return new InitiateChargeUseCase.PaymentResult(false, null, reason);
         }
 
         public boolean isSuccess() {
             return success;
         }
 
-        public ProcurementOrderId getProcurementOrderId() {
+        public LoanId getLLoanId() {
             if (!success) {
                 throw new IllegalStateException("No procurement order ID available for failed result");
             }
-            return procurementOrderId;
+            return loanId;
         }
 
         public String getFailureReason() {

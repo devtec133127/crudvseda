@@ -2,7 +2,6 @@ package de.demo.lending.payment.adapter.out.persistence;
 
 import java.util.UUID;
 
-import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.payment.application.PaymentRepository;
@@ -29,8 +28,6 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
         e.setUpdatedAt(payment.getUpdatedAt());
         e.setCreatedAt(payment.getCreatedAt());
         e.setLoanId(payment.getLoanId().toString());
-        e.setBookId(payment.getBookId().toString());
-        e.setUserId(payment.getUserId().toString());
         e.setAmountCents(payment.getAmount().getCents());
         e.setCurrency(payment.getAmount().getCurrency());
         e.setState(payment.getStatus().name());
@@ -42,7 +39,6 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
         return Payment.create(
                 save.getId(),
                 LoanId.of(UUID.fromString(save.getLoanId())),
-                BookId.of(save.getBookId()),
                 UserId.of(UUID.fromString(save.getUserId())),
                 new Money(save.getAmountCents(), save.getCurrency()),
                 PaymentMethod.fromString(save.getPaymentMethodJson()).get()

@@ -1,20 +1,15 @@
 package de.demo.lending.procurement.adapters.in.messaging;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.BookTitle;
+import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.dto.BookNotFoundLocallyPayload;
-import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import de.demo.lending.loan.domain.LoanId;
-import de.demo.lending.procurement.application.dto.BookOrderedExternallyPayload;
-import de.demo.lending.procurement.application.dto.BookReceivedPayload;
-import de.demo.lending.procurement.application.dto.event.BookReceivedMapper;
-import de.demo.lending.procurement.domain.ProcurementOrder;
-import de.demo.lending.procurement.domain.event.BookReceived;
 import de.demo.lending.procurement.domain.port.in.InitiateProcurementUseCase;
-import de.demo.lending.procurement.domain.port.out.ProcurementOrderRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +18,6 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
-import static de.demo.lending.common.events.Topics.PROCUREMENT_RECEIVED_V1;
-
 /**
  * Kafka-basierter Event Listener für Inventory.
  * <p>
@@ -34,34 +25,25 @@ import static de.demo.lending.common.events.Topics.PROCUREMENT_RECEIVED_V1;
  * Wird durch AsyncInventoryEventListener ersetzt bei Profile "async".
  */
 @Component
-public class KafkaProcurementEventListener {
+public class InitialProcurementHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(KafkaProcurementEventListener.class);
+    private static final Logger log = LoggerFactory.getLogger(InitialProcurementHandler.class);
 
     private final ObjectMapper om = new ObjectMapper();
-    private final ProcurementOrderRepository repo;
-    private final EventPublisher publisher;
-    private final DemoEventSSEPublisher uiPublisher;
     private final InitiateProcurementUseCase initiateProcurementUseCase;
 
-    public KafkaProcurementEventListener(InitiateProcurementUseCase initiateProcurementUseCase,
-                                         ProcurementOrderRepository repo,
-                                         EventPublisher publisher,
-                                         DemoEventSSEPublisher uiPublisher) {
+    public InitialProcurementHandler(InitiateProcurementUseCase initiateProcurementUseCase) {
         this.initiateProcurementUseCase = initiateProcurementUseCase;
-        this.repo = repo;
-        this.publisher = publisher;
-        this.uiPublisher = uiPublisher;
     }
 
     @KafkaListener(
             topics = {Topics.INVENTORY_BOOK_NOT_FOUND_V1},
             groupId = "inventory")
     @Transactional
-    public void onLoanRequested(String json,
-                                @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                                @Header(value = KafkaHeaders.RECEIVED_KEY, required = false) String key,
-                                @Header(value = KafkaHeaders.OFFSET, required = false) long offset) throws Exception {
+    public void initialProcurement(String json,
+                                   @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
+                                   @Header(value = KafkaHeaders.RECEIVED_KEY, required = false) String key,
+                                   @Header(value = KafkaHeaders.OFFSET, required = false) long offset) throws Exception {
 
         BookNotFoundLocallyPayload payload = om.readValue(json, BookNotFoundLocallyPayload.class);
         log.info("Received BookNotFoundLocally event for loan: {}, book: {}", payload.getLoanId(), payload.getBookTitle());
@@ -69,9 +51,10 @@ public class KafkaProcurementEventListener {
         String incomingEventId = payload.getEventId().toString();
 
         // ########## Indempotenz - Event schon verarbeitet? - Inbox Tabelle abfragen ##########
-        ProcessedEventUtil.checkEvent(KafkaProcurementEventListener.class, incomingEventId);
+        ProcessedEventUtil.checkEvent(InitialProcurementHandler.class, incomingEventId);
 
         LoanId loanId = LoanId.of(UUID.fromString(payload.getLoanId()));
+        UserId userId = UserId.of(UUID.fromString(payload.getUserId()));
         BookTitle bookTitle = BookTitle.of(payload.getBookTitle());
 
         if (shouldProcure(loanId, bookTitle)) {
@@ -80,6 +63,7 @@ public class KafkaProcurementEventListener {
             // Starte Procurement
             InitiateProcurementUseCase.InitiateProcurementCommand command = InitiateProcurementUseCase.InitiateProcurementCommand.of(
                     loanId,
+                    userId,
                     bookTitle
             );
 
@@ -102,36 +86,7 @@ public class KafkaProcurementEventListener {
         }
 
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
-        ProcessedEventUtil.saveEvent(KafkaProcurementEventListener.class, incomingEventId);
-    }
-
-    @KafkaListener(
-            topics = {Topics.BOOK_ORDERED_EXTERNALLY_V1},
-            groupId = "procurement")
-    @Transactional
-    public void onExternallyOrdered(String json,
-                                    @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                                    @Header(value = KafkaHeaders.RECEIVED_KEY, required = false) String key,
-                                    @Header(value = KafkaHeaders.OFFSET, required = false) long offset) throws Exception {
-
-        BookOrderedExternallyPayload payload = om.readValue(json, BookOrderedExternallyPayload.class);
-        log.info("Received BookOrderedExternally event for loan: {}, book: {}", payload.getLoanId(), payload.getBookId());
-
-        LoanId loanId = LoanId.of(UUID.fromString(payload.getLoanId()));
-        ProcurementOrder byLoanId = repo.findByLoanId(loanId);
-        if (byLoanId != null) {
-            byLoanId.markAsReceived();
-
-            byLoanId.pullProducedEvents().forEach(event -> {
-                if (event instanceof BookReceived) {
-                    BookReceived receivedEvent = BookReceived.of(byLoanId.getProcurementOrderId(), byLoanId.getExternalOrderId(),
-                            byLoanId.getLoanId(), byLoanId.getIsbn());
-                    BookReceivedPayload eventPayload = BookReceivedMapper.toPayload(receivedEvent, "", "");
-                    log.info("Publishing BookReceived to topic {}: {}", PROCUREMENT_RECEIVED_V1, eventPayload);
-                    publisher.enqueue(PROCUREMENT_RECEIVED_V1, eventPayload);
-                }
-            });
-        }
+        ProcessedEventUtil.saveEvent(InitialProcurementHandler.class, incomingEventId);
     }
 
     /**

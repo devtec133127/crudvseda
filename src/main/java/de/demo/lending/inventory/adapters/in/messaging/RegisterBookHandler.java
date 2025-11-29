@@ -18,13 +18,13 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BookReceivedListener {
+public class RegisterBookHandler {
 
     private final ObjectMapper om = new ObjectMapper();
     private final DemoEventSSEPublisher uiPublisher;
     private final RegisterBookUseCase registerBookUseCase;
 
-    public BookReceivedListener(DemoEventSSEPublisher uiPublisher, RegisterBookUseCase registerBookUseCase) {
+    public RegisterBookHandler(DemoEventSSEPublisher uiPublisher, RegisterBookUseCase registerBookUseCase) {
         this.uiPublisher = uiPublisher;
         this.registerBookUseCase = registerBookUseCase;
     }
@@ -41,7 +41,7 @@ public class BookReceivedListener {
 
         String incomingEventId = payload.getEventId().toString();
         // ########## Indempotenz - Event schon verarbeitet? - Inbox Tabelle abfragen ##########
-        ProcessedEventUtil.checkEvent(BookReceivedListener.class, incomingEventId);
+        ProcessedEventUtil.checkEvent(RegisterBookHandler.class, incomingEventId);
 
         UUID loanIdUUId = UUID.fromString(payload.getLoanId());
 
@@ -55,6 +55,6 @@ public class BookReceivedListener {
         registerBookUseCase.registerBook(registerBookCommand);
 
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
-        ProcessedEventUtil.saveEvent(BookReceivedListener.class, incomingEventId);
+        ProcessedEventUtil.saveEvent(RegisterBookHandler.class, incomingEventId);
     }
 }

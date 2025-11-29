@@ -5,66 +5,65 @@ import java.util.Objects;
 import java.util.UUID;
 
 import de.demo.lending.common.domain.AggregateRoot;
-import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.LoanId;
-import de.demo.lending.payment.domain.event.PaymentAuthorized;
-import de.demo.lending.payment.domain.event.PaymentCaptured;
-import de.demo.lending.payment.domain.event.PaymentCreated;
-import de.demo.lending.payment.domain.event.PaymentFailed;
+import de.demo.lending.payment.domain.event.PaymentInitiated;
 
 
 public class Payment extends AggregateRoot {
     private final LoanId loanId;       // referenz zur Domäne (z.B. loanId / reservationId)
     private final UserId userId;
-    private final BookId bookId;
     private Money amount;
     private PaymentMethod method;
     private PaymentStatus status;
     private String correlationId; // wichtig für wiederholte Requests
-    private Instant createdAt;
     private Instant updatedAt;
 
 
-    private Payment(UUID id, LoanId loanId, BookId bookId, UserId userId, Money amount, PaymentMethod method,
+    private Payment(UUID id, LoanId loanId, UserId userId, Money amount, PaymentMethod method,
                     String correlationId) {
         super(id, correlationId);
         this.loanId = Objects.requireNonNull(loanId);
-        this.bookId = Objects.requireNonNull(bookId);
         this.userId = Objects.requireNonNull(userId);
         this.amount = Objects.requireNonNull(amount);
         this.method = Objects.requireNonNull(method);
-        this.status = PaymentStatus.CREATED;
+        this.status = PaymentStatus.INITIATED;
         this.correlationId = correlationId;
-        this.createdAt = Instant.now();
-        this.updatedAt = createdAt;
     }
 
-    public static Payment create(UUID id, LoanId loanId, BookId bookId, UserId userId, Money amount, PaymentMethod method) {
-        return new Payment(id, loanId, bookId, userId, amount, method, null);
+    public static Payment create(UUID id, LoanId loanId, UserId userId, Money amount, PaymentMethod method) {
+        return new Payment(id, loanId, userId, amount, method, "");
     }
 
-    public static Payment createNew(UUID id, LoanId loanId, BookId bookId, UserId userId, Money amount, PaymentMethod method, String correlationId) {
+    /*public static Payment createNew(UUID id, LoanId loanId, UserId userId, Money amount, PaymentMethod method, String correlationId) {
         // invariants
         if (amount.getCents() <= 0) throw new IllegalArgumentException("Amount must be positive");
 
-        Payment payment = new Payment(id, loanId, bookId, userId, amount, method, correlationId);
-        payment.status = PaymentStatus.CREATED;
-        payment.raise(new PaymentCreated(UUID.randomUUID(), loanId, bookId, userId, correlationId, Instant.now()));
+        Payment payment = new Payment(id, loanId, userId, amount, method, correlationId);
+        payment.status = PaymentStatus.INITIATED;
+        payment.raise(new PaymentCreated(UUID.randomUUID(), loanId, userId, correlationId, Instant.now()));
+        return payment;
+    }*/
+
+    public static Payment initiate(LoanId loanId, UserId userId) {
+        Payment payment = new Payment(
+                PaymentId.newId().value(),
+                loanId,
+                userId,
+                Money.zero(),
+                PaymentMethod.BANK_TRANSFER,
+                ""
+        );
+
+        payment.status = PaymentStatus.INITIATED;
+        payment.amount = Money.zero();
+
+        payment.raise(new PaymentInitiated(payment.getPaymentId(), payment.loanId, payment.userId, "", Instant.now()));
+
         return payment;
     }
 
-    // Domain actions
-    public void authorize(String providerTxId) {
-        if (status != PaymentStatus.CREATED) throw new IllegalStateException("Can only authorize from CREATED");
-        //this.providerTransactionId = providerTxId;
-        this.status = PaymentStatus.AUTHORIZED;
-        this.updatedAt = Instant.now();
-
-        this.raise(new PaymentAuthorized(UUID.randomUUID(), loanId, userId, getCorrelationId(), Instant.now()));
-    }
-
-    public void capture(Money captureAmount) {
+    /*public void capture(Money captureAmount) {
         if (status != PaymentStatus.CREATED) throw new IllegalStateException("Can only capture from AUTHORIZED");
         if (!captureAmount.equals(this.amount)) {
             // optional: allow partial capture -> adjust invariants / record amountCaptured
@@ -83,7 +82,7 @@ public class Payment extends AggregateRoot {
         this.updatedAt = Instant.now();
 
         this.raise(new PaymentFailed(UUID.randomUUID(), loanId, bookId, userId, correlationId, Instant.now(), reason));
-    }
+    }*/
 
     /*public void refund(Money amountToRefund) {
         if (status != PaymentStatus.CAPTURED) throw new IllegalStateException("Only captured payments can be refunded");
@@ -102,14 +101,6 @@ public class Payment extends AggregateRoot {
         return loanId;
     }
 
-    public UserId getUserId() {
-        return userId;
-    }
-
-    public BookId getBookId() {
-        return bookId;
-    }
-
     public Money getAmount() {
         return amount;
     }
@@ -125,11 +116,6 @@ public class Payment extends AggregateRoot {
     @Override
     public String getCorrelationId() {
         return correlationId;
-    }
-
-    @Override
-    public Instant getCreatedAt() {
-        return createdAt;
     }
 
     public Instant getUpdatedAt() {
