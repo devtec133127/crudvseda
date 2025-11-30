@@ -1,8 +1,5 @@
 package de.demo.lending.loan.adapters.in.rest;
 
-import java.util.Map;
-import java.util.UUID;
-
 import de.demo.lending.loan.adapters.in.rest.dto.ReserveBookRequest;
 import de.demo.lending.loan.application.CreateLoan;
 import de.demo.lending.loan.application.command.ReserveBookCommand;
@@ -13,6 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
+import java.util.UUID;
 
 /*
     Der Rest Controller ist der Inbound Adapter in unserer hexagonalen Architektur.
@@ -36,13 +36,13 @@ public class LoanController {
         log.debug("Received create loan request with body: {}", request);
 
         log.debug("userId from request: {}", request.userId());
-        log.debug("bookTitle from request: {}", request.bookTitle());
+        log.debug("isbn from request: {}", request.isbn());
 
         // Beginn einer neuen Kette
         String correlationId = UUID.randomUUID().toString();
         String causationId = correlationId;  // erste Ursache = der Request selbst
 
-        ReserveBookCommand cmd = new ReserveBookCommand(request.userId(), request.bookTitle());
+        ReserveBookCommand cmd = new ReserveBookCommand(request.userId(), request.isbn());
         var id = createLoan.handle(cmd, correlationId, causationId);
         return ResponseEntity.accepted().body(Map.of("loanId", id.toString()));
     }

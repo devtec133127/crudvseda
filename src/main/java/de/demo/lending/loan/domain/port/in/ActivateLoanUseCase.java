@@ -1,11 +1,11 @@
 package de.demo.lending.loan.domain.port.in;
 
-import static java.util.Objects.requireNonNull;
+import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.loan.domain.LoanId;
 
 import java.util.Objects;
 
-import de.demo.lending.common.valueobjects.CopyId;
-import de.demo.lending.loan.domain.LoanId;
+import static java.util.Objects.requireNonNull;
 
 public interface ActivateLoanUseCase {
     void activate(ActivateLoanCommand command);

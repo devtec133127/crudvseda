@@ -9,18 +9,18 @@ import java.time.Instant;
 import java.util.UUID;
 
 public final class LoanRequested extends BaseDomainEvent {
-    private final String bookTitle;
+    private final String isbn;
     private final Duration duration;
 
     public LoanRequested(UUID eventId, LoanId loanId, String correlationId, String causationId, Instant occurredAt,
-                         UserId userId, String bookTitle, Duration duration) {
+                         UserId userId, String isbn, Duration duration) {
         super(eventId, loanId, correlationId, causationId, occurredAt, userId);
-        this.bookTitle = bookTitle;
+        this.isbn = isbn;
         this.duration = duration;
     }
 
-    public String getBookTitle() {
-        return bookTitle;
+    public String getIsbn() {
+        return isbn;
     }
 
     public Duration getDuration() {

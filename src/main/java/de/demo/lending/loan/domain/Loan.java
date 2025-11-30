@@ -1,21 +1,21 @@
 package de.demo.lending.loan.domain;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.UUID;
-
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.event.LoanActivated;
 import de.demo.lending.loan.domain.event.LoanRequested;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.UUID;
+
 public class Loan extends AggregateRoot {
     private static final int RANGE_IN_DAYS = 14;
 
     private final UserId userId;
-    private final String bookTitle;
+    private final String isbn;
 
     private CopyId copyId;
     private Status status;
@@ -25,12 +25,12 @@ public class Loan extends AggregateRoot {
 
     public enum Status {REQUESTED, ACTIVE, EXTENDED, OVERDUE, CLOSED}
 
-    private Loan(LoanId id, UserId userId, String bookTitle,
+    private Loan(LoanId id, UserId userId, String isbn,
                  CopyId copyId, Status status,
                  LocalDate dueDate, Instant createdAt, Instant updatedAt) {
         super(id.value(), "");
         this.userId = userId;
-        this.bookTitle = bookTitle;
+        this.isbn = isbn;
         this.copyId = copyId;
         this.status = status;
         this.dueDate = dueDate;
@@ -38,13 +38,13 @@ public class Loan extends AggregateRoot {
         this.updatedAt = updatedAt;
     }
 
-    public static Loan createNew(UserId userId, String bookTitle, String correlationId, String causationId) {
+    public static Loan createNew(UserId userId, String isbn, String correlationId, String causationId) {
         var now = Instant.now();
-        Loan newLoan = new Loan(LoanId.newId(), userId, bookTitle, null, Status.REQUESTED, null, now, now);
+        Loan newLoan = new Loan(LoanId.newId(), userId, isbn, null, Status.REQUESTED, null, now, now);
         newLoan.status = Status.REQUESTED;
 
         newLoan.raise(new LoanRequested(UUID.randomUUID(), newLoan.getLoanId(), correlationId, causationId, Instant.now(),
-                userId, bookTitle, LoanPolicy.STANDARD_DURATION));
+                userId, isbn, LoanPolicy.STANDARD_DURATION));
         return newLoan;
     }
 
@@ -59,7 +59,7 @@ public class Loan extends AggregateRoot {
         this.status = Status.ACTIVE;
         this.updatedAt = Instant.now();
 
-        raise(new LoanActivated(getLoanId(), this.copyId, this.dueDate));
+        raise(new LoanActivated(getLoanId(), this.copyId, this.dueDate, this.userId));
     }
 
     /*public void fail() {
@@ -80,8 +80,8 @@ public class Loan extends AggregateRoot {
         return userId;
     }
 
-    public String getBookTitle() {
-        return bookTitle;
+    public String getIsbn() {
+        return isbn;
     }
 
     public CopyId getCopyId() {
@@ -109,7 +109,7 @@ public class Loan extends AggregateRoot {
         return "Loan{" +
                 "id=" + getLoanId() +
                 ", userId=" + userId +
-                ", bookTitle=" + bookTitle +
+                ", isbn=" + isbn +
                 ", copyId=" + copyId +
                 ", status=" + status +
                 ", dueDate=" + dueDate +

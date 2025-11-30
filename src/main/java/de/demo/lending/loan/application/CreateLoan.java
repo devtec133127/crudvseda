@@ -1,10 +1,5 @@
 package de.demo.lending.loan.application;
 
-import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
-
-import java.time.Instant;
-import java.util.UUID;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
@@ -20,6 +15,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.UUID;
+
+import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
 
 @Slf4j
 @Component
@@ -45,7 +45,7 @@ public class CreateLoan {
     @Transactional
     public Loan handle(ReserveBookCommand reserveBookCommand, String correlationId, String causationId) {
         UUID userIdFromRequest = UUID.fromString(reserveBookCommand.userId());
-        Loan loan = Loan.createNew(UserId.of(userIdFromRequest), reserveBookCommand.bookTitle(),
+        Loan loan = Loan.createNew(UserId.of(userIdFromRequest), reserveBookCommand.isbn(),
                 correlationId, causationId);
         repo.save(loan);
 

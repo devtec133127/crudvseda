@@ -27,7 +27,7 @@ public class OpenLibraryClientAdapter implements ProcurementClient {
     }
 
     public ExternalBookInfo searchBook(String query) {
-        String url = apiBaseUrl + "/search.json?title=" +
+        String url = apiBaseUrl + "/search.json?isbn=" +
                 URLEncoder.encode(query, StandardCharsets.UTF_8) +
                 "&limit=1&fields=title,isbn,key";
         try {

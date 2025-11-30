@@ -1,20 +1,13 @@
 package de.demo.lending.procurement.adapters.out.persistence;
 
-import java.time.Instant;
-import java.util.UUID;
-
 import de.demo.lending.common.adapters.out.persistence.VersionedEntity;
 import de.demo.lending.procurement.domain.ProcurementOrder;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "procurement_orders")
@@ -29,16 +22,13 @@ public class ProcurementOrderEntity extends VersionedEntity {
     @Column(name = "loan_id", nullable = false)
     private UUID loanId;
 
-    @Column(name = "book_title", nullable = false)
-    private String bookTitle;
-
     @Column(name = "external_library_id")
     private String externalLibraryId;
 
     @Column(name = "external_order_id")
     private String externalOrderId;
 
-    @Column(name = "isbn")
+    @Column(name = "isbn", nullable = false)
     private String isbn;
 
     @Enumerated(EnumType.STRING)

@@ -1,17 +1,16 @@
 package de.demo.lending.procurement.domain;
 
-import static java.util.Objects.requireNonNull;
-
-import java.time.Instant;
-
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.BookId;
-import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.event.BookOrderedExternally;
 import de.demo.lending.procurement.domain.event.BookReceived;
 import de.demo.lending.procurement.domain.event.ProcurementInitiated;
+
+import java.time.Instant;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Aggregate Root - Procurement Order
@@ -30,7 +29,7 @@ public class ProcurementOrder extends AggregateRoot {
 
     private final LoanId loanId;
     private UserId userId;
-    private final BookTitle bookTitle;
+    //private final BookTitle bookTitle;
 
     private ExternalLibraryId externalLibraryId;
     private String externalOrderId;
@@ -47,25 +46,24 @@ public class ProcurementOrder extends AggregateRoot {
     private ProcurementOrder(
             ProcurementOrderId id,
             LoanId loanId,
-            BookTitle bookTitle
+            BookId bookId
     ) {
         super(id.value(), "");
         this.loanId = requireNonNull(loanId);
-        this.bookTitle = requireNonNull(bookTitle);
+        this.isbn = requireNonNull(bookId);
         this.status = ProcurementStatus.INITIATED;
         this.orderedAt = Instant.now();
         this.estimatedArrival = 0L;
     }
 
     // === Factory Methods ===
-    public static ProcurementOrder create(ProcurementOrderId id, LoanId loanId, BookTitle bookTitle,
+    public static ProcurementOrder create(ProcurementOrderId id, LoanId loanId,
                                           ExternalLibraryId externalLibraryId, String externalOrderId, BookId isbn, ProcurementStatus status,
                                           Instant orderedAt, long estimatedArrival, Instant receivedAt, String receivedBy) {
 
-        ProcurementOrder order = new ProcurementOrder(id, loanId, bookTitle);
+        ProcurementOrder order = new ProcurementOrder(id, loanId, isbn);
         order.externalLibraryId = externalLibraryId;
         order.externalOrderId = externalOrderId;
-        order.isbn = isbn;
         order.status = status;
         order.orderedAt = orderedAt;
         order.estimatedArrival = estimatedArrival;
@@ -75,7 +73,7 @@ public class ProcurementOrder extends AggregateRoot {
 
     public static ProcurementOrder initiate(
             LoanId loanId,
-            BookTitle bookTitle,
+            BookId bookId,
             UserId userId
             //ExternalLibraryId externalLibraryId,
 
@@ -83,13 +81,13 @@ public class ProcurementOrder extends AggregateRoot {
         ProcurementOrder order = new ProcurementOrder(
                 ProcurementOrderId.newId(),
                 loanId,
-                bookTitle
+                bookId
         );
         order.userId = userId;
 
         order.raise(ProcurementInitiated.of(
                 ProcurementOrderId.of(order.getId()),
-                order.bookTitle,
+                order.isbn,
                 order.loanId,
                 order.userId
         ));
@@ -153,7 +151,7 @@ public class ProcurementOrder extends AggregateRoot {
         this.receivedAt = Instant.now();
 
 
-        raise(BookReceived.of(getProcurementOrderId(), getExternalOrderId(), getLoanId(), getIsbn()));
+        raise(BookReceived.of(getProcurementOrderId(), getExternalOrderId(), getLoanId(), getIsbn(), getUserId()));
     }
 
     /*public void complete() {
@@ -200,10 +198,6 @@ public class ProcurementOrder extends AggregateRoot {
 
     public UserId getUserId() {
         return userId;
-    }
-
-    public BookTitle getBookTitle() {
-        return bookTitle;
     }
 
     public ExternalLibraryId getExternalLibraryId() {

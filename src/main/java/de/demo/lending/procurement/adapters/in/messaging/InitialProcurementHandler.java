@@ -1,11 +1,9 @@
 package de.demo.lending.procurement.adapters.in.messaging;
 
-import java.util.UUID;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
-import de.demo.lending.common.valueobjects.BookTitle;
+import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.dto.BookNotFoundLocallyPayload;
 import de.demo.lending.loan.domain.LoanId;
@@ -17,6 +15,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 /**
  * Kafka-basierter Event Listener für Inventory.
@@ -46,7 +46,7 @@ public class InitialProcurementHandler {
                                    @Header(value = KafkaHeaders.OFFSET, required = false) long offset) throws Exception {
 
         BookNotFoundLocallyPayload payload = om.readValue(json, BookNotFoundLocallyPayload.class);
-        log.info("Received BookNotFoundLocally event for loan: {}, book: {}", payload.getLoanId(), payload.getBookTitle());
+        log.info("Received BookNotFoundLocally event for loan: {}, book: {}", payload.getLoanId(), payload.getBookId());
 
         String incomingEventId = payload.getEventId().toString();
 
@@ -55,16 +55,16 @@ public class InitialProcurementHandler {
 
         LoanId loanId = LoanId.of(UUID.fromString(payload.getLoanId()));
         UserId userId = UserId.of(UUID.fromString(payload.getUserId()));
-        BookTitle bookTitle = BookTitle.of(payload.getBookTitle());
+        BookId bookId = BookId.of(payload.getBookId());
 
-        if (shouldProcure(loanId, bookTitle)) {
-            log.info("Initiating procurement for book: {}", bookTitle);
+        if (shouldProcure(loanId, bookId)) {
+            log.info("Initiating procurement for book: {}", bookId);
 
             // Starte Procurement
             InitiateProcurementUseCase.InitiateProcurementCommand command = InitiateProcurementUseCase.InitiateProcurementCommand.of(
                     loanId,
                     userId,
-                    bookTitle
+                    bookId
             );
 
             InitiateProcurementUseCase.ProcurementResult result = initiateProcurementUseCase.execute(command);
@@ -81,7 +81,7 @@ public class InitialProcurementHandler {
                 // Optional: Publish procurement.failed.v1
             }
         } else {
-            log.info("Decided NOT to procure book: {}", bookTitle);
+            log.info("Decided NOT to procure book: {}", bookId);
             // Optional: Publish procurement.declined.v1
         }
 
@@ -92,7 +92,7 @@ public class InitialProcurementHandler {
     /**
      * Business-Logik: Soll dieses Buch beschafft werden?
      */
-    private boolean shouldProcure(LoanId loanId, BookTitle bookTitle) {
+    private boolean shouldProcure(LoanId loanId, BookId bookId) {
         // Beispiel-Logik (kann komplex sein):
 
         // 1. Immer procuren (für Demo)

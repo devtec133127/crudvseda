@@ -1,8 +1,5 @@
 package de.demo.lending.procurement.application;
 
-import static de.demo.lending.common.events.Topics.BOOK_ORDERED_EXTERNALLY_V1;
-import static de.demo.lending.common.events.Topics.PROCUREMENT_INITIATED_V1;
-
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
@@ -19,6 +16,9 @@ import de.demo.lending.procurement.domain.port.out.ProcurementClient;
 import de.demo.lending.procurement.domain.port.out.ProcurementOrderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import static de.demo.lending.common.events.Topics.BOOK_ORDERED_EXTERNALLY_V1;
+import static de.demo.lending.common.events.Topics.PROCUREMENT_INITIATED_V1;
 
 @Slf4j
 @Service
@@ -40,14 +40,14 @@ public class InitiateProcurementService implements InitiateProcurementUseCase {
     @Override
     public ProcurementResult execute(InitiateProcurementCommand command) {
 
-        OpenLibraryClientAdapter.ExternalBookInfo externalBookInfo = externalClient.searchBook(command.getBookTitle().toString());
+        OpenLibraryClientAdapter.ExternalBookInfo externalBookInfo = externalClient.searchBook(command.getBookId().value());
         if (externalBookInfo == null) {
-            log.warn("Book not available in external libraries: {}", command.getBookTitle());
+            log.warn("Book not available in external libraries: {}", command.getBookId());
             return ProcurementResult.notAvailable();
         }
 
         ProcurementOrder order = ProcurementOrder.initiate(command.getLoanId(),
-                command.getBookTitle(), command.getUserId());
+                command.getBookId(), command.getUserId());
 
         String externalOrderId = externalClient.orderBook(externalBookInfo.getExternalBookId());
         log.info("External order created: {}", externalOrderId);

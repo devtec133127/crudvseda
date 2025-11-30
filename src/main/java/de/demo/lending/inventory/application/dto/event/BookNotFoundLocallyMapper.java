@@ -19,7 +19,7 @@ public class BookNotFoundLocallyMapper {
                 .correlationId(correlationId)
                 .causationId(causationId)
                 .userId(e.getUserId().value().toString())
-                .bookTitle(e.getBookTitle())
+                .bookId(e.getBookId().value())
                 .loanId(e.getLoanId().value().toString()).build();
     }
 }

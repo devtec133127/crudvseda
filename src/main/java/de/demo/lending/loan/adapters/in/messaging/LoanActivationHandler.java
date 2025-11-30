@@ -1,11 +1,10 @@
 package de.demo.lending.loan.adapters.in.messaging;
 
-import java.util.UUID;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.dto.BookReservedPayload;
 import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import de.demo.lending.loan.domain.LoanId;
@@ -15,6 +14,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Component
 public class LoanActivationHandler {
@@ -44,11 +45,13 @@ public class LoanActivationHandler {
 
         UUID loanIdUUId = UUID.fromString(payload.getLoanId());
         UUID copyIdUUId = UUID.fromString(payload.getCopyId());
+        UUID userIdUUId = UUID.fromString(payload.getUserId());
 
         //uiPublisher.publishOrderReceivedToUI(loanIdUUId, payload.getBookId()); //, pay.getExternalOrderId());
 
         LoanId loanId = LoanId.of(loanIdUUId);
         CopyId copyId = CopyId.of(copyIdUUId);
+        UserId userId = UserId.of(userIdUUId);
         ActivateLoanUseCase.ActivateLoanCommand command = ActivateLoanUseCase.ActivateLoanCommand.of(loanId, copyId);
         activateLoanUseCase.activate(command);
 

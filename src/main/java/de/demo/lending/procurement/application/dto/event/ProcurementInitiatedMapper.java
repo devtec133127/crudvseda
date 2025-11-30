@@ -23,7 +23,7 @@ public class ProcurementInitiatedMapper {
                 .causationId(causationId)
                 .loanId(e.getLoanId().value().toString())
                 .userId(userId != null ? e.getUserId().value().toString() : null)
-                .bookTitle(e.getBookTitle().toString())
+                .bookTitle(e.getBookId().toString())
                 .build();
         return payload;
     }

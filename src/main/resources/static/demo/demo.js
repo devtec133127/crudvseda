@@ -25,7 +25,7 @@ document.getElementById('createLoanBtn').addEventListener('click', async () => {
     try {
         console.log('Sending POST request to:', `${API_BASE}/loans`);
 
-        const bookTitle = document.getElementById('bookTitleInput').value.trim();
+        const bookIsbn = document.getElementById('bookIsbnInput').value.trim();
         // POST Request zum Backend
         const response = await fetch(`${API_BASE}/loans`, {
             method: 'POST',
@@ -34,7 +34,7 @@ document.getElementById('createLoanBtn').addEventListener('click', async () => {
             },
             body: JSON.stringify({
                 userId: '518aeace-387a-4a16-a0b8-b6d6fa9e8bc3',
-                bookTitle: bookTitle
+                isbn: bookIsbn
             })
         });
 

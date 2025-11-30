@@ -1,6 +1,6 @@
 package de.demo.lending.inventory.adapters.out.persistence;
 
-import de.demo.lending.common.valueobjects.BookTitle;
+import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.domain.PendingReservation;
 import de.demo.lending.inventory.domain.PendingReservationId;
@@ -20,8 +20,8 @@ public class PendingReservationRepositoryAdapter implements PendingReservationRe
     }
 
     @Override
-    public Optional<PendingReservation> findByBookTitle(BookTitle bookTitle) {
-        return jpa.findByBookTitle(bookTitle.toString())
+    public Optional<PendingReservation> findByBookId(BookId bookId) {
+        return jpa.findByBookId(bookId.value())
                 .map(this::toDomain);
     }
 
@@ -34,8 +34,8 @@ public class PendingReservationRepositoryAdapter implements PendingReservationRe
     public PendingReservation save(PendingReservation pendingReservation) {
         PendingReservationEntity e = PendingReservationEntity.builder()
                 .id(pendingReservation.getPendingReservationId().value())
-                .bookTitle(pendingReservation.getTitle().toString())
                 .loanId(pendingReservation.getLoanId().value())
+                .bookId(pendingReservation.getBookId().value())
                 .userId(pendingReservation.getUserId().value())
                 .dueDate(pendingReservation.getDueDate())
                 .build();
@@ -54,8 +54,8 @@ public class PendingReservationRepositoryAdapter implements PendingReservationRe
         PendingReservationId id = PendingReservationId.of(e.getId());
         LoanId loanId = (e.getLoanId() == null) ? null : LoanId.of(e.getLoanId());
         UserId userId = UserId.of(e.getUserId());
-        BookTitle bookTitle = BookTitle.of(e.getBookTitle());
-        return PendingReservation.reconstitute(id, bookTitle, loanId, userId, e.getDueDate());
+        BookId bookId = BookId.of(e.getBookId());
+        return PendingReservation.reconstitute(id, bookId, loanId, userId, e.getDueDate());
     }
 }
 

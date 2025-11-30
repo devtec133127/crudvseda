@@ -23,7 +23,7 @@ public class BookReceivedPayload extends DtoPayload {
             @JsonProperty("type") String type,
             @JsonProperty("loanId") String loanId,
             @JsonProperty("userId") String userId,
-            @JsonProperty("bookId") String bookId
+            @JsonProperty("isbn") String bookId
     ) {
         super(eventId, occurredAt, correlationId, causationId, loanId, userId, type);
         this.bookId = bookId;

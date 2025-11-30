@@ -18,7 +18,7 @@ public final class LoanEventMapper {
                 .causationId(causationId)
                 .loanId(e.getLoanId().value().toString())
                 .userId(e.getUserId().value().toString())
-                .bookTitle(e.getBookTitle())
+                .isbn(e.getIsbn())
                 .duration(e.getDuration().toDays()).build();
         return payload;
     }

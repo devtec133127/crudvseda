@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.BookId;
-import de.demo.lending.common.valueobjects.BookTitle;
-import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.domain.InventoryCopy;
 import de.demo.lending.inventory.domain.port.in.RegisterBookUseCase;
 import de.demo.lending.inventory.domain.port.in.ReserveBookUseCase;
 import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
@@ -53,14 +52,15 @@ public class RegisterBookHandler {
 
         LoanId loanId = LoanId.of(UUID.fromString(payload.getLoanId()));
         BookId bookId = BookId.of(payload.getBookId());
-        BookTitle bookTitle = BookTitle.of("test");
 
-        RegisterBookUseCase.RegisterBookCommand registerBookCommand = RegisterBookUseCase.RegisterBookCommand.of(loanId, bookTitle, bookId);
-        registerBookUseCase.registerBook(registerBookCommand);
+        // 1. Buch registrieren
+        RegisterBookUseCase.RegisterBookCommand registerBookCommand = RegisterBookUseCase.RegisterBookCommand.of(loanId, bookId);
+        InventoryCopy copy = registerBookUseCase.registerBook(registerBookCommand);
 
-        UserId userId = UserId.of(UUID.fromString(payload.getUserId()));
+        //UserId userId = UserId.of(UUID.fromString(payload.getUserId()));
 
-        reserveBookUseCase.reserveBook(userId, loanId, bookTitle);
+        // 4. Reservation erstellen mit Daten aus Pending
+        reserveBookUseCase.reserveBook(loanId, bookId, copy);
 
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
         ProcessedEventUtil.saveEvent(RegisterBookHandler.class, incomingEventId);

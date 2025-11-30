@@ -1,7 +1,6 @@
 package de.demo.lending.procurement.adapters.out.persistence;
 
 import de.demo.lending.common.valueobjects.BookId;
-import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.ExternalLibraryId;
 import de.demo.lending.procurement.domain.ProcurementOrder;
@@ -20,7 +19,7 @@ public class ProcurementOrderMapper {
 
         entity.setId(domain.getId());
         entity.setLoanId(domain.getLoanId().value());
-        entity.setBookTitle(domain.getBookTitle().toString());
+        //entity.setBookTitle(domain.getBookTitle().toString());
         if (domain.getExternalLibraryId() != null) {
             entity.setExternalLibraryId(domain.getExternalLibraryId().toString());
         }
@@ -38,13 +37,16 @@ public class ProcurementOrderMapper {
      * JPA Entity → Domain Model
      */
     public ProcurementOrder toDomain(ProcurementOrderEntity entity) {
+        ExternalLibraryId libraryId = null;
+        if (entity.getExternalLibraryId() != null) {
+            libraryId = ExternalLibraryId.of(UUID.fromString(entity.getExternalLibraryId()));
+        }
         return ProcurementOrder.create(
                 ProcurementOrderId.of(entity.getId()),
                 LoanId.of(entity.getLoanId()),
-                BookTitle.of(entity.getBookTitle()),
-                entity.getExternalLibraryId() != null ? ExternalLibraryId.of(UUID.fromString(entity.getExternalLibraryId())) : null,
+                libraryId,
                 entity.getExternalOrderId(),
-                entity.getIsbn() != null ? BookId.of(entity.getIsbn()) : null,
+                BookId.of(entity.getIsbn()),
                 entity.getStatus(),
                 entity.getOrderedAt(),
                 entity.getEstimatedArrival(),

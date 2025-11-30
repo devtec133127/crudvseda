@@ -36,7 +36,7 @@ public class DemoLoanController {
         String correlationId = UUID.randomUUID().toString();
         String causationId = correlationId;  // erste Ursache = der Request selbst
 
-        ReserveBookCommand cmd = new ReserveBookCommand(request.userId(), request.bookTitle());
+        ReserveBookCommand cmd = new ReserveBookCommand(request.userId(), request.isbn());
         Loan loan = this.createLoanUseCase.handle(cmd, correlationId, causationId);
 
         DemoLoanResponse response = DemoLoanResponse.from(loan);

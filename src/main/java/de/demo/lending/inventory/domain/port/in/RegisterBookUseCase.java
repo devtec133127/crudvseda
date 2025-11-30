@@ -1,8 +1,8 @@
 package de.demo.lending.inventory.domain.port.in;
 
 import de.demo.lending.common.valueobjects.BookId;
-import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.inventory.domain.InventoryCopy;
 import de.demo.lending.loan.domain.LoanId;
 
 import java.util.Objects;
@@ -10,7 +10,7 @@ import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 
 public interface RegisterBookUseCase {
-    void registerBook(RegisterBookCommand command);
+    InventoryCopy registerBook(RegisterBookCommand command);
 
 
     /**
@@ -22,36 +22,28 @@ public interface RegisterBookUseCase {
     final class RegisterBookCommand {
 
         private final LoanId loanId;
-        private final BookTitle bookTitle;
         private final BookId bookId;
 
         private RegisterBookCommand(
                 LoanId loanId,
-                BookTitle bookTitle,
                 BookId bookId
         ) {
             this.loanId = requireNonNull(loanId, "loanId must not be null");
-            this.bookTitle = requireNonNull(bookTitle, "bookTitle must not be null");
             this.bookId = requireNonNull(bookId, "bookId must not be null");
         }
 
         // Factory Method
         public static RegisterBookCommand of(
                 LoanId loanId,
-                BookTitle bookTitle,
                 BookId bookId
         ) {
-            return new RegisterBookCommand(loanId, bookTitle, bookId);
+            return new RegisterBookCommand(loanId, bookId);
         }
 
         // Getters
 
         public LoanId getLoanId() {
             return loanId;
-        }
-
-        public BookTitle getBookTitle() {
-            return bookTitle;
         }
 
         public BookId getBookId() {
@@ -66,13 +58,12 @@ public interface RegisterBookUseCase {
             if (o == null || getClass() != o.getClass()) return false;
             RegisterBookCommand that = (RegisterBookCommand) o;
             return Objects.equals(loanId, that.loanId) &&
-                    Objects.equals(bookId, that.bookId) &&
-                    Objects.equals(bookTitle, that.bookTitle);
+                    Objects.equals(bookId, that.bookId);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(loanId, bookTitle);
+            return Objects.hash(loanId, bookId);
         }
 
         @Override
@@ -80,7 +71,6 @@ public interface RegisterBookUseCase {
             return "InitiateProcurementCommand{" +
                     "loanId=" + loanId +
                     "bookId=" + bookId +
-                    ", bookTitle=" + bookTitle +
                     '}';
         }
     }

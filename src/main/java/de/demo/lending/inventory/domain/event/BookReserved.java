@@ -2,7 +2,6 @@ package de.demo.lending.inventory.domain.event;
 
 import de.demo.lending.common.domain.events.BaseDomainEvent;
 import de.demo.lending.common.valueobjects.BookId;
-import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.domain.ReservationId;
@@ -13,15 +12,13 @@ import java.util.UUID;
 
 public class BookReserved extends BaseDomainEvent {
     private final CopyId copyId;
-    private final BookTitle bookTitle;
     private final BookId bookId;
     private final ReservationId reservationId;
 
     public BookReserved(LoanId loanId, String correlationId, String causationId,
-                        CopyId copyId, BookTitle bookTitle, UserId userId, BookId bookId, ReservationId reservationId) {
+                        CopyId copyId, UserId userId, BookId bookId, ReservationId reservationId) {
         super(UUID.randomUUID(), loanId, correlationId, causationId, Instant.now(), userId);
         this.copyId = copyId;
-        this.bookTitle = bookTitle;
         this.bookId = bookId;
         this.reservationId = reservationId;
     }
@@ -32,10 +29,6 @@ public class BookReserved extends BaseDomainEvent {
 
     public CopyId getCopyId() {
         return copyId;
-    }
-
-    public BookTitle getBookTitle() {
-        return bookTitle;
     }
 
     public BookId getBookId() {

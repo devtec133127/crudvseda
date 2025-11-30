@@ -1,21 +1,19 @@
 package de.demo.lending.inventory.adapters.out.persistence;
 
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import de.demo.lending.common.valueobjects.BookId;
-import de.demo.lending.common.valueobjects.BookTitle;
 import de.demo.lending.common.valueobjects.CopyId;
-import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.domain.InventoryCopy;
 import de.demo.lending.inventory.domain.ReservationId;
 import de.demo.lending.inventory.domain.port.out.InventoryRepository;
 import de.demo.lending.loan.domain.LoanId;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class InventoryRepositoryAdapter implements InventoryRepository {
@@ -51,7 +49,7 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
     public Optional<InventoryCopy> lookupForBookInLocal(String bookTitle) {
         List<InventoryCopyEntity> foundBook = jpa.findByBookTitle(bookTitle);
         if (!foundBook.isEmpty()) {
-            return Optional.of(toDomain(foundBook.get(1)));
+            return Optional.of(toDomain(foundBook.get(0)));
         }
         return Optional.empty();
     }
@@ -73,8 +71,6 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
                 LoanId.of(UUID.fromString(e.getLoanId())),
                 null,
                 BookId.of(e.getBookId()),
-                UserId.of(UUID.fromString(e.getUserId())),
-                BookTitle.of(e.getBookTitle()),
                 //e.getCreatedAt() != null ? e.getCreatedAt() : Instant.now(),
                 e.getUpdatedAt() != null ? e.getUpdatedAt() : Instant.now(),
                 ReservationId.of(UUID.fromString(e.getReservationId()))
@@ -86,8 +82,6 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
                 .id(d.getId())
                 .loanId(d.getLoanId().value().toString())
                 .bookId(d.getBookId().value())
-                .bookTitle(d.getBookTitle().toString())
-                .userId(d.getUserId() != null ? d.getUserId().toString() : null)
                 .state(d.getState().name())
                 .createdAt(d.getCreatedAt() != null ? d.getCreatedAt() : Instant.now())
                 .updatedAt(Instant.now())

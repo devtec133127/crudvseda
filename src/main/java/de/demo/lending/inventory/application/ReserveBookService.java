@@ -1,12 +1,13 @@
 package de.demo.lending.inventory.application;
 
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
-import de.demo.lending.common.valueobjects.BookTitle;
+import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.dto.BookReservedPayload;
 import de.demo.lending.inventory.application.dto.event.BookReservedEventMapper;
 import de.demo.lending.inventory.domain.InventoryCopy;
 import de.demo.lending.inventory.domain.PendingReservation;
+import de.demo.lending.inventory.domain.Reservation;
 import de.demo.lending.inventory.domain.event.BookReserved;
 import de.demo.lending.inventory.domain.port.out.InventoryRepository;
 import de.demo.lending.inventory.domain.port.out.PendingReservationRepository;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.Optional;
 
 import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
@@ -50,42 +52,40 @@ public class ReserveBookService implements de.demo.lending.inventory.domain.port
      3. Wenn nicht vorhanden, event werfen (hier macht dann Procurement weiter)
      */
     @Transactional
-    public void reserveBook(UserId userId, LoanId loanId, BookTitle bookTitle) {
+    public void reserveBook(LoanId loanId, BookId bookId, InventoryCopy copy) {
+        log.info("Buch mit ID {} im local store vorhanden", copy.getBookId());
 
-        Optional<InventoryCopy> foundBook = repo.lookupForBookInLocal(bookTitle.toString());
+        PendingReservation pending = pendingReservationRepository.findByBookId(copy.getBookId())
+                .orElseThrow(() -> new RuntimeException("pending reservation for bookId {} " + copy.getBookId().value() + " not found"));
 
-        final InventoryCopy localCopy;
-        if (foundBook.isPresent()) {
-            localCopy = foundBook.get();
-            log.info("Buch {} im local store vorhanden", localCopy.getBookTitle());
+        copy.reserve("", "", pending.getDueDate(), pending.getUserId());
+        repo.save(copy);
 
-            PendingReservation pending = pendingReservationRepository.findByBookTitle(localCopy.getBookTitle())
-                    .orElseThrow(() -> new RuntimeException("pending reservation for bookId {} " + localCopy.getBookId().value() + " not found"));
+        Duration duration = Duration.ofDays(pending.getDueDate());
+        Reservation reservation = Reservation.create(loanId, copy.getCopyId(), pending.getUserId(), duration);
 
-            localCopy.reserve("", "", pending.getDueDate());
-            repo.save(localCopy);
+        reservationRepository.save(reservation);
 
-            localCopy.pullProducedEvents().forEach(event -> {
-                if (event instanceof BookReserved) {
-                    BookReservedPayload payload = BookReservedEventMapper.toPayload((BookReserved) event, "", "");
-                    log.info("Publishing event to topic {}: {}", INVENTORY_RESERVED_V1, payload);
-                    publisher.enqueue(INVENTORY_RESERVED_V1, payload);
-                }
-            });
-        }
+        copy.pullProducedEvents().forEach(event -> {
+            if (event instanceof BookReserved) {
+                BookReservedPayload payload = BookReservedEventMapper.toPayload((BookReserved) event, "", "");
+                log.info("Publishing event to topic {}: {}", INVENTORY_RESERVED_V1, payload);
+                publisher.enqueue(INVENTORY_RESERVED_V1, payload);
+            }
+        });
     }
 
     @Transactional
-    public void reserveBook(UserId userId, LoanId loanId, BookTitle bookTitle, long durationInDays) {
+    public void reserveBook(UserId userId, LoanId loanId, BookId bookId, long durationInDays) {
 
-        Optional<InventoryCopy> foundBook = repo.lookupForBookInLocal(bookTitle.toString());
+        Optional<InventoryCopy> foundBook = repo.lookupForBookInLocal(bookId.toString());
 
         final InventoryCopy localCopy;
         if (foundBook.isPresent()) {
             localCopy = foundBook.get();
-            log.info("Buch {} im local store vorhanden", localCopy.getBookTitle());
+            log.info("Buch {} im local store vorhanden", localCopy.getBookId());
 
-            localCopy.reserve("", "", durationInDays);
+            localCopy.reserve("", "", durationInDays, userId);
             repo.save(localCopy);
 
             localCopy.pullProducedEvents().forEach(event -> {

@@ -1,13 +1,13 @@
 package de.demo.lending.loan.adapters.out.persistence;
 
-import java.util.Optional;
-
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.application.LoanRepository;
 import de.demo.lending.loan.domain.Loan;
 import de.demo.lending.loan.domain.LoanId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -40,7 +40,7 @@ public class LoanJpaRepositoryAdapter implements LoanRepository {
         var e = new LoanEntity();
         e.setId(l.getLoanId().value());
         e.setUserId(l.getUserId().value());
-        e.setBookTitle(l.getBookTitle());
+        e.setBookTitle(l.getIsbn());
         if (l.getCopyId() != null) {
             e.setCopyId(l.getCopyId().value());
         }

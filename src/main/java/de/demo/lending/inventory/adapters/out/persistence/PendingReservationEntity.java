@@ -18,7 +18,7 @@ class PendingReservationEntity {
     private UUID id;
 
     @Column(nullable = false)
-    private String bookTitle;  // ⭐ Lookup-Key!
+    private String bookId;  // ⭐ Lookup-Key!
 
     @Column(nullable = false)
     private UUID loanId;

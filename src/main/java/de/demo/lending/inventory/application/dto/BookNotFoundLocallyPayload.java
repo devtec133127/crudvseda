@@ -1,18 +1,18 @@
 package de.demo.lending.inventory.application.dto;
 
-import java.util.UUID;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.demo.lending.common.application.dto.DtoPayload;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 @Getter
 @SuperBuilder
 public class BookNotFoundLocallyPayload extends DtoPayload {
     private static final String TYPE = "BookNotFoundLocallyPayload";
-    private final String bookTitle;
+    private final String bookId;
 
     @JsonCreator
     public BookNotFoundLocallyPayload(
@@ -23,9 +23,9 @@ public class BookNotFoundLocallyPayload extends DtoPayload {
             @JsonProperty("type") String type,
             @JsonProperty("loanId") String loanId,
             @JsonProperty("userId") String userId,
-            @JsonProperty("bookTitle") String bookTitle
+            @JsonProperty("bookId") String bookId
     ) {
         super(eventId, occurredAt, correlationId, causationId, loanId, userId, type);
-        this.bookTitle = bookTitle;
+        this.bookId = bookId;
     }
 }

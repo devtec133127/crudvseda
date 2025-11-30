@@ -22,13 +22,8 @@ public class ReservationEntity {
     private UUID id;
 
     @Column(nullable = false)
-    private String bookId;
-
-    @Column(nullable = false)
     private String userId;
-
-    private String bookTitle;
-
+    
     private String copyId;
 
     @Column(nullable = false)

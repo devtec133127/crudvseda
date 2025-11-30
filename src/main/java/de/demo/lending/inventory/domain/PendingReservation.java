@@ -1,7 +1,7 @@
 package de.demo.lending.inventory.domain;
 
 import de.demo.lending.common.domain.AggregateRoot;
-import de.demo.lending.common.valueobjects.BookTitle;
+import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.LoanId;
 
@@ -10,21 +10,21 @@ import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 public class PendingReservation extends AggregateRoot {
-    private final BookTitle bookTitle;
+    private final BookId bookId;
     private final LoanId loanId;
     private final UserId userId;
-    private final long dueDate; // in days
+    private final long dueDate;
 
     // Private Constructor
     private PendingReservation(
             PendingReservationId id,
-            BookTitle bookTitle,
+            BookId bookId,
             LoanId loanId,
             UserId userId,
             long dueDate
     ) {
         super(id.value(), "");
-        this.bookTitle = Objects.requireNonNull(bookTitle);
+        this.bookId = Objects.requireNonNull(bookId);
         this.loanId = Objects.requireNonNull(loanId);
         this.userId = Objects.requireNonNull(userId);
         if (dueDate <= 0) {
@@ -33,47 +33,48 @@ public class PendingReservation extends AggregateRoot {
         this.dueDate = dueDate;
     }
 
-    // Factory Method
+    // ⭐ Factory Method
     public static PendingReservation create(
-            BookTitle bookTitle,
+            BookId bookId,
             LoanId loanId,
             UserId userId,
             long dueDate
     ) {
         return new PendingReservation(
                 PendingReservationId.newId(),
-                bookTitle,
+                bookId,
                 loanId,
                 userId,
                 dueDate
         );
     }
 
-    // Reconstitution (für Repository)
+    // ⭐ Reconstitution (für Repository)
     public static PendingReservation reconstitute(
             PendingReservationId id,
-            BookTitle bookTitle,
+            BookId bookId,
             LoanId loanId,
             UserId userId,
             long dueDate
     ) {
-        return new PendingReservation(id, bookTitle, loanId, userId, dueDate);
+        return new PendingReservation(
+                id, bookId, loanId, userId, dueDate
+        );
     }
 
-    // Business Logic
+    // ⭐ Business Logic
     public boolean isExpired() {
-        // dueDate interpreted as number of days after creation
         return super.getCreatedAt().plus(dueDate, ChronoUnit.DAYS)
                 .isBefore(Instant.now());
     }
 
-    // Getters
+    // Nur Getters
     public PendingReservationId getPendingReservationId() {
         return PendingReservationId.of(super.getId());
     }
 
-    public BookTitle getBookTitle() {
-        return bookTitle;
+    public BookId getBookId() {
+        return bookId;
     }
 
     public LoanId getLoanId() {
@@ -86,9 +87,5 @@ public class PendingReservation extends AggregateRoot {
 
     public long getDueDate() {
         return dueDate;
-    }
-
-    public Instant getCreatedAt() {
-        return super.getCreatedAt();
     }
 }

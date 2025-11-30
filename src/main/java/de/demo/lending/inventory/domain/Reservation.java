@@ -1,37 +1,32 @@
 package de.demo.lending.inventory.domain;
 
+import de.demo.lending.common.domain.AggregateRoot;
+import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.loan.domain.LoanId;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
-
-import de.demo.lending.common.domain.AggregateRoot;
-import de.demo.lending.common.valueobjects.BookId;
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.domain.event.ProcurementRequested;
-import de.demo.lending.loan.domain.LoanId;
 
 public class Reservation extends AggregateRoot {
     public enum ReservationStatus {PENDING, CONFIRMED, CANCELLED, FAILED, EXPIRED}
 
     private final LoanId loanId;
-    private final String bookTitle;
-    private final BookId bookId;
     private final UserId userId;
+    private final CopyId copyId;
     private ReservationStatus status;
-    private Instant createdAt;
     private Instant expiresAt;
-    private String copyId; // optional
 
 
-    private Reservation(UUID id, LoanId loanId, String correlationId, BookId bookId, String bookTitle, UserId userId) {
-        super(id, correlationId);
+    private Reservation(UUID id, LoanId loanId, UserId userId, CopyId copyId) {
+        super(id, "");
         this.loanId = loanId;
-        this.bookTitle = bookTitle;
-        this.bookId = bookId;
+        this.copyId = copyId;
         this.userId = userId;
     }
 
-    private Reservation(UUID id, LoanId loanId, String correlationId, String bookTitle, BookId bookId, UserId userId,
+    /*rivate Reservation(UUID id, LoanId loanId, String correlationId, String bookTitle, BookId bookId, UserId userId,
                         ReservationStatus status, Instant createdAt, Instant expiresAt, String copyId) {
         super(id, correlationId);
         this.bookTitle = bookTitle;
@@ -42,26 +37,24 @@ public class Reservation extends AggregateRoot {
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
         this.copyId = copyId;
-    }
+    }*/
 
-    public static Reservation create(LoanId loanId, String correlationId, String causationId, BookId bookId, String bookTitle, UserId userId, Duration ttl) {
-        Reservation reservation = new Reservation(ReservationId.newId().value(), loanId, correlationId, bookId, bookTitle, userId);
+    public static Reservation create(LoanId loanId, CopyId copyId, UserId userId, Duration ttl) {
+        Reservation reservation = new Reservation(ReservationId.newId().value(), loanId, userId, copyId);
         reservation.status = ReservationStatus.PENDING;
-        reservation.createdAt = Instant.now();
-        reservation.expiresAt = reservation.createdAt.plus(ttl);
+        reservation.expiresAt = reservation.getCreatedAt().plus(ttl);
 
-        reservation.raise(new ProcurementRequested(loanId, correlationId, causationId, true, bookTitle, userId));
+        //reservation.raise(new ProcurementRequested(loanId, correlationId, causationId, true, bookTitle, userId));
         return reservation;
     }
 
-    public static Reservation create(String id, LoanId loanId, String correlationId, String bookTitle, BookId bookId, UserId userId,
+    /*public static Reservation create(String id, LoanId loanId, String correlationId, String bookTitle, BookId bookId, UserId userId,
                                      ReservationStatus status, Instant createdAt, Instant expiresAt, String copyId) {
         return new Reservation(ReservationId.newId().value(), loanId, correlationId, bookTitle, bookId, userId, status, createdAt, expiresAt, copyId);
-    }
+    }*/
 
-    public void confirm(String copyId) {
+    public void confirm() {
         if (this.status != ReservationStatus.PENDING) throw new IllegalStateException("Reservation not PENDING");
-        this.copyId = copyId;
         this.status = ReservationStatus.CONFIRMED;
         // emit ReservationConfirmed
     }
@@ -75,14 +68,6 @@ public class Reservation extends AggregateRoot {
         return ReservationId.of(getId());
     }
 
-    public String getBookTitle() {
-        return bookTitle;
-    }
-
-    public BookId getBookId() {
-        return bookId;
-    }
-
     public UserId getUserId() {
         return userId;
     }
@@ -91,16 +76,12 @@ public class Reservation extends AggregateRoot {
         return status;
     }
 
-    @Override
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
 
     public Instant getExpiresAt() {
         return expiresAt;
     }
 
-    public String getCopyId() {
+    public CopyId getCopyId() {
         return copyId;
     }
 

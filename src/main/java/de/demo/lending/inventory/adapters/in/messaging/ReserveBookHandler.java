@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
-import de.demo.lending.common.valueobjects.BookTitle;
+import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.dto.BookNotFoundLocallyPayload;
 import de.demo.lending.inventory.application.dto.event.BookNotFoundLocallyMapper;
@@ -65,38 +65,39 @@ public class ReserveBookHandler {
         ProcessedEventUtil.checkEvent(ReserveBookHandler.class, incomingEventId);
 
         // mandatory fields expected: loanId, bookId
-        if (payload.getLoanId() == null || payload.getBookTitle() == null) {
-            log.warn("Received loan.requested without loanId/bookId: {}", json);
+        if (payload.getLoanId() == null || payload.getIsbn() == null) {
+            log.warn("Received loan.requested without loanId/isbn: {}", json);
             return;
         }
 
         LoanId loanId = LoanId.of(UUID.fromString(payload.getLoanId()));
         UserId userId = UserId.of(UUID.fromString(payload.getUserId()));
 
-        uiPublisher.publishLoanCreatedToUI(loanId.value(), userId.value(), payload.getBookTitle(), payload.getDuration());
+        uiPublisher.publishLoanCreatedToUI(loanId.value(), userId.value(), payload.getIsbn(), payload.getDuration());
 
         Duration duration = Duration.ofDays(payload.getDuration());
-        BookTitle bookTitle = BookTitle.of(payload.getBookTitle());
+        BookId isbn = BookId.of(payload.getIsbn());
+        //BookId bookId = BookId.of("123");
 
         // 1. Prüfung ob in local store vorhanden, sonst Procurement anstoßen
         // Fall B: Buch nicht da → PendingReservation erstellen ⭐
-        Optional<InventoryCopy> foundBook = repo.lookupForBookInLocal(bookTitle.toString());
+        Optional<InventoryCopy> foundBook = repo.lookupForBookInLocal(isbn.value());
 
         final InventoryCopy localCopy;
         if (foundBook.isPresent()) {
             localCopy = foundBook.get();
-            log.info("Buch {} im local store vorhanden", localCopy.getBookTitle());
+            log.info("Buch mit ID {} im local store vorhanden", localCopy.getBookId());
             // reserv book flow ...
-            reserveBookUseCase.reserveBook(userId, loanId, bookTitle, duration.toDays());
+            reserveBookUseCase.reserveBook(userId, loanId, isbn, duration.toDays());
         } else {
             createPendingReservationUseCase.create(
-                    bookTitle,
+                    isbn,
                     loanId,
                     userId,
                     duration.toDays()
             );
 
-            BookNotFoundLocally notFoundEvent = new BookNotFoundLocally(loanId, "", "", bookTitle.toString(), userId);
+            BookNotFoundLocally notFoundEvent = new BookNotFoundLocally(loanId, "", "", isbn, userId);
             BookNotFoundLocallyPayload eventPayload = BookNotFoundLocallyMapper.toPayload(notFoundEvent, "", "");
             log.info("Publishing BookNotFoundLocally to topic {}: {}", INVENTORY_BOOK_NOT_FOUND_V1, eventPayload);
             publisher.enqueue(INVENTORY_BOOK_NOT_FOUND_V1, eventPayload);
