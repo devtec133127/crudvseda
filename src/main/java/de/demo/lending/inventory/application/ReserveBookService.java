@@ -52,10 +52,10 @@ public class ReserveBookService implements de.demo.lending.inventory.domain.port
      3. Wenn nicht vorhanden, event werfen (hier macht dann Procurement weiter)
      */
     @Transactional
-    public void reserveBook(LoanId loanId, BookId bookId, InventoryCopy copy) {
-        log.info("Buch mit ID {} im local store vorhanden", copy.getBookId());
+    public void reserveBook(LoanId loanId, BookId bookId, UserId userId, InventoryCopy copy) {
+        log.info("Buch mit ID {} im local store vorhanden", copy.getBookId().value());
 
-        PendingReservation pending = pendingReservationRepository.findByBookId(copy.getBookId())
+        PendingReservation pending = pendingReservationRepository.findBookForLoan(copy.getBookId(), userId, loanId)
                 .orElseThrow(() -> new RuntimeException("pending reservation for bookId {} " + copy.getBookId().value() + " not found"));
 
         copy.reserve("", "", pending.getDueDate(), pending.getUserId());
@@ -83,7 +83,7 @@ public class ReserveBookService implements de.demo.lending.inventory.domain.port
         final InventoryCopy localCopy;
         if (foundBook.isPresent()) {
             localCopy = foundBook.get();
-            log.info("Buch {} im local store vorhanden", localCopy.getBookId());
+            log.info("Buch {} im local store vorhanden", localCopy.getBookId().value());
 
             localCopy.reserve("", "", durationInDays, userId);
             repo.save(localCopy);

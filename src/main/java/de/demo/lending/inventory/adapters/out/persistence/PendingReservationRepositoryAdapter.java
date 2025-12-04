@@ -20,9 +20,13 @@ public class PendingReservationRepositoryAdapter implements PendingReservationRe
     }
 
     @Override
-    public Optional<PendingReservation> findByBookId(BookId bookId) {
-        return jpa.findByBookId(bookId.value())
-                .map(this::toDomain);
+    public Optional<PendingReservation> findBookForLoan(BookId bookId, UserId userId, LoanId loanId) {
+        PendingReservationEntity bookForLoan = jpa.findBookForLoan(bookId.value(), userId.value(), loanId.value());
+        if (bookForLoan == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(toDomain(bookForLoan));
     }
 
     @Override

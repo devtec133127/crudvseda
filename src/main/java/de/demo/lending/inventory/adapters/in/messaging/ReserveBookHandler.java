@@ -86,7 +86,7 @@ public class ReserveBookHandler {
         final InventoryCopy localCopy;
         if (foundBook.isPresent()) {
             localCopy = foundBook.get();
-            log.info("Buch mit ID {} im local store vorhanden", localCopy.getBookId());
+            log.info("Buch mit ID {} im local store vorhanden", localCopy.getBookId().value());
             // reserv book flow ...
             reserveBookUseCase.reserveBook(userId, loanId, isbn, duration.toDays());
         } else {

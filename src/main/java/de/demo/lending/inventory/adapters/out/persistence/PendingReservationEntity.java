@@ -10,10 +10,10 @@ import java.util.UUID;
 @Table(name = "pending_reservation")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
-class PendingReservationEntity {
+public class PendingReservationEntity {
     @Id
     private UUID id;
 
