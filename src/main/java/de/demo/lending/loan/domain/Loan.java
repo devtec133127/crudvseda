@@ -23,7 +23,7 @@ public class Loan extends AggregateRoot {
     private final Instant createdAt;
     private Instant updatedAt;
 
-    public enum Status {REQUESTED, ACTIVE, EXTENDED, OVERDUE, CLOSED}
+    public enum Status {REQUESTED, READY_FOR_PICKUP, ACTIVE, EXTENDED, OVERDUE, CLOSED}
 
     private Loan(LoanId id, UserId userId, String isbn,
                  CopyId copyId, Status status,
@@ -48,13 +48,15 @@ public class Loan extends AggregateRoot {
         return newLoan;
     }
 
-    public static Loan restore(LoanId id, UserId userId, String bookTitle,
-                               Status status, LocalDate dueDate, Instant createdAt, Instant updatedAt) {
-        return new Loan(id, userId, bookTitle, null, status, dueDate, createdAt, updatedAt);
-    }
-
     public void activate(CopyId copyId) {
-        if (status != Status.REQUESTED) throw new IllegalStateException("Not in REQUESTED");
+        if (status != Status.REQUESTED && this.status != Status.READY_FOR_PICKUP) {
+            throw new IllegalStateException("Not in REQUESTED or READY_FOR_PICKUP");
+        }
+
+        if (copyId == null) {
+            throw new IllegalArgumentException("Keine Item-ID vorhanden - Buch nicht angekommen?");
+        }
+
         this.copyId = copyId;
         this.status = Status.ACTIVE;
         this.updatedAt = Instant.now();
@@ -62,10 +64,53 @@ public class Loan extends AggregateRoot {
         raise(new LoanActivated(getLoanId(), this.copyId, this.dueDate, this.userId));
     }
 
-    /*public void fail() {
-        this.status = Status.FAILED;
+    /*
+     * Listen to procurement.book_received.v1 → markAsReadyForPickup
+     */
+    public void markAsReadyForPickup(CopyId copyId) {
+        if (this.status != Status.REQUESTED && this.status != Status.ACTIVE) {
+            throw new IllegalStateException(
+                    "Kann nur aus REQUESTED oder ACTIVE zu READY_FOR_PICKUP wechseln"
+            );
+        }
+
+        this.status = Status.READY_FOR_PICKUP;
+        this.copyId = copyId;  // Jetzt kennen wir das konkrete Item
         this.updatedAt = Instant.now();
-    }*/
+
+        // Optional: Event für Benachrichtigung an User
+        //raise(new LoanReadyForPickup(this.loanId, this.userId));
+    }
+
+    /**
+     * Policy: Extension nur 1x + nur wenn ACTIVE
+     */
+    public void extend() {
+        // Policy: Nur im ACTIVE Status
+        if (this.status != Status.ACTIVE) {
+            throw new IllegalStateException(
+                    "Verlängerung nur für aktive Ausleihen möglich"
+            );
+        }
+
+        // Policy: Nur 1x verlängerbar
+        if (this.status == Status.EXTENDED) {
+            throw new IllegalStateException(
+                    "Diese Ausleihe wurde bereits einmal verlängert"
+            );
+        }
+
+        // Policy OK → Verlängern
+        this.dueDate = this.dueDate.plusDays(14);  // Policy 4: +14 Tage
+        this.updatedAt = Instant.now();
+
+        //raise(new LoanExtended(this.loanId, this.dueDate));
+    }
+
+    public static Loan restore(LoanId id, UserId userId, String bookTitle,
+                               Status status, LocalDate dueDate, Instant createdAt, Instant updatedAt) {
+        return new Loan(id, userId, bookTitle, null, status, dueDate, createdAt, updatedAt);
+    }
 
     private Instant calculateDueDate() {
         return Instant.now().plus(RANGE_IN_DAYS, ChronoUnit.DAYS);
