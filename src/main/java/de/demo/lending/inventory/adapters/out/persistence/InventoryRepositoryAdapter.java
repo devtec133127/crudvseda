@@ -46,8 +46,8 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
     }
 
     @Override
-    public Optional<InventoryCopy> lookupForBookInLocal(String bookTitle) {
-        List<InventoryCopyEntity> foundBook = jpa.findByBookTitle(bookTitle);
+    public Optional<InventoryCopy> lookupForBookInLocal(String isbn) {
+        List<InventoryCopyEntity> foundBook = jpa.findAvailableByBookId(isbn);
         if (!foundBook.isEmpty()) {
             return Optional.of(toDomain(foundBook.get(0)));
         }
