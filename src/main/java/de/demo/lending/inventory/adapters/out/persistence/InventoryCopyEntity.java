@@ -24,6 +24,9 @@ public class InventoryCopyEntity {
     private String bookId;
 
     @Column(nullable = false)
+    private String isbn;
+
+    @Column(nullable = false)
     private String loanId;
 
     @Column(nullable = false)

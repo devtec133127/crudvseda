@@ -2,6 +2,7 @@ package de.demo.lending.procurement.application;
 
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.valueobjects.BookId;
+import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import de.demo.lending.procurement.adapters.out.external.OpenLibraryClientAdapter;
 import de.demo.lending.procurement.application.dto.BookOrderedExternallyPayload;
@@ -40,22 +41,21 @@ public class InitiateProcurementService implements InitiateProcurementUseCase {
     @Override
     public ProcurementResult execute(InitiateProcurementCommand command) {
 
-        OpenLibraryClientAdapter.ExternalBookInfo externalBookInfo = externalClient.searchBook(command.getBookId().value());
+        OpenLibraryClientAdapter.ExternalBookInfo externalBookInfo = externalClient.searchBook(command.getIsbn().value());
         if (externalBookInfo == null) {
-            log.warn("Book not available in external libraries: {}", command.getBookId());
+            log.warn("Book not available in external libraries: {}", command.getIsbn());
             return ProcurementResult.notAvailable();
         }
 
-        ProcurementOrder order = ProcurementOrder.initiate(command.getLoanId(),
-                command.getBookId(), command.getUserId());
+        BookId bookId = BookId.of(externalBookInfo.getExternalBookId());
 
-        String externalOrderId = externalClient.orderBook(externalBookInfo.getExternalBookId());
-        log.info("External order created: {}", externalOrderId);
+        ProcurementOrder order = ProcurementOrder.initiate(command.getLoanId(),
+                bookId, command.getUserId(), command.getIsbn());
 
         long estimatedArrival = 0L;
-        BookId bookId = BookId.of(externalBookInfo.getIsbn());
+        Isbn isbn = Isbn.of(externalBookInfo.getIsbn());
         // Update Aggregat mit externer Order-ID
-        order.confirmExternalOrder(externalOrderId, bookId, estimatedArrival);
+        order.confirmExternalOrder(bookId, isbn, estimatedArrival);
         // Aggregat hat book.ordered_externally.v1 registriert
 
         // Speichern

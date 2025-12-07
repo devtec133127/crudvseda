@@ -19,7 +19,7 @@ public interface InventoryRepository {
      */
     Optional<InventoryCopy> findById(CopyId id);
 
-    Optional<InventoryCopy> lookupForBookInLocal(String BookTitle);
+    Optional<InventoryCopy> lookupForBookInLocal(String bookId);
 
     /**
      * Persistiert Aktualisierungen einer InventoryCopy (z.B. Statuswechsel).

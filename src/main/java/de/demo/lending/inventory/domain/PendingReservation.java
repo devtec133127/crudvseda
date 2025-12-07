@@ -1,7 +1,6 @@
 package de.demo.lending.inventory.domain;
 
 import de.demo.lending.common.domain.AggregateRoot;
-import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.LoanId;
 
@@ -10,7 +9,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 public class PendingReservation extends AggregateRoot {
-    private final BookId bookId;
+    private final Isbn isbn;
     private final LoanId loanId;
     private final UserId userId;
     private final long dueDate;
@@ -18,13 +17,13 @@ public class PendingReservation extends AggregateRoot {
     // Private Constructor
     private PendingReservation(
             PendingReservationId id,
-            BookId bookId,
+            Isbn isbn,
             LoanId loanId,
             UserId userId,
             long dueDate
     ) {
         super(id.value(), "");
-        this.bookId = Objects.requireNonNull(bookId);
+        this.isbn = Objects.requireNonNull(isbn);
         this.loanId = Objects.requireNonNull(loanId);
         this.userId = Objects.requireNonNull(userId);
         if (dueDate <= 0) {
@@ -35,14 +34,14 @@ public class PendingReservation extends AggregateRoot {
 
     // ⭐ Factory Method
     public static PendingReservation create(
-            BookId bookId,
+            Isbn isbn,
             LoanId loanId,
             UserId userId,
             long dueDate
     ) {
         return new PendingReservation(
                 PendingReservationId.newId(),
-                bookId,
+                isbn,
                 loanId,
                 userId,
                 dueDate
@@ -52,13 +51,13 @@ public class PendingReservation extends AggregateRoot {
     // ⭐ Reconstitution (für Repository)
     public static PendingReservation reconstitute(
             PendingReservationId id,
-            BookId bookId,
+            Isbn isbn,
             LoanId loanId,
             UserId userId,
             long dueDate
     ) {
         return new PendingReservation(
-                id, bookId, loanId, userId, dueDate
+                id, isbn, loanId, userId, dueDate
         );
     }
 
@@ -73,8 +72,8 @@ public class PendingReservation extends AggregateRoot {
         return PendingReservationId.of(super.getId());
     }
 
-    public BookId getBookId() {
-        return bookId;
+    public Isbn getIsbn() {
+        return isbn;
     }
 
     public LoanId getLoanId() {

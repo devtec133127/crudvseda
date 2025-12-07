@@ -58,14 +58,15 @@ public class ReceiveBookHandler {
 
         LoanId loanId = LoanId.of(UUID.fromString(payload.getLoanId()));
         UserId userId = UserId.of(UUID.fromString(payload.getUserId()));
-        ProcurementOrder byLoanId = repo.findByLoanId(loanId);
-        if (byLoanId != null) {
-            byLoanId.markAsReceived();
+        ProcurementOrder foundProcurementOrder = repo.findByLoanId(loanId);
+        if (foundProcurementOrder != null) {
+            foundProcurementOrder.markAsReceived();
 
-            byLoanId.pullProducedEvents().forEach(event -> {
+            foundProcurementOrder.pullProducedEvents().forEach(event -> {
                 if (event instanceof BookReceived) {
-                    BookReceived receivedEvent = BookReceived.of(byLoanId.getProcurementOrderId(), byLoanId.getExternalOrderId(),
-                            byLoanId.getLoanId(), byLoanId.getIsbn(), userId);
+                    BookReceived receivedEvent = BookReceived.of(foundProcurementOrder.getProcurementOrderId(),
+                            foundProcurementOrder.getLoanId(), foundProcurementOrder.getBookId(),
+                            foundProcurementOrder.getIsbn(), userId);
                     BookReceivedPayload eventPayload = BookReceivedMapper.toPayload(receivedEvent, "", "");
                     log.info("Publishing BookReceived to topic {}: {}", PROCUREMENT_RECEIVED_V1, eventPayload);
                     publisher.enqueue(PROCUREMENT_RECEIVED_V1, eventPayload);

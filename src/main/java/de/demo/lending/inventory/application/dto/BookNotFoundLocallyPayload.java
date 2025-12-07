@@ -12,7 +12,7 @@ import java.util.UUID;
 @SuperBuilder
 public class BookNotFoundLocallyPayload extends DtoPayload {
     private static final String TYPE = "BookNotFoundLocallyPayload";
-    private final String bookId;
+    private final String isbn;
 
     @JsonCreator
     public BookNotFoundLocallyPayload(
@@ -23,9 +23,9 @@ public class BookNotFoundLocallyPayload extends DtoPayload {
             @JsonProperty("type") String type,
             @JsonProperty("loanId") String loanId,
             @JsonProperty("userId") String userId,
-            @JsonProperty("bookId") String bookId
+            @JsonProperty("isbn") String isbn
     ) {
         super(eventId, occurredAt, correlationId, causationId, loanId, userId, type);
-        this.bookId = bookId;
+        this.isbn = isbn;
     }
 }

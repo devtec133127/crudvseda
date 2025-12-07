@@ -15,6 +15,7 @@ public class InventoryCopy extends AggregateRoot {
     public enum InventoryState {IN_TRANSIENT, NOT_LOCALLY_AVAILABLE, REGISTERED, AVAILABLE, RESERVED, LOANED}
 
     private final BookId bookId;
+    private final Isbn isbn;
     private InventoryState state;
     private Instant updatedAt;
     private final LoanId loanId;
@@ -23,20 +24,21 @@ public class InventoryCopy extends AggregateRoot {
 
     private final java.util.List<Object> domainEvents = new java.util.ArrayList<>();
 
-    public InventoryCopy(UUID id, LoanId loanId, String correlationId, BookId bookId,
+    public InventoryCopy(UUID id, LoanId loanId, String correlationId, BookId bookId, Isbn isbn,
                          Instant updatedAt, ReservationId reservationId) {
         super(id, correlationId);
 
         this.bookId = bookId;
+        this.isbn = isbn;
         this.loanId = loanId;
         this.updatedAt = updatedAt;
         this.reservationId = reservationId;
     }
 
     public static InventoryCopy createNew(String correlationId, String causationId, LoanId loanId,
-                                          BookId bookId, UserId userId) {
+                                          BookId bookId, Isbn isbn, UserId userId) {
         var now = Instant.now();
-        InventoryCopy newInventory = new InventoryCopy(CopyId.newId().value(), loanId, correlationId, bookId,
+        InventoryCopy newInventory = new InventoryCopy(CopyId.newId().value(), loanId, correlationId, bookId, isbn,
                 now, ReservationId.newId());
         newInventory.state = InventoryState.NOT_LOCALLY_AVAILABLE;
         // Hier könnten wir ein technisches Event erstellen, aber kein Domain Event !!!
@@ -45,8 +47,8 @@ public class InventoryCopy extends AggregateRoot {
     }
 
     public static InventoryCopy createNew(String correlationId, String causationId, LoanId loanId,
-                                          BookId bookId) {
-        return createNew(correlationId, causationId, loanId, bookId, null);
+                                          BookId bookId, Isbn isbn) {
+        return createNew(correlationId, causationId, loanId, bookId, isbn, null);
     }
 
     public CopyId getCopyId() {
@@ -55,6 +57,10 @@ public class InventoryCopy extends AggregateRoot {
 
     public BookId getBookId() {
         return bookId;
+    }
+
+    public Isbn getIsbn() {
+        return isbn;
     }
 
     public LoanId getLoanId() {

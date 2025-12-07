@@ -1,7 +1,7 @@
 package de.demo.lending.procurement.domain.port.in;
 
-import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.ProcurementOrderId;
 import jakarta.transaction.Transactional;
@@ -25,25 +25,25 @@ public interface InitiateProcurementUseCase {
 
         private final LoanId loanId;
         private final UserId userId;
-        private final BookId bookId;
+        private final Isbn isbn;
 
         private InitiateProcurementCommand(
                 LoanId loanId,
                 UserId userId,
-                BookId bookId
+                Isbn isbn
         ) {
             this.loanId = requireNonNull(loanId, "loanId must not be null");
             this.userId = requireNonNull(userId, "userId must not be null");
-            this.bookId = requireNonNull(bookId, "bookId must not be null");
+            this.isbn = requireNonNull(isbn, "isbn must not be null");
         }
 
         // Factory Method
         public static InitiateProcurementCommand of(
                 LoanId loanId,
                 UserId userId,
-                BookId bookId
+                Isbn isbn
         ) {
-            return new InitiateProcurementCommand(loanId, userId, bookId);
+            return new InitiateProcurementCommand(loanId, userId, isbn);
         }
 
         // Getters
@@ -56,8 +56,8 @@ public interface InitiateProcurementUseCase {
             return userId;
         }
 
-        public BookId getBookId() {
-            return bookId;
+        public Isbn getIsbn() {
+            return isbn;
         }
 
         // Equality
@@ -69,12 +69,12 @@ public interface InitiateProcurementUseCase {
             InitiateProcurementCommand that = (InitiateProcurementCommand) o;
             return Objects.equals(loanId, that.loanId) &&
                     Objects.equals(userId, that.userId) &&
-                    Objects.equals(bookId, that.bookId);
+                    Objects.equals(isbn, that.isbn);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(loanId, userId, bookId);
+            return Objects.hash(loanId, userId, isbn);
         }
 
         @Override
@@ -82,7 +82,7 @@ public interface InitiateProcurementUseCase {
             return "InitiateProcurementCommand{" +
                     "loanId=" + loanId +
                     "userId=" + userId +
-                    ", bookId=" + bookId +
+                    ", isbn=" + isbn +
                     '}';
         }
     }

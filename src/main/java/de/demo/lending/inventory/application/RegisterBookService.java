@@ -5,7 +5,9 @@ import de.demo.lending.inventory.application.dto.BookRegisteredPayload;
 import de.demo.lending.inventory.application.dto.event.BookRegisteredEventMapper;
 import de.demo.lending.inventory.domain.InventoryCopy;
 import de.demo.lending.inventory.domain.event.BookRegistered;
-import de.demo.lending.inventory.domain.port.in.RegisterBookUseCase;
+import de.demo.lending.inventory.domain.port.in.InventoryResult;
+import de.demo.lending.inventory.domain.port.in.register_book.RegisterBookCommand;
+import de.demo.lending.inventory.domain.port.in.register_book.RegisterBookUseCase;
 import de.demo.lending.inventory.domain.port.out.InventoryRepository;
 import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import lombok.extern.slf4j.Slf4j;
@@ -29,16 +31,15 @@ public class RegisterBookService implements RegisterBookUseCase {
 
 
     @Override
-    public InventoryCopy registerBook(RegisterBookCommand command) {
+    public InventoryResult registerBook(RegisterBookCommand command) {
         InventoryCopy copy = InventoryCopy.createNew("", "", command.getLoanId(),
-                command.getBookId());
+                command.getBookId(), command.getIsbn());
         copy.registerBook();
         copy.markAsAvailable();
         repository.save(copy);
 
         copy.pullProducedEvents().forEach(event -> {
-            if (event instanceof BookRegistered) {
-                BookRegistered registeredBookEvent = (BookRegistered) event;
+            if (event instanceof BookRegistered registeredBookEvent) {
                 BookRegisteredPayload payload = BookRegisteredEventMapper.toPayload(registeredBookEvent, "", "");
                 log.info("Publishing event to topic {}: {}", INVENTORY_BOOK_REGISTERED_V1, payload);
                 publisher.enqueue(INVENTORY_BOOK_REGISTERED_V1, payload);
@@ -47,6 +48,6 @@ public class RegisterBookService implements RegisterBookUseCase {
             }
         });
 
-        return copy;
+        return InventoryResult.success(copy);
     }
 }

@@ -5,9 +5,12 @@ import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.domain.InventoryCopy;
-import de.demo.lending.inventory.domain.port.in.RegisterBookUseCase;
-import de.demo.lending.inventory.domain.port.in.ReserveBookUseCase;
+import de.demo.lending.inventory.domain.Isbn;
+import de.demo.lending.inventory.domain.port.in.InventoryResult;
+import de.demo.lending.inventory.domain.port.in.register_book.RegisterBookCommand;
+import de.demo.lending.inventory.domain.port.in.register_book.RegisterBookUseCase;
+import de.demo.lending.inventory.domain.port.in.reserve_book.ReserveBookCommand;
+import de.demo.lending.inventory.domain.port.in.reserve_book.ReserveBookUseCase;
 import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.application.dto.BookReceivedPayload;
@@ -53,15 +56,17 @@ public class RegisterBookHandler {
 
         LoanId loanId = LoanId.of(UUID.fromString(payload.getLoanId()));
         BookId bookId = BookId.of(payload.getBookId());
+        Isbn isbn = Isbn.of(payload.getIsbn());
 
         // 1. Buch registrieren
-        RegisterBookUseCase.RegisterBookCommand registerBookCommand = RegisterBookUseCase.RegisterBookCommand.of(loanId, bookId);
-        InventoryCopy copy = registerBookUseCase.registerBook(registerBookCommand);
+        RegisterBookCommand registerBookCommand = RegisterBookCommand.of(loanId, bookId, isbn);
+        InventoryResult result = registerBookUseCase.registerBook(registerBookCommand);
 
         UserId userId = UserId.of(UUID.fromString(payload.getUserId()));
 
+        ReserveBookCommand reserveBookCommand = ReserveBookCommand.of(loanId, bookId, userId, result.getCopy());
         // 4. Reservation erstellen mit Daten aus Pending
-        reserveBookUseCase.reserveBook(loanId, bookId, userId, copy);
+        reserveBookUseCase.reserveBook(reserveBookCommand);
 
         // ########## Indempotenz - Event verarbeitet -> speichern  ##########
         ProcessedEventUtil.saveEvent(RegisterBookHandler.class, incomingEventId);

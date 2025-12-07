@@ -4,6 +4,7 @@ package de.demo.lending.inventory.adapters.out.persistence;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.inventory.domain.InventoryCopy;
+import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.inventory.domain.ReservationId;
 import de.demo.lending.inventory.domain.port.out.InventoryRepository;
 import de.demo.lending.loan.domain.LoanId;
@@ -71,6 +72,7 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
                 LoanId.of(UUID.fromString(e.getLoanId())),
                 null,
                 BookId.of(e.getBookId()),
+                Isbn.of(e.getIsbn()),
                 //e.getCreatedAt() != null ? e.getCreatedAt() : Instant.now(),
                 e.getUpdatedAt() != null ? e.getUpdatedAt() : Instant.now(),
                 ReservationId.of(UUID.fromString(e.getReservationId()))
@@ -82,6 +84,7 @@ public class InventoryRepositoryAdapter implements InventoryRepository {
                 .id(d.getId())
                 .loanId(d.getLoanId().value().toString())
                 .bookId(d.getBookId().value())
+                .isbn(d.getIsbn().value())
                 .state(d.getState().name())
                 .createdAt(d.getCreatedAt() != null ? d.getCreatedAt() : Instant.now())
                 .updatedAt(Instant.now())

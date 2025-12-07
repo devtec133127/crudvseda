@@ -4,14 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
-import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.dto.BookNotFoundLocallyPayload;
 import de.demo.lending.inventory.application.dto.event.BookNotFoundLocallyMapper;
 import de.demo.lending.inventory.domain.InventoryCopy;
+import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.inventory.domain.event.BookNotFoundLocally;
 import de.demo.lending.inventory.domain.port.in.CreatePendingReservationUseCase;
-import de.demo.lending.inventory.domain.port.in.ReserveBookUseCase;
+import de.demo.lending.inventory.domain.port.in.reserve_book.ReserveBookUseCase;
+import de.demo.lending.inventory.domain.port.in.reserve_book.ReserveLocalBookCommand;
 import de.demo.lending.inventory.domain.port.out.InventoryRepository;
 import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import de.demo.lending.loan.application.dto.LoanRequestedPayload;
@@ -76,7 +77,7 @@ public class ReserveBookHandler {
         uiPublisher.publishLoanCreatedToUI(loanId.value(), userId.value(), payload.getIsbn(), payload.getDuration());
 
         Duration duration = Duration.ofDays(payload.getDuration());
-        BookId isbn = BookId.of(payload.getIsbn());
+        Isbn isbn = Isbn.of(payload.getIsbn());
         //BookId bookId = BookId.of("123");
 
         // 1. Prüfung ob in local store vorhanden, sonst Procurement anstoßen
@@ -88,7 +89,13 @@ public class ReserveBookHandler {
             localCopy = foundBook.get();
             log.info("Buch mit ID {} im local store vorhanden", localCopy.getBookId().value());
             // reserv book flow ...
-            reserveBookUseCase.reserveBook(userId, loanId, isbn, duration.toDays());
+            ReserveLocalBookCommand reserveLocalBookCommand = ReserveLocalBookCommand.of(
+                    loanId,
+                    isbn,
+                    userId,
+                    duration.toDays()
+            );
+            reserveBookUseCase.reserveLocalBook(reserveLocalBookCommand);
         } else {
             createPendingReservationUseCase.create(
                     isbn,

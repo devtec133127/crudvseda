@@ -3,6 +3,7 @@ package de.demo.lending.procurement.domain.event;
 import de.demo.lending.common.domain.events.BaseDomainEvent;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.ProcurementOrderId;
 
@@ -12,27 +13,26 @@ import java.util.UUID;
 public class BookReceived extends BaseDomainEvent {
 
     private ProcurementOrderId procurementOrderId;
-    private String externalOrderId;
     private BookId bookId;
+    private Isbn isbn;
 
     protected BookReceived(UUID eventId, ProcurementOrderId procurementOrderId,
-                           String externalOrderId, LoanId loanId,
-                           Instant occurredAt, BookId bookId, UserId userId) {
+                           LoanId loanId, Instant occurredAt, BookId bookId, Isbn isbn, UserId userId) {
         super(eventId, loanId, "", "", occurredAt, userId);
         this.procurementOrderId = procurementOrderId;
-        this.externalOrderId = externalOrderId;
         this.bookId = bookId;
+        this.isbn = isbn;
     }
 
-    public static BookReceived of(ProcurementOrderId procurementOrderId,
-                                  String externalOrderId, LoanId loanId, BookId bookId, UserId userId) {
+    public static BookReceived of(ProcurementOrderId procurementOrderId, LoanId loanId,
+                                  BookId bookId, Isbn isbn, UserId userId) {
         return new BookReceived(
                 UUID.randomUUID(),
                 procurementOrderId,
-                externalOrderId,
                 loanId,
                 Instant.now(),
                 bookId,
+                isbn,
                 userId
         );
     }
@@ -41,11 +41,11 @@ public class BookReceived extends BaseDomainEvent {
         return procurementOrderId;
     }
 
-    public String getExternalOrderId() {
-        return externalOrderId;
-    }
-
     public BookId getBookId() {
         return bookId;
+    }
+
+    public Isbn getIsbn() {
+        return isbn;
     }
 }

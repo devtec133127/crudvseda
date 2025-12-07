@@ -16,5 +16,5 @@ public interface SpringInventoryCopyRepository extends JpaRepository<InventoryCo
     List<InventoryCopyEntity> findAvailableByBookId(@Param("bookId") String bookId);
 
     @Query("select i from InventoryCopyEntity i where i.bookId = :bookId and i.state = 'AVAILABLE' order by i.createdAt")
-    List<InventoryCopyEntity> findByBookId(@Param("bookI") String bookId);
+    List<InventoryCopyEntity> findByBookId(@Param("bookId") String bookId);
 }

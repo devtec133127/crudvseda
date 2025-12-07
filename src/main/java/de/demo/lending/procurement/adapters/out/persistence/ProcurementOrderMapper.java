@@ -1,6 +1,7 @@
 package de.demo.lending.procurement.adapters.out.persistence;
 
 import de.demo.lending.common.valueobjects.BookId;
+import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.ExternalLibraryId;
 import de.demo.lending.procurement.domain.ProcurementOrder;
@@ -23,7 +24,7 @@ public class ProcurementOrderMapper {
         if (domain.getExternalLibraryId() != null) {
             entity.setExternalLibraryId(domain.getExternalLibraryId().toString());
         }
-        entity.setExternalOrderId(domain.getExternalOrderId());
+        entity.setBookId(domain.getBookId() != null ? domain.getBookId().value() : null);
         entity.setIsbn(domain.getIsbn() != null ? domain.getIsbn().value() : null);
         entity.setStatus(domain.getStatus());
         entity.setOrderedAt(domain.getOrderedAt());
@@ -45,8 +46,8 @@ public class ProcurementOrderMapper {
                 ProcurementOrderId.of(entity.getId()),
                 LoanId.of(entity.getLoanId()),
                 libraryId,
-                entity.getExternalOrderId(),
-                BookId.of(entity.getIsbn()),
+                BookId.of(entity.getBookId()),
+                Isbn.of(entity.getIsbn()),
                 entity.getStatus(),
                 entity.getOrderedAt(),
                 entity.getEstimatedArrival(),

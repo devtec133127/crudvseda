@@ -1,44 +1,45 @@
 package de.demo.lending.procurement.domain.event;
 
-import java.time.Instant;
-import java.util.UUID;
-
 import de.demo.lending.common.domain.events.BaseDomainEvent;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.ProcurementOrderId;
+
+import java.time.Instant;
+import java.util.UUID;
 
 public class BookOrderedExternally extends BaseDomainEvent {
 
     private ProcurementOrderId procurementOrderId;
-    private String externalOrderId;
     private long estimatedArrival;
     private BookId bookId;
+    private Isbn isbn;
 
     protected BookOrderedExternally(UUID eventId, ProcurementOrderId procurementOrderId,
-                                    String externalOrderId, LoanId loanId,
-                                    Instant occurredAt, UserId userId, long estimatedArrival, BookId bookId) {
+                                    LoanId loanId,
+                                    Instant occurredAt, UserId userId, long estimatedArrival,
+                                    BookId bookId, Isbn isbn) {
         super(eventId, loanId, "", "", occurredAt, userId);
         this.procurementOrderId = procurementOrderId;
-        this.externalOrderId = externalOrderId;
         this.estimatedArrival = estimatedArrival;
         this.bookId = bookId;
+        this.isbn = isbn;
 
     }
 
-    public static BookOrderedExternally of(ProcurementOrderId procurementOrderId,
-                                           String externalOrderId, LoanId loanId,
-                                           UserId userId, long estimatedArrival, BookId bookId) {
+    public static BookOrderedExternally of(ProcurementOrderId procurementOrderId, LoanId loanId,
+                                           UserId userId, long estimatedArrival, BookId bookId, Isbn isbn) {
         return new BookOrderedExternally(
                 UUID.randomUUID(),
                 procurementOrderId,
-                externalOrderId,
                 loanId,
                 Instant.now(),
                 userId,
                 estimatedArrival,
-                bookId
+                bookId,
+                isbn
         );
     }
 
@@ -46,12 +47,12 @@ public class BookOrderedExternally extends BaseDomainEvent {
         return procurementOrderId;
     }
 
-    public String getExternalOrderId() {
-        return externalOrderId;
-    }
-
     public BookId getBookId() {
         return bookId;
+    }
+
+    public Isbn getIsbn() {
+        return isbn;
     }
 
     public long getEstimatedArrival() {

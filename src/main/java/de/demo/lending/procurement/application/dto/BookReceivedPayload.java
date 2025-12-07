@@ -13,6 +13,7 @@ import java.util.UUID;
 public class BookReceivedPayload extends DtoPayload {
     private static final String TYPE = "BookReceivedPayload";
     private final String bookId;
+    private final String isbn;
 
     @JsonCreator
     public BookReceivedPayload(
@@ -23,9 +24,11 @@ public class BookReceivedPayload extends DtoPayload {
             @JsonProperty("type") String type,
             @JsonProperty("loanId") String loanId,
             @JsonProperty("userId") String userId,
-            @JsonProperty("isbn") String bookId
+            @JsonProperty("bookId") String bookId,
+            @JsonProperty("isbn") String isbn
     ) {
         super(eventId, occurredAt, correlationId, causationId, loanId, userId, type);
         this.bookId = bookId;
+        this.isbn = isbn;
     }
 }

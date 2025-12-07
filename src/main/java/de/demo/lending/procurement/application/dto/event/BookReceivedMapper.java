@@ -24,6 +24,7 @@ public class BookReceivedMapper {
                 .loanId(e.getLoanId().value().toString())
                 .userId(userId != null ? e.getUserId().value().toString() : null)
                 .bookId(e.getBookId().value())
+                .isbn(e.getIsbn().value())
                 .build();
     }
 }

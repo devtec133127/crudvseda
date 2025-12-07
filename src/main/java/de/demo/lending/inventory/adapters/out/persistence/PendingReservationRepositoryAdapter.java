@@ -1,7 +1,7 @@
 package de.demo.lending.inventory.adapters.out.persistence;
 
-import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.inventory.domain.PendingReservation;
 import de.demo.lending.inventory.domain.PendingReservationId;
 import de.demo.lending.inventory.domain.port.out.PendingReservationRepository;
@@ -20,8 +20,8 @@ public class PendingReservationRepositoryAdapter implements PendingReservationRe
     }
 
     @Override
-    public Optional<PendingReservation> findBookForLoan(BookId bookId, UserId userId, LoanId loanId) {
-        PendingReservationEntity bookForLoan = jpa.findBookForLoan(bookId.value(), userId.value(), loanId.value());
+    public Optional<PendingReservation> findBookForLoan(Isbn isbn, UserId userId, LoanId loanId) {
+        PendingReservationEntity bookForLoan = jpa.findBookForLoan(isbn.value(), userId.value(), loanId.value());
         if (bookForLoan == null) {
             return Optional.empty();
         }
@@ -39,7 +39,7 @@ public class PendingReservationRepositoryAdapter implements PendingReservationRe
         PendingReservationEntity e = PendingReservationEntity.builder()
                 .id(pendingReservation.getPendingReservationId().value())
                 .loanId(pendingReservation.getLoanId().value())
-                .bookId(pendingReservation.getBookId().value())
+                .isbn(pendingReservation.getIsbn().value())
                 .userId(pendingReservation.getUserId().value())
                 .dueDate(pendingReservation.getDueDate())
                 .build();
@@ -58,8 +58,8 @@ public class PendingReservationRepositoryAdapter implements PendingReservationRe
         PendingReservationId id = PendingReservationId.of(e.getId());
         LoanId loanId = (e.getLoanId() == null) ? null : LoanId.of(e.getLoanId());
         UserId userId = UserId.of(e.getUserId());
-        BookId bookId = BookId.of(e.getBookId());
-        return PendingReservation.reconstitute(id, bookId, loanId, userId, e.getDueDate());
+        Isbn isbn = Isbn.of(e.getIsbn());
+        return PendingReservation.reconstitute(id, isbn, loanId, userId, e.getDueDate());
     }
 }
 

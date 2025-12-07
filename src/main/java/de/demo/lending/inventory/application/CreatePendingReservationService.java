@@ -1,7 +1,7 @@
 package de.demo.lending.inventory.application;
 
-import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.inventory.domain.PendingReservation;
 import de.demo.lending.inventory.domain.PendingReservationId;
 import de.demo.lending.inventory.domain.port.in.CreatePendingReservationUseCase;
@@ -22,7 +22,7 @@ public class CreatePendingReservationService implements CreatePendingReservation
 
     @Transactional
     public PendingReservationId create(
-            BookId bookId,
+            Isbn isbn,
             LoanId loanId,
             UserId userId,
             long dueDate
@@ -34,7 +34,7 @@ public class CreatePendingReservationService implements CreatePendingReservation
 
         // ⭐ Aggregate Root erstellen
         var pending = PendingReservation.create(
-                bookId,
+                isbn,
                 loanId,
                 userId,
                 dueDate

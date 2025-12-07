@@ -1,14 +1,18 @@
 package de.demo.lending.inventory.application;
 
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
-import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.dto.BookReservedPayload;
 import de.demo.lending.inventory.application.dto.event.BookReservedEventMapper;
 import de.demo.lending.inventory.domain.InventoryCopy;
+import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.inventory.domain.PendingReservation;
 import de.demo.lending.inventory.domain.Reservation;
 import de.demo.lending.inventory.domain.event.BookReserved;
+import de.demo.lending.inventory.domain.port.in.InventoryResult;
+import de.demo.lending.inventory.domain.port.in.reserve_book.ReserveBookCommand;
+import de.demo.lending.inventory.domain.port.in.reserve_book.ReserveBookUseCase;
+import de.demo.lending.inventory.domain.port.in.reserve_book.ReserveLocalBookCommand;
 import de.demo.lending.inventory.domain.port.out.InventoryRepository;
 import de.demo.lending.inventory.domain.port.out.PendingReservationRepository;
 import de.demo.lending.inventory.domain.port.out.ReservationRepository;
@@ -26,7 +30,7 @@ import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
 
 @Slf4j
 @Service
-public class ReserveBookService implements de.demo.lending.inventory.domain.port.in.ReserveBookUseCase {
+public class ReserveBookService implements ReserveBookUseCase {
     private final OpenLibraryClientAdapter externalClient;
     private final ReservationRepository reservationRepository;
     private final InventoryRepository repo;
@@ -52,10 +56,14 @@ public class ReserveBookService implements de.demo.lending.inventory.domain.port
      3. Wenn nicht vorhanden, event werfen (hier macht dann Procurement weiter)
      */
     @Transactional
-    public void reserveBook(LoanId loanId, BookId bookId, UserId userId, InventoryCopy copy) {
-        log.info("Buch mit ID {} im local store vorhanden", copy.getBookId().value());
+    public InventoryResult reserveBook(ReserveBookCommand reserveBookCommand) {
+        log.info("Reserviere Buch mit ID {}", reserveBookCommand.getBookId().value());
 
-        PendingReservation pending = pendingReservationRepository.findBookForLoan(copy.getBookId(), userId, loanId)
+        InventoryCopy copy = reserveBookCommand.getCopy();
+        UserId userId = reserveBookCommand.getUserId();
+        LoanId loanId = reserveBookCommand.getLoanId();
+
+        PendingReservation pending = pendingReservationRepository.findBookForLoan(copy.getIsbn(), userId, loanId)
                 .orElseThrow(() -> new RuntimeException("pending reservation for bookId {} " + copy.getBookId().value() + " not found"));
 
         copy.reserve("", "", pending.getDueDate(), pending.getUserId());
@@ -73,12 +81,18 @@ public class ReserveBookService implements de.demo.lending.inventory.domain.port
                 publisher.enqueue(INVENTORY_RESERVED_V1, payload);
             }
         });
+
+        return InventoryResult.success(reservation.getReservationId());
     }
 
     @Transactional
-    public void reserveBook(UserId userId, LoanId loanId, BookId bookId, long durationInDays) {
+    public InventoryResult reserveLocalBook(ReserveLocalBookCommand command) {
 
-        Optional<InventoryCopy> foundBook = repo.lookupForBookInLocal(bookId.toString());
+        UserId userId = command.getUserId();
+        Isbn isbn = command.getIsbn();
+        long durationInDays = command.getDurationInDays();
+
+        Optional<InventoryCopy> foundBook = repo.lookupForBookInLocal(isbn.value());
 
         final InventoryCopy localCopy;
         if (foundBook.isPresent()) {
@@ -95,6 +109,10 @@ public class ReserveBookService implements de.demo.lending.inventory.domain.port
                     publisher.enqueue(INVENTORY_RESERVED_V1, payload);
                 }
             });
+
+            return InventoryResult.success(localCopy);
         }
+
+        return InventoryResult.failed("Keine lokale Kopie des Buches gefunden!");
     }
 }

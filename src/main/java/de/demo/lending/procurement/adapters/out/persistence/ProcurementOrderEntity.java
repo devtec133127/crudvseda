@@ -25,8 +25,8 @@ public class ProcurementOrderEntity extends VersionedEntity {
     @Column(name = "external_library_id")
     private String externalLibraryId;
 
-    @Column(name = "external_order_id")
-    private String externalOrderId;
+    @Column(name = "book_id")
+    private String bookId;
 
     @Column(name = "isbn", nullable = false)
     private String isbn;
