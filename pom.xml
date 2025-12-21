@@ -102,6 +102,23 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- library für das idempotenz pattern -->
+        <dependency>
+            <groupId>com.transferwise.idempotence4j</groupId>
+            <artifactId>idempotence4j-core</artifactId>
+            <version>1.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.transferwise.idempotence4j</groupId>
+            <artifactId>idempotence4j-postgres</artifactId>
+            <version>1.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.transferwise.idempotence4j</groupId>
+            <artifactId>idempotence4j-spring-boot-starter</artifactId>
+            <version>1.7.1</version>
+        </dependency>
+
 
         <!-- Tests -->
         <dependency>

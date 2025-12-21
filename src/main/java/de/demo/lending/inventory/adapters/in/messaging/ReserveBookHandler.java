@@ -1,8 +1,16 @@
 package de.demo.lending.inventory.adapters.in.messaging;
 
+import static de.demo.lending.common.events.Topics.INVENTORY_BOOK_NOT_FOUND_V1;
+
+import java.time.Duration;
+import java.util.Optional;
+import java.util.UUID;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.transferwise.idempotence4j.core.ActionId;
+import com.transferwise.idempotence4j.core.IdempotenceService;
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
-import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.dto.BookNotFoundLocallyPayload;
@@ -24,12 +32,6 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.util.Optional;
-import java.util.UUID;
-
-import static de.demo.lending.common.events.Topics.INVENTORY_BOOK_NOT_FOUND_V1;
-
 @Slf4j
 @Component
 public class ReserveBookHandler {
@@ -41,12 +43,18 @@ public class ReserveBookHandler {
     private final InventoryRepository repo;
     private final EventPublisher publisher;
 
-    public ReserveBookHandler(DemoEventSSEPublisher uiPublisher, ReserveBookUseCase reserveBookUseCase, CreatePendingReservationUseCase createPendingReservationUseCase, InventoryRepository repo, EventPublisher publisher) {
+    private final IdempotenceService idempotenceService;
+
+
+    public ReserveBookHandler(DemoEventSSEPublisher uiPublisher, ReserveBookUseCase reserveBookUseCase,
+                              CreatePendingReservationUseCase createPendingReservationUseCase, InventoryRepository repo,
+                              EventPublisher publisher, IdempotenceService idempotenceService) {
         this.uiPublisher = uiPublisher;
         this.reserveBookUseCase = reserveBookUseCase;
         this.createPendingReservationUseCase = createPendingReservationUseCase;
         this.repo = repo;
         this.publisher = publisher;
+        this.idempotenceService = idempotenceService;
     }
 
     @KafkaListener(
@@ -62,13 +70,42 @@ public class ReserveBookHandler {
 
         String incomingEventId = payload.getEventId().toString();
 
-        // ########## Indempotenz - Event schon verarbeitet? - Inbox Tabelle abfragen ##########
-        ProcessedEventUtil.checkEvent(ReserveBookHandler.class, incomingEventId);
+        // 1. ActionId Objekt erstellen
+        ActionId actionId = new ActionId(payload.getLoanId(), "loan-requested-v1", "loan-service"); // Der Typ der Aktion
 
+        idempotenceService.execute(actionId,
+                // 2. onRetry: Was tun, wenn das Event bereits erfolgreich verarbeitet wurde?
+                // Da wir im Listener meist keinen Rückgabewert an den Aufrufer haben,
+                // reicht es oft zu loggen oder ein "SUCCESS"-Objekt zurückzugeben.
+                (res) -> {
+                    log.info("Event {} bereits verarbeitet. ", payload.getEventId());
+                    return "Bereits verarbeitet";
+                },
+                () -> {
+                    log.info("Verarbeite Loan-Request für Loan ID: {}", payload.getLoanId());
+                    // Bestand reservieren und die ID der Reservierung zurückgeben
+                    reserveBook(json, payload);
+                    return "PROCESSED";
+                },
+                val -> val,
+                new TypeReference<String>() {
+                }
+        );
+
+        // ########## Indempotenz - Event schon verarbeitet? - Inbox Tabelle abfragen ##########
+        //ProcessedEventUtil.checkEvent(ReserveBookHandler.class, incomingEventId);
+
+        //if (reserveBook(json, payload)) return;
+
+        // ########## Indempotenz - Event verarbeitet -> speichern  ##########
+        //ProcessedEventUtil.saveEvent(ReserveBookHandler.class, incomingEventId);
+    }
+
+    private boolean reserveBook(String json, LoanRequestedPayload payload) {
         // mandatory fields expected: loanId, bookId
         if (payload.getLoanId() == null || payload.getIsbn() == null) {
             log.warn("Received loan.requested without loanId/isbn: {}", json);
-            return;
+            return true;
         }
 
         LoanId loanId = LoanId.of(UUID.fromString(payload.getLoanId()));
@@ -81,7 +118,7 @@ public class ReserveBookHandler {
         //BookId bookId = BookId.of("123");
 
         // 1. Prüfung ob in local store vorhanden, sonst Procurement anstoßen
-        // Fall B: Buch nicht da → PendingReservation erstellen ⭐
+        // Fall B: Buch nicht da → PendingReservation erstellen
         Optional<InventoryCopy> foundBook = repo.lookupForBookInLocal(isbn.value());
 
         final InventoryCopy localCopy;
@@ -109,9 +146,6 @@ public class ReserveBookHandler {
             log.info("Publishing BookNotFoundLocally to topic {}: {}", INVENTORY_BOOK_NOT_FOUND_V1, eventPayload);
             publisher.enqueue(INVENTORY_BOOK_NOT_FOUND_V1, eventPayload);
         }
-
-        // ########## Indempotenz - Event verarbeitet -> speichern  ##########
-        ProcessedEventUtil.saveEvent(ReserveBookHandler.class, incomingEventId);
-
+        return false;
     }
 }

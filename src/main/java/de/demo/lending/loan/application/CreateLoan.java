@@ -1,5 +1,9 @@
 package de.demo.lending.loan.application;
 
+import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
+
+import java.util.UUID;
+
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.application.command.ReserveBookCommand;
@@ -8,17 +12,11 @@ import de.demo.lending.loan.application.dto.event.LoanEventMapper;
 import de.demo.lending.loan.domain.Loan;
 import de.demo.lending.loan.domain.event.LoanRequested;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
-import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
-
 @Slf4j
 @Component
-@ConditionalOnProperty(value = "service.role", havingValue = "loan")
 public class CreateLoan {
     private final LoanRepository repo;
     private final EventPublisher eventPublisher;

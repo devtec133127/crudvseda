@@ -19,6 +19,14 @@ spring:
       #hibernate.transaction.jta.platform: org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform
       #hibernate.transaction.coordinator_class: jdbc
 
+  idempotence4j:
+    retention:
+      enabled: true
+      period: P30D # Bewahre Keys für 30 Tage auf (ISO-8601 Format)
+      purge:
+        schedule: "0 0 2 * * ?" # Täglich um 2 Uhr morgens aufräumen
+      batchSize: 100
+
 
   kafka:
     bootstrap-servers: localhost:9092
