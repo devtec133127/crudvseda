@@ -1,12 +1,12 @@
 package de.demo.lending.inventory.domain.port.in.reserve_book;
 
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.domain.Isbn;
-import de.demo.lending.loan.domain.LoanId;
+import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-import static java.util.Objects.requireNonNull;
+import de.demo.lending.common.valueobjects.Isbn;
+import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.loan.domain.LoanId;
 
 /**
  * Command für Procurement-Initiierung

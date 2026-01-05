@@ -1,13 +1,13 @@
 package de.demo.lending.inventory.domain;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.UUID;
+
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.LoanId;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.UUID;
 
 public class Reservation extends AggregateRoot {
     public enum ReservationStatus {PENDING, CONFIRMED, CANCELLED, FAILED, EXPIRED}
@@ -25,20 +25,7 @@ public class Reservation extends AggregateRoot {
         this.copyId = copyId;
         this.userId = userId;
     }
-
-    /*rivate Reservation(UUID id, LoanId loanId, String correlationId, String bookTitle, BookId bookId, UserId userId,
-                        ReservationStatus status, Instant createdAt, Instant expiresAt, String copyId) {
-        super(id, correlationId);
-        this.bookTitle = bookTitle;
-        this.loanId = loanId;
-        this.bookId = bookId;
-        this.userId = userId;
-        this.status = status;
-        this.createdAt = createdAt;
-        this.expiresAt = expiresAt;
-        this.copyId = copyId;
-    }*/
-
+    
     public static Reservation create(LoanId loanId, CopyId copyId, UserId userId, Duration ttl) {
         Reservation reservation = new Reservation(ReservationId.newId().value(), loanId, userId, copyId);
         reservation.status = ReservationStatus.PENDING;
@@ -47,11 +34,6 @@ public class Reservation extends AggregateRoot {
         //reservation.raise(new ProcurementRequested(loanId, correlationId, causationId, true, bookTitle, userId));
         return reservation;
     }
-
-    /*public static Reservation create(String id, LoanId loanId, String correlationId, String bookTitle, BookId bookId, UserId userId,
-                                     ReservationStatus status, Instant createdAt, Instant expiresAt, String copyId) {
-        return new Reservation(ReservationId.newId().value(), loanId, correlationId, bookTitle, bookId, userId, status, createdAt, expiresAt, copyId);
-    }*/
 
     public void confirm() {
         if (this.status != ReservationStatus.PENDING) throw new IllegalStateException("Reservation not PENDING");

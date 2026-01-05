@@ -1,11 +1,16 @@
 package de.demo.lending.inventory.application;
 
+import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
+
+import java.time.Duration;
+import java.util.Optional;
+
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
+import de.demo.lending.common.valueobjects.Isbn;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.application.dto.BookReservedPayload;
 import de.demo.lending.inventory.application.dto.event.BookReservedEventMapper;
 import de.demo.lending.inventory.domain.InventoryCopy;
-import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.inventory.domain.PendingReservation;
 import de.demo.lending.inventory.domain.Reservation;
 import de.demo.lending.inventory.domain.event.BookReserved;
@@ -22,11 +27,6 @@ import de.demo.lending.read.application.port.LoanStatusReadPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Duration;
-import java.util.Optional;
-
-import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
 
 @Slf4j
 @Service

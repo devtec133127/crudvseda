@@ -1,11 +1,13 @@
 package de.demo.lending.inventory.adapters.in.messaging;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
 import de.demo.lending.common.valueobjects.BookId;
+import de.demo.lending.common.valueobjects.Isbn;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.inventory.domain.port.in.InventoryResult;
 import de.demo.lending.inventory.domain.port.in.register_book.RegisterBookCommand;
 import de.demo.lending.inventory.domain.port.in.register_book.RegisterBookUseCase;
@@ -19,8 +21,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 @Component
 public class RegisterBookHandler {

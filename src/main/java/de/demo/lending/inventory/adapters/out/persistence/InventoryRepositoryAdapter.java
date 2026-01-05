@@ -1,20 +1,20 @@
 package de.demo.lending.inventory.adapters.out.persistence;
 
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.common.valueobjects.Isbn;
 import de.demo.lending.inventory.domain.InventoryCopy;
-import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.inventory.domain.ReservationId;
 import de.demo.lending.inventory.domain.port.out.InventoryRepository;
 import de.demo.lending.loan.domain.LoanId;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Component
 public class InventoryRepositoryAdapter implements InventoryRepository {

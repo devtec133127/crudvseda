@@ -1,14 +1,14 @@
 package de.demo.lending.inventory.adapters.out.persistence;
 
+import java.util.Optional;
+
+import de.demo.lending.common.valueobjects.Isbn;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.domain.Isbn;
 import de.demo.lending.inventory.domain.PendingReservation;
 import de.demo.lending.inventory.domain.PendingReservationId;
 import de.demo.lending.inventory.domain.port.out.PendingReservationRepository;
 import de.demo.lending.loan.domain.LoanId;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Component
 public class PendingReservationRepositoryAdapter implements PendingReservationRepository {

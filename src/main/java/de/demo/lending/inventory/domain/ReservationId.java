@@ -2,15 +2,15 @@ package de.demo.lending.inventory.domain;
 
 import java.util.UUID;
 
-import de.demo.lending.common.valueobjects.UuidId;
-
 /**
  * Value Object für die Identität einer Ausleihe.
  * Wird als Wrapper um UUID verwendet, um Typsicherheit zu erhöhen.
  */
-public final class ReservationId extends UuidId {
-    private ReservationId(UUID value) {
-        super(value);
+public record ReservationId(UUID value) {
+    public ReservationId {
+        if (value == null) {
+            throw new IllegalArgumentException("ReservationId darf nicht null sein");
+        }
     }
 
     public static ReservationId newId() {

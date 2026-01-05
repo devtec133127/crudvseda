@@ -1,13 +1,14 @@
 package de.demo.lending.loan.adapters.out.persistence;
 
+import java.util.Optional;
+
+import de.demo.lending.common.valueobjects.Isbn;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.application.LoanRepository;
 import de.demo.lending.loan.domain.Loan;
 import de.demo.lending.loan.domain.LoanId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Slf4j
 @Component
@@ -40,7 +41,7 @@ public class LoanJpaRepositoryAdapter implements LoanRepository {
         var e = new LoanEntity();
         e.setId(l.getLoanId().value());
         e.setUserId(l.getUserId().value());
-        e.setBookTitle(l.getIsbn());
+        e.setIsbn(l.getIsbn().value());
         if (l.getCopyId() != null) {
             e.setCopyId(l.getCopyId().value());
         }
@@ -55,7 +56,7 @@ public class LoanJpaRepositoryAdapter implements LoanRepository {
     private Loan toDomain(LoanEntity e) {
         log.debug("toDomain(loan={})", e);
         // Re-Konstruktor: über Factory-Methode oder Package-private ctor
-        return Loan.restore(LoanId.of(e.getLoanId()), UserId.of(e.getUserId()), e.getBookTitle(),
+        return Loan.restore(LoanId.of(e.getLoanId()), UserId.of(e.getUserId()), Isbn.of(e.getIsbn()),
                 Loan.Status.valueOf(e.getStatus()), e.getDueDate(), e.getCreatedAt(), e.getUpdatedAt());
     }
 }

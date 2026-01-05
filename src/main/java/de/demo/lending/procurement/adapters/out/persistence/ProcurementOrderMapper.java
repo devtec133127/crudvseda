@@ -1,14 +1,14 @@
 package de.demo.lending.procurement.adapters.out.persistence;
 
+import java.util.UUID;
+
 import de.demo.lending.common.valueobjects.BookId;
-import de.demo.lending.inventory.domain.Isbn;
+import de.demo.lending.common.valueobjects.Isbn;
 import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.domain.ExternalLibraryId;
 import de.demo.lending.procurement.domain.ProcurementOrder;
 import de.demo.lending.procurement.domain.ProcurementOrderId;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 @Component
 public class ProcurementOrderMapper {

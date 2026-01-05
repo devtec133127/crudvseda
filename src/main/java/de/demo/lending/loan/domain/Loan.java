@@ -1,21 +1,20 @@
 package de.demo.lending.loan.domain;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.UUID;
+
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.common.valueobjects.Isbn;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.event.LoanActivated;
 import de.demo.lending.loan.domain.event.LoanRequested;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.UUID;
-
 public class Loan extends AggregateRoot {
-    private static final int RANGE_IN_DAYS = 14;
-
     private final UserId userId;
-    private final String isbn;
+    private final Isbn isbn;
 
     private CopyId copyId;
     private Status status;
@@ -23,9 +22,14 @@ public class Loan extends AggregateRoot {
     private final Instant createdAt;
     private Instant updatedAt;
 
-    public enum Status {REQUESTED, READY_FOR_PICKUP, ACTIVE, EXTENDED, OVERDUE, CLOSED}
+    /**
+     * Status-Flow:
+     * Use Case 1 (Buch vorhanden): REQUESTED → ACTIVE → CLOSED
+     * Use Case 2 (Procurement):    REQUESTED → READY_FOR_PICKUP → ACTIVE → CLOSED
+     */
+    public enum Status {REQUESTED, READY_FOR_PICKUP, ACTIVE, CLOSED}
 
-    private Loan(LoanId id, UserId userId, String isbn,
+    private Loan(LoanId id, UserId userId, Isbn isbn,
                  CopyId copyId, Status status,
                  LocalDate dueDate, Instant createdAt, Instant updatedAt) {
         super(id.value(), "");
@@ -38,39 +42,59 @@ public class Loan extends AggregateRoot {
         this.updatedAt = updatedAt;
     }
 
-    public static Loan createNew(UserId userId, String isbn, String correlationId, String causationId) {
+    /**
+     * Factory Method: User fragt Buch an
+     */
+    public static Loan request(UserId userId, Isbn isbn, String correlationId, String causationId) {
         var now = Instant.now();
-        Loan newLoan = new Loan(LoanId.newId(), userId, isbn, null, Status.REQUESTED, null, now, now);
+        Loan newLoan = new Loan(LoanId.newId(),
+                userId,
+                isbn,
+                null, // CopyId noch unbekannt
+                Status.REQUESTED,
+                null, // DueDate wird bei Checkout gesetzt
+                now,
+                now);
         newLoan.status = Status.REQUESTED;
 
         newLoan.raise(new LoanRequested(UUID.randomUUID(), newLoan.getLoanId(), correlationId, causationId, Instant.now(),
-                userId, isbn, LoanPolicy.STANDARD_DURATION));
+                userId, isbn.value(), Duration.ofDays(LoanPolicy.STANDARD_DURATION_DAYS)));
         return newLoan;
     }
 
+    /**
+     * Use Case 1: Buch ist lokal vorhanden und kann direkt ausgeliehen werden
+     * Triggered by: inventory.reserved.v1 event
+     */
     public void activate(CopyId copyId) {
+        if (copyId == null) {
+            throw new IllegalArgumentException("CopyId darf nicht null sein");
+        }
+
         if (status != Status.REQUESTED && this.status != Status.READY_FOR_PICKUP) {
             throw new IllegalStateException("Not in REQUESTED or READY_FOR_PICKUP");
         }
 
-        if (copyId == null) {
-            throw new IllegalArgumentException("Keine Item-ID vorhanden - Buch nicht angekommen?");
-        }
-
         this.copyId = copyId;
         this.status = Status.ACTIVE;
+        this.dueDate = LocalDate.now().plusDays(LoanPolicy.STANDARD_DURATION_DAYS);
         this.updatedAt = Instant.now();
 
         raise(new LoanActivated(getLoanId(), this.copyId, this.dueDate, this.userId));
     }
 
-    /*
-     * Listen to procurement.book_received.v1 → markAsReadyForPickup
+    /**
+     * Business Method: Buch ist angekommen → bereit zur Abholung
+     * Triggered by: procurement.book_received.v1 event
      */
     public void markAsReadyForPickup(CopyId copyId) {
-        if (this.status != Status.REQUESTED && this.status != Status.ACTIVE) {
+        if (copyId == null) {
+            throw new IllegalArgumentException("CopyId darf nicht null sein");
+        }
+
+        if (this.status != Status.REQUESTED) {
             throw new IllegalStateException(
-                    "Kann nur aus REQUESTED oder ACTIVE zu READY_FOR_PICKUP wechseln"
+                    "Kann nur aus REQUESTED zu READY_FOR_PICKUP wechseln"
             );
         }
 
@@ -83,37 +107,34 @@ public class Loan extends AggregateRoot {
     }
 
     /**
-     * Policy: Extension nur 1x + nur wenn ACTIVE
+     * Business Method: User holt Buch ab → Ausleihe wird aktiv
      */
-    public void extend() {
-        // Policy: Nur im ACTIVE Status
-        if (this.status != Status.ACTIVE) {
+    public void checkOut() {
+        if (this.status != Status.READY_FOR_PICKUP) {
             throw new IllegalStateException(
-                    "Verlängerung nur für aktive Ausleihen möglich"
+                    "Checkout nur möglich wenn Buch zur Abholung bereit ist. Aktueller Status: " + this.status
             );
         }
 
-        // Policy: Nur 1x verlängerbar
-        if (this.status == Status.EXTENDED) {
-            throw new IllegalStateException(
-                    "Diese Ausleihe wurde bereits einmal verlängert"
-            );
+        if (this.copyId == null) {
+            throw new IllegalStateException("CopyId muss gesetzt sein vor Checkout");
         }
 
-        // Policy OK → Verlängern
-        this.dueDate = this.dueDate.plusDays(14);  // Policy 4: +14 Tage
+        this.status = Status.ACTIVE;
+        this.dueDate = LocalDate.now().plusDays(LoanPolicy.STANDARD_DURATION_DAYS);
         this.updatedAt = Instant.now();
 
-        //raise(new LoanExtended(this.loanId, this.dueDate));
+        raise(new LoanActivated(
+                getLoanId(),
+                this.copyId,
+                this.dueDate,
+                this.userId
+        ));
     }
 
-    public static Loan restore(LoanId id, UserId userId, String bookTitle,
+    public static Loan restore(LoanId id, UserId userId, Isbn isbn,
                                Status status, LocalDate dueDate, Instant createdAt, Instant updatedAt) {
-        return new Loan(id, userId, bookTitle, null, status, dueDate, createdAt, updatedAt);
-    }
-
-    private Instant calculateDueDate() {
-        return Instant.now().plus(RANGE_IN_DAYS, ChronoUnit.DAYS);
+        return new Loan(id, userId, isbn, null, status, dueDate, createdAt, updatedAt);
     }
 
     // Getter
@@ -125,7 +146,7 @@ public class Loan extends AggregateRoot {
         return userId;
     }
 
-    public String getIsbn() {
+    public Isbn getIsbn() {
         return isbn;
     }
 
@@ -139,10 +160,6 @@ public class Loan extends AggregateRoot {
 
     public LocalDate getDueDate() {
         return dueDate;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
     }
 
     public Instant getUpdatedAt() {

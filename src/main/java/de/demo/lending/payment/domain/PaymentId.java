@@ -1,12 +1,12 @@
 package de.demo.lending.payment.domain;
 
-import de.demo.lending.common.valueobjects.UuidId;
-
 import java.util.UUID;
 
-public class PaymentId extends UuidId {
-    private PaymentId(UUID value) {
-        super(value);
+public record PaymentId(UUID value) {
+    public PaymentId {
+        if (value == null) {
+            throw new IllegalArgumentException("PaymentId darf nicht null sein");
+        }
     }
 
     public static PaymentId newId() {

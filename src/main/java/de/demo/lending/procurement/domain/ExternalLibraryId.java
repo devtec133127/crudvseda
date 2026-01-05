@@ -1,12 +1,12 @@
 package de.demo.lending.procurement.domain;
 
-import de.demo.lending.common.valueobjects.UuidId;
-
 import java.util.UUID;
 
-public class ExternalLibraryId extends UuidId {
-    protected ExternalLibraryId(UUID value) {
-        super(value);
+public record ExternalLibraryId(UUID value) {
+    public ExternalLibraryId {
+        if (value == null) {
+            throw new IllegalArgumentException("ExternalLibraryId darf nicht null sein");
+        }
     }
 
     public static ExternalLibraryId newId() {

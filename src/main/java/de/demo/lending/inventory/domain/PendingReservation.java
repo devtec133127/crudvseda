@@ -1,12 +1,13 @@
 package de.demo.lending.inventory.domain;
 
-import de.demo.lending.common.domain.AggregateRoot;
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.loan.domain.LoanId;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
+
+import de.demo.lending.common.domain.AggregateRoot;
+import de.demo.lending.common.valueobjects.Isbn;
+import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.loan.domain.LoanId;
 
 public class PendingReservation extends AggregateRoot {
     private final Isbn isbn;

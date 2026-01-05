@@ -1,62 +1,150 @@
-Beispiel Anfrage (createLoan):
+# Decentral Library System
 
-curl -X POST http://localhost:8081/loans -H "Content-Type: application/json" -d '{"id": "
-fd2fab66-8a6a-11f0-829e-005056bb85fb", "bookId": "5a47647d-4a22-4967-9d1d-9c9d6e7b66c4"}'
+> Demo-Projekt zur Demonstration von Domain-Driven Design (DDD) und Event-Driven Architecture (EDA) am Beispiel eines
+> dezentralen Bibliothekssystems.
 
-curl -X POST http://localhost:8083/lending/loans/request -H "Content-Type: application/json" -d '{"bookTitle": "
-Testbuch", "userId": "123e4567-e89b-12d3-a456-426614174000"}'
+## 🎯 Über das Projekt
 
-########## INDEMPOTENZ ###############
+Dieses System demonstriert die praktische Anwendung von:
 
-- INSERT INTO processed_events(event_id) VALUES(:eventId)
-  ON CONFLICT DO NOTHING; (der ON Teil ist äußerst wichtig in verteilten Systemenh)
-- regelmäßiger Clean-Up Job verhindert unendliches Wachstum
-- Archivierung für Audits in Betracht ziehen anstatt löschen
-- Spring Boot Scheduled Job - Kubernetes Cron Job
-- Indexe setzen, insbesondere für clean up job
-- prüfen und setzen in einer Transaktion
-- Metriken & Alerts hilfreich (duplicate_detected, duplicate_processed), um falsch konfigurierte Producer zu finden (
-  praktisches Beispiel damals WBCI 20000 Anfragen
+- **Domain-Driven Design** mit expliziten Bounded Contexts
+- **Event-Driven Architecture** mit Choreography-Pattern
+- **Hexagonal Architecture** (Ports & Adapters)
 
-########## OUTBOX ##############
+Das System simuliert ein Fernleih-Netzwerk zwischen verschiedenen Bibliotheken.
 
-- Variante 1: App schreibt Outbox Row - Poller Job liest unversendete Zeilen und publiziert
-    - Pro: einfach, keine zusätzlichen Komponenten
-    - Contra: Poll latency, eigene Robustheit / Skalierung nötig
-    - Use Case: geeignet für kleinere bis mittlere Systeme
-- Variante 2: Debezium liest DB-WAL, transformiert Outbox-Rows zu Kafka Events - Log Tailing / CDC (Debezium + Kafka
-  Connect + Outbox Event Router)
-    - Pro: sehr robust, skaliert gut, keine Poller-Boilerplate, gute exactly-once/ordering Optionen bei Kafka
-    - Contra: Infrastukturaufwand
-    - Use Case: geeignet für größere Setups mit Kafka / viele Services
-- Variante 3: verwende eine Library, die Outbox + Poller kapselt (Spring Outbox, gruelbox/transaction-outbox)
-    - Pro: weniger Boilerplate, Spring-native Integrationen
-    - Contra: Abhängigkeit von Library-Design, manchmal weniger flexibel
-    - Use Case: geeignet für kleinere bis mittlere Systeme
+## 📦 Bounded Contexts
 
-- Transaction Boundaries sind heilig - schreibe Outbox Row innerhalb der gleichen DB-Transaktion, die den Domain-State
-  ändert
-- At-least-once delivery designen - Outbox garantiert meist at-least-once. Daher muss Consumer indempotent sein
-- Poller sollte in Batches (100 - 1000) lesen, damit sinkt der Durchsatz-Overhead und die Broker Effizienz steigt
-- Exponential Backoff + DLQ - bei Broker Fehlern retryen, andernfals row markieren und DLQ verschieben
-- Payload Schema versionieren
-- Monitoring & Metrics - Metriken für outbox_rows_pending, publish_errors, publish_latency, Alert on growing backlog
-- Clean-Up - alte erfolgreich veröffentlichte Zeilen regelmäßig archivieren oder löschen
-- Test - simuliere crash zwischen DB commit und publish
+Das System ist in vier fachliche Kontexte unterteilt:
 
-# Polling-Concurrency (Praktische Patterns)
+- **Loan Context**: Verwaltung von Buchausleihen
+- **Inventory Context**: Verwaltung des Buchbestands
+- **Procurement Context**: Externe Buchbeschaffung
+- **Payment Context**: Abwicklung von Gebühren
 
-- **SELECT ... FOR UPDATE SKIP LOCKED (Postgres) — erlaubt mehrere Poller gleichzeitig ohne Kollision.** -> keine
-  Deadlocks, keine doppelten Events, bessere Parallelität.
-- (Wenn DB kein SKIP LOCKED unterstützt, nutze single leader CronJob (Kubernetes CronJob) oder leader election.)
+## 🎬 Implementierter Use Case
 
-# Fehlerfälle & Recovery
+**UC1: Buch ausleihen (lokal vorhanden)**
 
-- Partial failure: DB committed, publish failed → retry or mark failed → alert.
-- Publisher crash after publish but before marking SENT: Consumer must tolerate duplicates (idempotency). Consider
-  writing a result back to DB after successful publish to avoid long windows.
-- Debezium caveat: Debezium reads the commit log; ensure outbox rows are visible in WAL and configured transformations (
-  Outbox Event Router) applied correctly.
+1. User fordert ein Buch an
+2. Inventory prüft Verfügbarkeit und reserviert ein Exemplar
+3. Loan wird aktiviert
+4. User kann das Buch abholen
 
-############## READ Model ################
-curl -X GET "http://localhost:8080/de4e8262-9796-4f95-b27f-684014fe0c4a" -H "Accept: application/json"
+_(Use Case 2: Externe Beschaffung ist in Vorbereitung)_
+
+## 🛠️ Tech Stack
+
+- Java 21
+- Spring Boot
+- Apache Kafka (Event Streaming)
+- PostgreSQL
+- Maven
+
+## 🚀 Quick Start
+
+```bash
+# Prerequisites
+- Java 17+
+- Maven 3.8+
+- Docker & Docker Compose
+
+# 1. Repository klonen
+git clone https://github.com/dein-username/decentral-library-system.git
+cd decentral-library-system
+
+# 2. Infrastruktur starten (Kafka + PostgreSQL)
+docker-compose up -d
+
+# 3. Projekt bauen
+mvn clean install
+
+# 4. Anwendung starten
+mvn spring-boot:run
+
+# 5. Health Check
+curl http://localhost:8080/actuator/health
+
+# 6. UI is reachable under 
+http://localhost:8080/demo/demo.html
+```
+
+## 📡 API Beispiele
+
+### Loan anfordern (Endpoint 1)
+
+```bash
+curl -X POST http://localhost:8083/loans \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "fd2fab66-8a6a-11f0-829e-005056bb85fb",
+    "bookId": "5a47647d-4a22-4967-9d1d-9c9d6e7b66c4"
+  }'
+```
+
+### Loan anfordern (Endpoint 2)
+
+```bash
+curl -X POST http://localhost:8083/lending/loans/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "bookTitle": "Testbuch",
+    "userId": "123e4567-e89b-12d3-a456-426614174000"
+  }'
+```
+
+## 🔄 Event Flow
+
+```
+User → LoanRequested → Inventory → CopyReserved → Loan → LoanActivated
+```
+
+_(Detailliertes Sequence-Diagramm folgt)_
+
+## 🏗️ Architektur-Details
+
+### Aggregate Design
+
+Jeder Bounded Context folgt dem DDD-Aggregate-Pattern:
+
+- **Aggregate Roots** schützen Geschäftsregeln
+- **Value Objects** für unveränderliche Konzepte (ISBN, IDs)
+- **Domain Events** für Bounded Context Kommunikation
+
+**Beispiel-Implementierungen:**
+
+- `Loan` Aggregate im Loan Context
+- Alternative Entity-Modellierung im `inventory/domain/alternative` Package (zu Demonstrationszwecken)
+
+### Event-Driven Communication
+
+Bounded Contexts kommunizieren ausschließlich über Domain Events:
+
+- Lose Kopplung zwischen Kontexten
+- Choreography statt Orchestration
+- Event Sourcing-ready Design
+
+## 🤔 Design-Entscheidungen
+
+### Warum InventoryCopy als separates Aggregate?
+
+Die alternative Modellierung (Book-Aggregate mit BookCopy-Entities) wurde zugunsten kleinerer, fokussierter Aggregates
+verworfen:
+
+- ✅ Bessere Skalierbarkeit bei gleichzeitigen Zugriffen
+- ✅ Vermeidung von Optimistic Locking Konflikten
+- ✅ Klare Bounded Context Grenzen
+
+_(Siehe `inventory/domain/alternative` für Vergleichsimplementierung)_
+
+## 📚 Weiterführende Informationen
+
+- [TODO: Event Catalog]
+- [TODO: C4 Diagramme]
+- [TODO: Setup Guide]
+
+---
+
+## Status
+
+🚧 **Work in Progress** - Dieses Projekt dient als Lern- und Demonstrationsprojekt.

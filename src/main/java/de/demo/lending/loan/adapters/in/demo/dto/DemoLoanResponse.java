@@ -1,11 +1,11 @@
 package de.demo.lending.loan.adapters.in.demo.dto;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import de.demo.lending.loan.domain.Loan;
 import lombok.Builder;
 import lombok.Value;
-
-import java.time.LocalDateTime;
 
 /**
  * Response DTO für Demo-UI.
@@ -17,7 +17,7 @@ public class DemoLoanResponse {
 
     String id;
     String status;
-    String bookTitle;
+    String isbn;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     LocalDateTime timestamp;
@@ -33,7 +33,7 @@ public class DemoLoanResponse {
                 .id(loan.getLoanId().value().toString())
                 .status(loan.getStatus().name())
                 .timestamp(LocalDateTime.now())
-                .bookTitle(loan.getIsbn())
+                .isbn(loan.getIsbn().value())
                 .customerId(loan.getUserId().value().toString())
                 .build();
     }

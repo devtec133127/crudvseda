@@ -1,13 +1,13 @@
 package de.demo.lending.inventory.domain.event;
 
-import de.demo.lending.common.domain.events.BaseDomainEvent;
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.domain.Isbn;
-import de.demo.lending.loan.domain.LoanId;
-
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+
+import de.demo.lending.common.domain.events.BaseDomainEvent;
+import de.demo.lending.common.valueobjects.Isbn;
+import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.loan.domain.LoanId;
 
 public class BookNotFoundLocally extends BaseDomainEvent {
     private final Isbn isbn;

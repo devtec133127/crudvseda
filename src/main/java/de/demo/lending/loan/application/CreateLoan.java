@@ -5,6 +5,7 @@ import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
 import java.util.UUID;
 
 import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
+import de.demo.lending.common.valueobjects.Isbn;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.application.command.ReserveBookCommand;
 import de.demo.lending.loan.application.dto.LoanRequestedPayload;
@@ -34,7 +35,7 @@ public class CreateLoan {
     @Transactional
     public Loan handle(ReserveBookCommand reserveBookCommand, String correlationId, String causationId) {
         UUID userIdFromRequest = UUID.fromString(reserveBookCommand.userId());
-        Loan loan = Loan.createNew(UserId.of(userIdFromRequest), reserveBookCommand.isbn(),
+        Loan loan = Loan.request(UserId.of(userIdFromRequest), Isbn.of(reserveBookCommand.isbn()),
                 correlationId, causationId);
         repo.save(loan);
 

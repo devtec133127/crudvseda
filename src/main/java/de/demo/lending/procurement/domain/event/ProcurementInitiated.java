@@ -1,14 +1,14 @@
 package de.demo.lending.procurement.domain.event;
 
-import de.demo.lending.common.domain.events.BaseDomainEvent;
-import de.demo.lending.common.valueobjects.BookId;
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.domain.Isbn;
-import de.demo.lending.loan.domain.LoanId;
-import de.demo.lending.procurement.domain.ProcurementOrderId;
-
 import java.time.Instant;
 import java.util.UUID;
+
+import de.demo.lending.common.domain.events.BaseDomainEvent;
+import de.demo.lending.common.valueobjects.BookId;
+import de.demo.lending.common.valueobjects.Isbn;
+import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.procurement.domain.ProcurementOrderId;
 
 public class ProcurementInitiated extends BaseDomainEvent {
 
