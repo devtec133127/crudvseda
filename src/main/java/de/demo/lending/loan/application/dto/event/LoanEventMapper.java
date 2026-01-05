@@ -1,6 +1,6 @@
 package de.demo.lending.loan.application.dto.event;
 
-import de.demo.lending.loan.application.dto.LoanRequestedPayload;
+import de.demo.lending.common.events.integration.LoanRequestedPayload;
 import de.demo.lending.loan.domain.event.LoanRequested;
 
 public final class LoanEventMapper {

@@ -4,11 +4,11 @@ import static de.demo.lending.common.events.Topics.LOAN_REQUESTED_V1;
 
 import java.util.UUID;
 
-import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
+import de.demo.lending.common.application.ports.out.EventPublisher;
+import de.demo.lending.common.events.integration.LoanRequestedPayload;
 import de.demo.lending.common.valueobjects.Isbn;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.application.command.ReserveBookCommand;
-import de.demo.lending.loan.application.dto.LoanRequestedPayload;
 import de.demo.lending.loan.application.dto.event.LoanEventMapper;
 import de.demo.lending.loan.domain.Loan;
 import de.demo.lending.loan.domain.event.LoanRequested;

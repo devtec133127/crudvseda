@@ -1,31 +1,28 @@
 package de.demo.lending.loan.adapters.in.messaging;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
+import de.demo.lending.common.events.integration.BookReservedPayload;
 import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.common.valueobjects.LoanId;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.application.dto.BookReservedPayload;
-import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
-import de.demo.lending.loan.domain.LoanId;
-import de.demo.lending.loan.domain.port.in.ActivateLoanUseCase;
+import de.demo.lending.loan.application.ports.in.ActivateLoanUseCase;
 import jakarta.transaction.Transactional;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
 @Component
 public class LoanActivationHandler {
 
     private final ObjectMapper om = new ObjectMapper();
-    private final DemoEventSSEPublisher uiPublisher;
     private final ActivateLoanUseCase activateLoanUseCase;
 
-    public LoanActivationHandler(DemoEventSSEPublisher uiPublisher, ActivateLoanUseCase activateLoanUseCase) {
-        this.uiPublisher = uiPublisher;
+    public LoanActivationHandler(ActivateLoanUseCase activateLoanUseCase) {
         this.activateLoanUseCase = activateLoanUseCase;
     }
 

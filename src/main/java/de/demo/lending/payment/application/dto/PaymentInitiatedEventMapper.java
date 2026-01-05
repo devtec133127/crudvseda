@@ -2,7 +2,7 @@ package de.demo.lending.payment.application.dto;
 
 import java.util.UUID;
 
-import de.demo.lending.inventory.domain.event.BookReserved;
+import de.demo.lending.common.events.BookReserved;
 import de.demo.lending.payment.domain.event.PaymentInitiated;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

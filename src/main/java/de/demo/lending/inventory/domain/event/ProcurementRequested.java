@@ -2,7 +2,7 @@ package de.demo.lending.inventory.domain.event;
 
 import de.demo.lending.common.domain.events.BaseDomainEvent;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.common.valueobjects.LoanId;
 
 import java.time.Instant;
 import java.util.Objects;

@@ -1,13 +1,13 @@
 package de.demo.lending.inventory.adapters.out.persistence;
 
-import de.demo.lending.common.valueobjects.CopyId;
-import de.demo.lending.inventory.domain.Reservation;
-import de.demo.lending.inventory.domain.port.out.ReservationRepository;
-import org.springframework.stereotype.Component;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
+
+import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.inventory.application.ports.out.ReservationRepository;
+import de.demo.lending.inventory.domain.Reservation;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ReservationRepositoryAdapter implements ReservationRepository {

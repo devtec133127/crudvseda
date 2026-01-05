@@ -1,5 +1,8 @@
 package de.demo.lending.loan.adapters.in.demo;
 
+import java.util.UUID;
+
+import de.demo.lending.common.application.ports.out.DemoEventStore;
 import de.demo.lending.loan.adapters.in.demo.dto.DemoLoanResponse;
 import de.demo.lending.loan.adapters.in.rest.dto.ReserveBookRequest;
 import de.demo.lending.loan.application.CreateLoan;
@@ -7,10 +10,13 @@ import de.demo.lending.loan.application.command.ReserveBookCommand;
 import de.demo.lending.loan.domain.Loan;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.util.UUID;
 
 /**
  * Demo-Controller für die Präsentations-UI.

@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.Isbn;
-import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.common.valueobjects.LoanId;
 import de.demo.lending.procurement.domain.ExternalLibraryId;
 import de.demo.lending.procurement.domain.ProcurementOrder;
 import de.demo.lending.procurement.domain.ProcurementOrderId;

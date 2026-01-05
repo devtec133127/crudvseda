@@ -1,7 +1,7 @@
 package de.demo.lending.common.domain.events;
 
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.common.valueobjects.LoanId;
 import lombok.Getter;
 
 import java.time.Instant;

@@ -1,8 +1,8 @@
 package de.demo.lending.procurement.adapters.out.persistence;
 
-import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.common.valueobjects.LoanId;
+import de.demo.lending.procurement.application.ports.out.ProcurementOrderRepository;
 import de.demo.lending.procurement.domain.ProcurementOrder;
-import de.demo.lending.procurement.domain.port.out.ProcurementOrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

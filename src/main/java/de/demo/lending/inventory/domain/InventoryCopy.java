@@ -4,13 +4,13 @@ import java.time.Instant;
 import java.util.UUID;
 
 import de.demo.lending.common.domain.AggregateRoot;
+import de.demo.lending.common.events.BookReserved;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.Isbn;
+import de.demo.lending.common.valueobjects.LoanId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.inventory.domain.event.BookRegistered;
-import de.demo.lending.inventory.domain.event.BookReserved;
-import de.demo.lending.loan.domain.LoanId;
 
 public class InventoryCopy extends AggregateRoot {
     public enum InventoryState {IN_TRANSIENT, NOT_LOCALLY_AVAILABLE, REGISTERED, AVAILABLE, RESERVED, LOANED}

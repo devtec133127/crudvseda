@@ -1,7 +1,7 @@
 package de.demo.lending.procurement.application.dto.event;
 
+import de.demo.lending.common.events.integration.BookReceivedPayload;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.procurement.application.dto.BookReceivedPayload;
 import de.demo.lending.procurement.domain.event.BookReceived;
 import org.springframework.stereotype.Component;
 

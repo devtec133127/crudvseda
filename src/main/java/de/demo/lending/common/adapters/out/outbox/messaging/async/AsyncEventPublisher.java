@@ -1,9 +1,9 @@
 package de.demo.lending.common.adapters.out.outbox.messaging.async;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
 import de.demo.lending.common.adapters.out.outbox.messaging.OutboxMarker;
 import de.demo.lending.common.application.dto.DtoPayload;
+import de.demo.lending.common.application.ports.out.EventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;

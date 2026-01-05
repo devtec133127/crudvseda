@@ -9,10 +9,10 @@ import java.util.UUID;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.Isbn;
+import de.demo.lending.common.valueobjects.LoanId;
+import de.demo.lending.inventory.application.ports.out.InventoryRepository;
 import de.demo.lending.inventory.domain.InventoryCopy;
 import de.demo.lending.inventory.domain.ReservationId;
-import de.demo.lending.inventory.domain.port.out.InventoryRepository;
-import de.demo.lending.loan.domain.LoanId;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

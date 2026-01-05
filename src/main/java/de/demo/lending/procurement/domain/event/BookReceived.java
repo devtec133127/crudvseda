@@ -7,7 +7,7 @@ import de.demo.lending.common.domain.events.BaseDomainEvent;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.Isbn;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.common.valueobjects.LoanId;
 import de.demo.lending.procurement.domain.ProcurementOrderId;
 
 public class BookReceived extends BaseDomainEvent {

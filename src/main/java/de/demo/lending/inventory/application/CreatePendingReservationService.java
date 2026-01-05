@@ -1,12 +1,12 @@
 package de.demo.lending.inventory.application;
 
 import de.demo.lending.common.valueobjects.Isbn;
+import de.demo.lending.common.valueobjects.LoanId;
 import de.demo.lending.common.valueobjects.UserId;
+import de.demo.lending.inventory.application.ports.in.CreatePendingReservationUseCase;
+import de.demo.lending.inventory.application.ports.out.PendingReservationRepository;
 import de.demo.lending.inventory.domain.PendingReservation;
 import de.demo.lending.inventory.domain.PendingReservationId;
-import de.demo.lending.inventory.domain.port.in.CreatePendingReservationUseCase;
-import de.demo.lending.inventory.domain.port.out.PendingReservationRepository;
-import de.demo.lending.loan.domain.LoanId;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

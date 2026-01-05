@@ -1,19 +1,19 @@
 package de.demo.lending.payment.adapter.in.messaging;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.demo.lending.common.adapters.out.persistence.ProcessedEventUtil;
 import de.demo.lending.common.events.Topics;
+import de.demo.lending.common.events.integration.LoanActivatedPayload;
+import de.demo.lending.common.valueobjects.LoanId;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.loan.application.dto.LoanActivatedPayload;
-import de.demo.lending.loan.domain.LoanId;
-import de.demo.lending.payment.domain.port.in.InitiateChargeUseCase;
+import de.demo.lending.payment.application.port.in.InitiateChargeUseCase;
 import jakarta.transaction.Transactional;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 @Component
 public class InitiateChargeHandler {

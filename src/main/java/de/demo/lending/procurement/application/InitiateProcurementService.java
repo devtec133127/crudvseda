@@ -3,21 +3,21 @@ package de.demo.lending.procurement.application;
 import static de.demo.lending.common.events.Topics.BOOK_ORDERED_EXTERNALLY_V1;
 import static de.demo.lending.common.events.Topics.PROCUREMENT_INITIATED_V1;
 
-import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
+import de.demo.lending.common.application.ports.out.DemoEventSSEPublisher;
+import de.demo.lending.common.application.ports.out.EventPublisher;
 import de.demo.lending.common.valueobjects.BookId;
 import de.demo.lending.common.valueobjects.Isbn;
-import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
-import de.demo.lending.procurement.adapters.out.external.OpenLibraryClientAdapter;
 import de.demo.lending.procurement.application.dto.BookOrderedExternallyPayload;
 import de.demo.lending.procurement.application.dto.ProcurementInitiatedPayload;
 import de.demo.lending.procurement.application.dto.event.BookOrderedExternallyMapper;
 import de.demo.lending.procurement.application.dto.event.ProcurementInitiatedMapper;
+import de.demo.lending.procurement.application.ports.in.InitiateProcurementUseCase;
+import de.demo.lending.procurement.application.ports.out.ProcurementClient;
+import de.demo.lending.procurement.application.ports.out.ProcurementOrderRepository;
 import de.demo.lending.procurement.domain.ProcurementOrder;
+import de.demo.lending.procurement.domain.SupplierInfo;
 import de.demo.lending.procurement.domain.event.BookOrderedExternally;
 import de.demo.lending.procurement.domain.event.ProcurementInitiated;
-import de.demo.lending.procurement.domain.port.in.InitiateProcurementUseCase;
-import de.demo.lending.procurement.domain.port.out.ProcurementClient;
-import de.demo.lending.procurement.domain.port.out.ProcurementOrderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -41,19 +41,19 @@ public class InitiateProcurementService implements InitiateProcurementUseCase {
     @Override
     public ProcurementResult execute(InitiateProcurementCommand command) {
 
-        OpenLibraryClientAdapter.ExternalBookInfo externalBookInfo = externalClient.searchBook(command.getIsbn().value());
+        SupplierInfo externalBookInfo = externalClient.searchBook(command.getIsbn().value());
         if (externalBookInfo == null) {
             log.warn("Book not available in external libraries: {}", command.getIsbn());
             return ProcurementResult.notAvailable();
         }
 
-        BookId bookId = BookId.of(externalBookInfo.getExternalBookId());
+        BookId bookId = BookId.of(externalBookInfo.externalBookId());
 
         ProcurementOrder order = ProcurementOrder.initiate(command.getLoanId(),
                 bookId, command.getUserId(), command.getIsbn());
 
         long estimatedArrival = 0L;
-        Isbn isbn = Isbn.of(externalBookInfo.getIsbn());
+        Isbn isbn = Isbn.of(externalBookInfo.isbn());
         // Update Aggregat mit externer Order-ID
         order.confirmExternalOrder(bookId, isbn, estimatedArrival);
         // Aggregat hat book.ordered_externally.v1 registriert

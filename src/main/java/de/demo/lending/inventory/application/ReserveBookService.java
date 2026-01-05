@@ -5,25 +5,23 @@ import static de.demo.lending.common.events.Topics.INVENTORY_RESERVED_V1;
 import java.time.Duration;
 import java.util.Optional;
 
-import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
+import de.demo.lending.common.application.ports.out.EventPublisher;
+import de.demo.lending.common.events.BookReserved;
+import de.demo.lending.common.events.integration.BookReservedPayload;
 import de.demo.lending.common.valueobjects.Isbn;
+import de.demo.lending.common.valueobjects.LoanId;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.inventory.application.dto.BookReservedPayload;
 import de.demo.lending.inventory.application.dto.event.BookReservedEventMapper;
+import de.demo.lending.inventory.application.ports.in.InventoryResult;
+import de.demo.lending.inventory.application.ports.in.reserve.ReserveBookCommand;
+import de.demo.lending.inventory.application.ports.in.reserve.ReserveBookUseCase;
+import de.demo.lending.inventory.application.ports.in.reserve.ReserveLocalBookCommand;
+import de.demo.lending.inventory.application.ports.out.InventoryRepository;
+import de.demo.lending.inventory.application.ports.out.PendingReservationRepository;
+import de.demo.lending.inventory.application.ports.out.ReservationRepository;
 import de.demo.lending.inventory.domain.InventoryCopy;
 import de.demo.lending.inventory.domain.PendingReservation;
 import de.demo.lending.inventory.domain.Reservation;
-import de.demo.lending.inventory.domain.event.BookReserved;
-import de.demo.lending.inventory.domain.port.in.InventoryResult;
-import de.demo.lending.inventory.domain.port.in.reserve_book.ReserveBookCommand;
-import de.demo.lending.inventory.domain.port.in.reserve_book.ReserveBookUseCase;
-import de.demo.lending.inventory.domain.port.in.reserve_book.ReserveLocalBookCommand;
-import de.demo.lending.inventory.domain.port.out.InventoryRepository;
-import de.demo.lending.inventory.domain.port.out.PendingReservationRepository;
-import de.demo.lending.inventory.domain.port.out.ReservationRepository;
-import de.demo.lending.loan.domain.LoanId;
-import de.demo.lending.procurement.adapters.out.external.OpenLibraryClientAdapter;
-import de.demo.lending.read.application.port.LoanStatusReadPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,20 +29,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 public class ReserveBookService implements ReserveBookUseCase {
-    private final OpenLibraryClientAdapter externalClient;
     private final ReservationRepository reservationRepository;
     private final InventoryRepository repo;
     private final EventPublisher publisher; // eigenes Port-Interface, s.u.
-    private final LoanStatusReadPort loanStatusReadPort;
     private final PendingReservationRepository pendingReservationRepository;
 
-    public ReserveBookService(OpenLibraryClientAdapter externalClient, ReservationRepository reservationRepository,
-                              InventoryRepository repo, EventPublisher publisher, LoanStatusReadPort loanStatusReadPort, PendingReservationRepository pendingReservationRepository) {
-        this.externalClient = externalClient;
+    public ReserveBookService(ReservationRepository reservationRepository,
+                              InventoryRepository repo, EventPublisher publisher, PendingReservationRepository pendingReservationRepository) {
         this.repo = repo;
         this.reservationRepository = reservationRepository;
         this.publisher = publisher;
-        this.loanStatusReadPort = loanStatusReadPort;
         this.pendingReservationRepository = pendingReservationRepository;
     }
 

@@ -1,7 +1,7 @@
 package de.demo.lending.payment.adapter.out.persistence;
 
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.common.valueobjects.LoanId;
 import de.demo.lending.payment.application.PaymentRepository;
 import de.demo.lending.payment.domain.Money;
 import de.demo.lending.payment.domain.Payment;

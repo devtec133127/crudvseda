@@ -6,7 +6,7 @@ import de.demo.lending.common.valueobjects.Isbn;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.application.LoanRepository;
 import de.demo.lending.loan.domain.Loan;
-import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.common.valueobjects.LoanId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

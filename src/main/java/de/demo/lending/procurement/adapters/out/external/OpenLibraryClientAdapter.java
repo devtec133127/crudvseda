@@ -1,12 +1,5 @@
 package de.demo.lending.procurement.adapters.out.external;
 
-import de.demo.lending.procurement.domain.port.out.ProcurementClient;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
-
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -14,6 +7,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import de.demo.lending.procurement.application.ports.out.ProcurementClient;
+import de.demo.lending.procurement.domain.SupplierInfo;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Service
@@ -26,7 +27,7 @@ public class OpenLibraryClientAdapter implements ProcurementClient {
         this.restTemplate = restTemplate;
     }
 
-    public ExternalBookInfo searchBook(String query) {
+    public SupplierInfo searchBook(String query) {
         String url = apiBaseUrl + "/search.json?isbn=" +
                 URLEncoder.encode(query, StandardCharsets.UTF_8) +
                 "&limit=1&fields=title,isbn,key";
@@ -40,7 +41,7 @@ public class OpenLibraryClientAdapter implements ProcurementClient {
                 Object docsObj = response.getBody().get("docs");
                 if (!(docsObj instanceof List)) {
                     log.warn("Keine Dokumente gefunden");
-                    return new ExternalBookInfo("N/A", "N/A", "N/A");
+                    return new SupplierInfo("N/A", "N/A", "N/A");
                 }
 
                 List<?> docs = (List<?>) docsObj;
@@ -48,7 +49,7 @@ public class OpenLibraryClientAdapter implements ProcurementClient {
                 docs.stream().limit(5).forEach(d -> log.debug("Doc: {}", d));
                 if (docs.isEmpty()) {
                     log.warn("Keine Bücher gefunden");
-                    return new ExternalBookInfo("", "", "");
+                    return new SupplierInfo("", "", "");
                 }
 
                 // 3. Jedes Element sicher casten und mappen
@@ -67,10 +68,10 @@ public class OpenLibraryClientAdapter implements ProcurementClient {
                 log.debug("Error: {}", response.getBody().toString());
             }
             log.debug("Search returned {} documents", response.getBody().size());
-            return new ExternalBookInfo("", "", "");
+            return new SupplierInfo("", "", "");
         } catch (HttpServerErrorException e) {
             log.error("OpenLibrary API Fehler: {}", e.getStatusCode(), e);
-            return new ExternalBookInfo("", "", "");
+            return new SupplierInfo("", "", "");
         }
     }
 
@@ -83,7 +84,7 @@ public class OpenLibraryClientAdapter implements ProcurementClient {
         return UUID.randomUUID().toString();
     }
 
-    private ExternalBookInfo determineBook(List<ExternalBookInfo> bookInfos, String searchBootTitle) {
+    private SupplierInfo determineBook(List<ExternalBookInfo> bookInfos, String searchBootTitle) {
         if (bookInfos.isEmpty()) {
             log.warn("Book title {} not found", searchBootTitle);
             return null;
@@ -105,7 +106,8 @@ public class OpenLibraryClientAdapter implements ProcurementClient {
         }
         log.info("Buch {} vorhanden", searchBootTitle);
 
-        return firstValidBook.get();
+        ExternalBookInfo info = firstValidBook.get();
+        return new SupplierInfo(info.getTitle(), info.getIsbn(), info.getExternalBookId());
     }
 
     private ExternalBookInfo mapToBook(Map doc) {

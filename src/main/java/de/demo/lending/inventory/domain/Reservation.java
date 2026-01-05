@@ -7,7 +7,7 @@ import java.util.UUID;
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.common.valueobjects.LoanId;
 
 public class Reservation extends AggregateRoot {
     public enum ReservationStatus {PENDING, CONFIRMED, CANCELLED, FAILED, EXPIRED}
@@ -25,7 +25,7 @@ public class Reservation extends AggregateRoot {
         this.copyId = copyId;
         this.userId = userId;
     }
-    
+
     public static Reservation create(LoanId loanId, CopyId copyId, UserId userId, Duration ttl) {
         Reservation reservation = new Reservation(ReservationId.newId().value(), loanId, userId, copyId);
         reservation.status = ReservationStatus.PENDING;

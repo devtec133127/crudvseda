@@ -8,6 +8,7 @@ import java.util.UUID;
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.CopyId;
 import de.demo.lending.common.valueobjects.Isbn;
+import de.demo.lending.common.valueobjects.LoanId;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.domain.event.LoanActivated;
 import de.demo.lending.loan.domain.event.LoanRequested;

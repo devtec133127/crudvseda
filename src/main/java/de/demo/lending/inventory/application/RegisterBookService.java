@@ -1,19 +1,19 @@
 package de.demo.lending.inventory.application;
 
-import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
+import static de.demo.lending.common.events.Topics.INVENTORY_BOOK_REGISTERED_V1;
+
+import de.demo.lending.common.application.ports.out.DemoEventSSEPublisher;
+import de.demo.lending.common.application.ports.out.EventPublisher;
 import de.demo.lending.inventory.application.dto.BookRegisteredPayload;
 import de.demo.lending.inventory.application.dto.event.BookRegisteredEventMapper;
+import de.demo.lending.inventory.application.ports.in.InventoryResult;
+import de.demo.lending.inventory.application.ports.in.register.RegisterBookCommand;
+import de.demo.lending.inventory.application.ports.in.register.RegisterBookUseCase;
+import de.demo.lending.inventory.application.ports.out.InventoryRepository;
 import de.demo.lending.inventory.domain.InventoryCopy;
 import de.demo.lending.inventory.domain.event.BookRegistered;
-import de.demo.lending.inventory.domain.port.in.InventoryResult;
-import de.demo.lending.inventory.domain.port.in.register_book.RegisterBookCommand;
-import de.demo.lending.inventory.domain.port.in.register_book.RegisterBookUseCase;
-import de.demo.lending.inventory.domain.port.out.InventoryRepository;
-import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import static de.demo.lending.common.events.Topics.INVENTORY_BOOK_REGISTERED_V1;
 
 @Slf4j
 @Service

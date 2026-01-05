@@ -1,16 +1,20 @@
 package de.demo.lending.procurement.adapters.in.messaging;
 
+import static de.demo.lending.common.events.Topics.PROCUREMENT_RECEIVED_V1;
+
+import java.util.UUID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
+import de.demo.lending.common.application.ports.out.EventPublisher;
 import de.demo.lending.common.events.Topics;
+import de.demo.lending.common.events.integration.BookReceivedPayload;
+import de.demo.lending.common.valueobjects.LoanId;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.loan.domain.LoanId;
 import de.demo.lending.procurement.application.dto.BookOrderedExternallyPayload;
-import de.demo.lending.procurement.application.dto.BookReceivedPayload;
 import de.demo.lending.procurement.application.dto.event.BookReceivedMapper;
+import de.demo.lending.procurement.application.ports.out.ProcurementOrderRepository;
 import de.demo.lending.procurement.domain.ProcurementOrder;
 import de.demo.lending.procurement.domain.event.BookReceived;
-import de.demo.lending.procurement.domain.port.out.ProcurementOrderRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +22,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
-
-import static de.demo.lending.common.events.Topics.PROCUREMENT_RECEIVED_V1;
 
 /**
  * Kafka-basierter Event Listener für Inventory.

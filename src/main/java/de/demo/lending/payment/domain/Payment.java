@@ -2,7 +2,7 @@ package de.demo.lending.payment.domain;
 
 import de.demo.lending.common.domain.AggregateRoot;
 import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.loan.domain.LoanId;
+import de.demo.lending.common.valueobjects.LoanId;
 import de.demo.lending.payment.domain.event.PaymentInitiated;
 
 import java.time.Instant;

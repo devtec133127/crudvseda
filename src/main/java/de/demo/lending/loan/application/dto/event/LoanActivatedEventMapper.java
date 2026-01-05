@@ -2,8 +2,8 @@ package de.demo.lending.loan.application.dto.event;
 
 import java.util.UUID;
 
-import de.demo.lending.inventory.domain.event.BookReserved;
-import de.demo.lending.loan.application.dto.LoanActivatedPayload;
+import de.demo.lending.common.events.BookReserved;
+import de.demo.lending.common.events.integration.LoanActivatedPayload;
 import de.demo.lending.loan.domain.event.LoanActivated;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

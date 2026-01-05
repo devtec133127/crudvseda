@@ -1,16 +1,16 @@
 package de.demo.lending.loan.application;
 
-import de.demo.lending.common.adapters.out.outbox.messaging.EventPublisher;
-import de.demo.lending.loan.adapters.in.demo.DemoEventSSEPublisher;
-import de.demo.lending.loan.application.dto.LoanActivatedPayload;
+import static de.demo.lending.common.events.Topics.LOAN_ACTIVATED_V1;
+
+import de.demo.lending.common.application.ports.out.DemoEventSSEPublisher;
+import de.demo.lending.common.application.ports.out.EventPublisher;
+import de.demo.lending.common.events.integration.LoanActivatedPayload;
 import de.demo.lending.loan.application.dto.event.LoanActivatedEventMapper;
+import de.demo.lending.loan.application.ports.in.ActivateLoanUseCase;
 import de.demo.lending.loan.domain.Loan;
 import de.demo.lending.loan.domain.event.LoanActivated;
-import de.demo.lending.loan.domain.port.in.ActivateLoanUseCase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import static de.demo.lending.common.events.Topics.LOAN_ACTIVATED_V1;
 
 @Slf4j
 @Service
