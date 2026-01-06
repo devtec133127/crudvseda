@@ -102,6 +102,7 @@
             <scope>compile</scope>
         </dependency>
 
+<<<<<<< Updated upstream
         <!-- library für das idempotenz pattern -->
         <dependency>
             <groupId>com.transferwise.idempotence4j</groupId>
@@ -120,6 +121,8 @@
         </dependency>
 
 
+=======
+>>>>>>> Stashed changes
         <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
