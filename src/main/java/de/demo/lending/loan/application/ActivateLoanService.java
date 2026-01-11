@@ -7,6 +7,7 @@ import de.demo.lending.common.application.ports.out.EventPublisher;
 import de.demo.lending.common.events.integration.LoanActivatedPayload;
 import de.demo.lending.loan.application.dto.event.LoanActivatedEventMapper;
 import de.demo.lending.loan.application.ports.in.ActivateLoanUseCase;
+import de.demo.lending.loan.application.ports.out.LoanRepository;
 import de.demo.lending.loan.domain.Loan;
 import de.demo.lending.loan.domain.event.LoanActivated;
 import lombok.extern.slf4j.Slf4j;

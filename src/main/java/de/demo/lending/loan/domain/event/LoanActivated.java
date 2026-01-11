@@ -1,15 +1,15 @@
 package de.demo.lending.loan.domain.event;
 
-import de.demo.lending.common.domain.events.BaseDomainEvent;
-import de.demo.lending.common.valueobjects.CopyId;
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.common.valueobjects.LoanId;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public class LoanActivated extends BaseDomainEvent {
+import de.demo.lending.common.domain.events.BaseDomainEvent;
+import de.demo.lending.common.valueobjects.CopyId;
+import de.demo.lending.common.valueobjects.LoanId;
+import de.demo.lending.common.valueobjects.UserId;
+
+public final class LoanActivated extends BaseDomainEvent {
     private final CopyId copyId;
     private final LocalDate dueDate;
 

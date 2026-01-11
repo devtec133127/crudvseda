@@ -1,14 +1,12 @@
 package de.demo.lending.common.domain.events;
 
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.common.valueobjects.LoanId;
-import lombok.Getter;
-
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-@Getter
+import de.demo.lending.common.valueobjects.LoanId;
+import de.demo.lending.common.valueobjects.UserId;
+
 public abstract class BaseDomainEvent {
     private final UUID eventId;
     private final String correlationId; // meist requestId
@@ -29,5 +27,44 @@ public abstract class BaseDomainEvent {
 
     protected BaseDomainEvent(UUID eventId, LoanId loanId, String correlationId, String causationId, Instant occurredAt) {
         this(eventId, loanId, correlationId, causationId, occurredAt, null);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof BaseDomainEvent that)) return false;
+        return Objects.equals(eventId, that.eventId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(eventId);
+    }
+
+    @Override
+    public String toString() {
+        return "BaseDomainEvent{" +
+                "eventId=" + eventId +
+                ", correlationId='" + correlationId + '\'' +
+                ", causationId='" + causationId + '\'' +
+                ", occurredAt=" + occurredAt +
+                ", loanId=" + loanId +
+                ", userId=" + userId +
+                '}';
+    }
+
+    public UUID getEventId() {
+        return eventId;
+    }
+
+    public Instant getOccurredAt() {
+        return occurredAt;
+    }
+
+    public LoanId getLoanId() {
+        return loanId;
+    }
+
+    public UserId getUserId() {
+        return userId;
     }
 }

@@ -1,12 +1,12 @@
 package de.demo.lending.loan.domain.event;
 
-import de.demo.lending.common.domain.events.BaseDomainEvent;
-import de.demo.lending.common.valueobjects.UserId;
-import de.demo.lending.common.valueobjects.LoanId;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
+
+import de.demo.lending.common.domain.events.BaseDomainEvent;
+import de.demo.lending.common.valueobjects.LoanId;
+import de.demo.lending.common.valueobjects.UserId;
 
 public final class LoanRequested extends BaseDomainEvent {
     private final String isbn;
@@ -25,5 +25,13 @@ public final class LoanRequested extends BaseDomainEvent {
 
     public Duration getDuration() {
         return duration;
+    }
+
+    @Override
+    public String toString() {
+        return "LoanRequested{" +
+                "isbn='" + isbn + '\'' +
+                ", duration=" + duration +
+                '}';
     }
 }

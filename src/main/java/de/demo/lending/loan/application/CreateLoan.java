@@ -10,6 +10,7 @@ import de.demo.lending.common.valueobjects.Isbn;
 import de.demo.lending.common.valueobjects.UserId;
 import de.demo.lending.loan.application.command.ReserveBookCommand;
 import de.demo.lending.loan.application.dto.event.LoanEventMapper;
+import de.demo.lending.loan.application.ports.out.LoanRepository;
 import de.demo.lending.loan.domain.Loan;
 import de.demo.lending.loan.domain.event.LoanRequested;
 import lombok.extern.slf4j.Slf4j;
