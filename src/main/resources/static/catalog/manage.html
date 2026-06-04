@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mein Katalog – Library Catalog</title>
+    <link rel="stylesheet" href="catalog.css">
+</head>
+<body>
+<div class="container">
+
+    <h1>Library System Catalog</h1>
+
+    <nav class="nav-bar">
+        <a href="index.html" class="nav-link">Startseite</a>
+        <a href="search.html" class="nav-link">Buchsuche</a>
+        <a href="manage.html" class="nav-link active">Mein Katalog</a>
+    </nav>
+
+    <div id="statusMsg" class="status-message hidden"></div>
+
+    <div id="tableContainer" class="table-wrapper hidden">
+        <p class="section-header">Bücher im Katalog</p>
+        <table class="catalog-table">
+            <thead>
+                <tr>
+                    <th>Cover</th>
+                    <th>Titel</th>
+                    <th>Autor</th>
+                    <th>ISBN</th>
+                    <th>Aufgenommen</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="catalogTableBody"></tbody>
+        </table>
+    </div>
+
+</div>
+<script src="manage.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buchsuche – Library Catalog</title>
+    <link rel="stylesheet" href="catalog.css">
+</head>
+<body>
+<div class="container">
+
+    <h1>Library System Catalog</h1>
+
+    <nav class="nav-bar">
+        <a href="index.html" class="nav-link">Startseite</a>
+        <a href="search.html" class="nav-link active">Buchsuche</a>
+        <a href="manage.html" class="nav-link">Mein Katalog</a>
+    </nav>
+
+    <form class="search-form" id="searchForm">
+        <input type="text" id="searchInput" class="search-input"
+               placeholder="Titel, Autor oder ISBN …" autocomplete="off">
+        <button type="submit" id="searchBtn" class="search-button">Suchen</button>
+    </form>
+
+    <div id="statusMsg" class="status-message hidden"></div>
+
+    <div id="resultsGrid" class="results-grid hidden"></div>
+
+    <div id="detailPanel" class="detail-panel hidden">
+        <div class="detail-cover">
+            <img id="detailCover" src="" alt="Cover">
+        </div>
+        <div class="detail-info">
+            <h2 id="detailTitle"></h2>
+            <p class="detail-meta" id="detailAuthor"></p>
+            <p class="detail-meta" id="detailIsbn"></p>
+            <button id="addBtn" class="add-button">In Katalog übernehmen</button>
+            <div id="feedbackMsg" class="feedback-msg hidden"></div>
+        </div>
+    </div>
+
+</div>
+<script src="search.js"></script>
+</body>
+</html>
