@@ -1,0 +1,242 @@
+Implementiere nun T6: Navigation und Landing Page
+
+ ---
+
+ ## Kontext
+
+ Nach T4 und T5 sind `search.html` und `manage.html` vollständig implementiert und funktionsfähig. Es gibt jedoch keinen definierten Einstiegspunkt: Wer `http://localhost:8080/catalog/` aufruft, bekommt einen 404. Wer auf einer der Seiten ist, kann nicht auf die Startseite zurücknavigieren – die Nav-Bar enthält nur Links zwischen den beiden Unterseiten, keinen Link zurück zu einem gemeinsamen Startpunkt.
+
+ T6 schließt das Inkrement v1 ab:
+
+ 1. Eine **Landing Page** (`index.html`) dient als sinnvoller Einstieg in den Library System Catalog.
+ 2. Die **Nav-Bar in `search.html` und `manage.html`** wird um einen "Startseite"-Link erweitert, damit Nutzer jederzeit zurücknavigieren können.
+ 3. `catalog.css` erhält zwei neue, kompakte CSS-Klassen für das Kachel-Layout der Landing Page.
+
+ Kein JavaScript. Keine neuen Endpunkte. Keine strukturellen Änderungen an den bestehenden Seiten.
+
+ ### Aktueller Navigationszustand
+
+ ```
+ index.html         → existiert nicht (→ 404)
+
+ search.html Nav:   [Buchsuche ●] [Mein Katalog]
+ manage.html Nav:   [Buchsuche] [Mein Katalog ●]
+ ```
+
+ Kein Link zurück zu einem gemeinsamen Startpunkt. Kein Einstieg über die Root-URL.
+
+ ### Zielzustand nach T6
+
+ ```
+ /catalog/index.html  → Landing Page mit zwei Kacheln
+
+ search.html Nav:   [Startseite] [Buchsuche ●] [Mein Katalog]
+ manage.html Nav:   [Startseite] [Buchsuche] [Mein Katalog ●]
+ index.html:        kein Nav-Bar (ist selbst der Startpunkt)
+ ```
+
+ ### Dateistruktur nach diesem Ticket
+
+ ```
+ static/catalog/
+ ├── catalog.css     ← GEÄNDERT (2 neue CSS-Klassen)
+ ├── index.html      ← NEU
+ ├── search.html     ← GEÄNDERT (Nav-Bar)
+ ├── search.js       ← unverändert
+ ├── manage.html     ← GEÄNDERT (Nav-Bar)
+ └── manage.js       ← unverändert
+ ```
+
+ ---
+
+ ## Aufgabe
+
+ ### 1. CSS-Erweiterung in `catalog.css`
+
+ Zwei neue Klassen am Ende der Datei, nach dem bestehenden Inhalt – kein bestehender CSS-Block wird verändert.
+
+ **`.feature-grid`** – Zwei-Spalten-Layout für die Kacheln:
+ ```css
+ .feature-grid {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 24px;
+     padding: 32px;
+ }
+
+ @media (max-width: 600px) {
+     .feature-grid {
+         grid-template-columns: 1fr;
+     }
+ }
+ ```
+
+ **`.feature-card`** – Einzelne Kachel:
+ ```css
+ .feature-card {
+     background: var(--bg-secondary);
+     border: 1px solid var(--border-color);
+     border-radius: var(--border-radius);
+     padding: 28px 24px;
+     text-decoration: none;
+     color: inherit;
+     display: block;
+     box-shadow: var(--shadow-sm);
+     transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+ }
+
+ .feature-card:hover {
+     transform: translateY(-3px);
+     box-shadow: var(--shadow-md);
+     border-color: var(--primary);
+ }
+
+ .feature-card h2 {
+     font-size: 1.1rem;
+     font-weight: 600;
+     color: var(--text-primary);
+     margin-bottom: 8px;
+ }
+
+ .feature-card p {
+     font-size: 0.9rem;
+     color: var(--text-secondary);
+     line-height: 1.5;
+     margin-bottom: 16px;
+ }
+
+ .feature-card .card-link {
+     font-size: 0.85rem;
+     font-weight: 600;
+     color: var(--primary);
+ }
+ ```
+
+ Kein weiteres CSS erforderlich – alle anderen Klassen (`body`, `.container`, `h1`, `.nav-link` etc.) sind bereits vorhanden.
+
+ ### 2. `index.html` – Landing Page
+
+ Neue Datei in `static/catalog/`. Rein statisches HTML, kein JavaScript. Bindet `catalog.css` ein.
+
+ Seitenstruktur:
+ - Gleicher Container und `<h1>` wie `search.html` und `manage.html`
+ - **Kein Nav-Bar** – die Landing Page ist selbst der Einstiegspunkt
+ - Zwei `.feature-card`-Elemente im `.feature-grid`: die gesamte Kachel ist ein `<a>`-Element
+ - Optionale Fußzeile mit Link zur EDA-Demo
+
+ ```html
+ <!DOCTYPE html>
+ <html lang="de">
+ <head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Library System Catalog</title>
+   <link rel="stylesheet" href="catalog.css">
+ </head>
+ <body>
+ <div class="container">
+
+   <h1>Library System Catalog</h1>
+
+   <div class="feature-grid">
+
+     <a href="search.html" class="feature-card">
+       <h2>Bücher suchen</h2>
+       <p>Durchsuche den OpenLibrary-Katalog nach Titel, Autor oder ISBN
+          und übernimm Bücher in deinen eigenen Katalog.</p>
+       <span class="card-link">Zur Buchsuche →</span>
+     </a>
+
+     <a href="manage.html" class="feature-card">
+       <h2>Mein Katalog</h2>
+       <p>Zeige alle gespeicherten Bücher an und entferne Einträge,
+          die du nicht mehr benötigst.</p>
+       <span class="card-link">Zum Katalog →</span>
+     </a>
+
+   </div>
+
+   <!-- Optional: Link zur EDA-Demo -->
+   <p style="text-align:center; padding: 0 32px 24px; font-size:0.85rem; color: var(--text-muted);">
+     <a href="/demo/demo.html" style="color: var(--text-muted);">EDA-Demo (Loan System) →</a>
+   </p>
+
+ </div>
+ </body>
+ </html>
+ ```
+
+ **Hinweise:**
+ - Der Demo-Link verwendet Inline-Style, damit kein neuer CSS-Block für einen Einzelfall gebraucht wird.
+ - Kein JavaScript, kein dynamischer Inhalt.
+
+ ### 3. Nav-Bar in `search.html` anpassen
+
+ Bestehenden `<nav>`-Block in `search.html` um einen ersten Link ergänzen:
+
+ ```html
+ <!-- vorher -->
+ <nav class="nav-bar">
+     <a href="search.html" class="nav-link active">Buchsuche</a>
+     <a href="manage.html" class="nav-link">Mein Katalog</a>
+ </nav>
+
+ <!-- nachher -->
+ <nav class="nav-bar">
+     <a href="index.html" class="nav-link">Startseite</a>
+     <a href="search.html" class="nav-link active">Buchsuche</a>
+     <a href="manage.html" class="nav-link">Mein Katalog</a>
+ </nav>
+ ```
+
+ ### 4. Nav-Bar in `manage.html` anpassen
+
+ Gleiche Änderung in `manage.html`:
+
+ ```html
+ <!-- vorher -->
+ <nav class="nav-bar">
+     <a href="search.html" class="nav-link">Buchsuche</a>
+     <a href="manage.html" class="nav-link active">Mein Katalog</a>
+ </nav>
+
+ <!-- nachher -->
+ <nav class="nav-bar">
+     <a href="index.html" class="nav-link">Startseite</a>
+     <a href="search.html" class="nav-link">Buchsuche</a>
+     <a href="manage.html" class="nav-link active">Mein Katalog</a>
+ </nav>
+ ```
+
+ ---
+
+ ## Akzeptanzkriterien
+
+ - [ ] `index.html` liegt unter `src/main/resources/static/catalog/` und ist unter `http://localhost:8080/catalog/index.html` erreichbar (HTTP 200).
+ - [ ] Die Landing Page zeigt zwei Kacheln: „Bücher suchen" und „Mein Katalog". Jede Kachel ist vollständig klickbar und führt zur richtigen Unterseite.
+ - [ ] Hover über eine Kachel zeigt einen sichtbaren visuellen Effekt (Heben, blauer Rahmen).
+ - [ ] Auf Mobilgeräten (Viewport < 600px) werden die Kacheln untereinander statt nebeneinander dargestellt.
+ - [ ] `search.html` und `manage.html` haben jeweils einen dritten Nav-Link „Startseite", der zu `index.html` führt.
+ - [ ] „Startseite" ist in beiden Seiten nicht als aktiv markiert (kein `.active`).
+ - [ ] Der optionale Demo-Link auf `index.html` führt zu `/demo/demo.html`.
+ - [ ] `catalog.css` enthält `.feature-grid` und `.feature-card` als neue Klassen; alle vorhandenen Klassen und Styles sind unverändert.
+ - [ ] `search.js` und `manage.js` wurden nicht verändert.
+ - [ ] `http://localhost:8080/demo/demo.html` lädt weiterhin ohne Fehler.
+ - [ ] Kein JavaScript in `index.html`.
+
+ ---
+
+ ## Nicht im Scope dieses Tickets
+
+ - Automatische Weiterleitung von `/catalog/` auf `index.html` (erfordert Server-Konfiguration)
+ - Aktive Markierung von „Startseite" in `index.html` selbst (kein Nav-Bar vorhanden)
+ - Breadcrumb-Navigation
+ - Favicon oder App-Icon
+ - `<meta description>` für SEO
+
+Wichtig: Ändere nur Dateien, die für dieses Ticket nötig sind. Erstelle am Ende eine kurze Zusammenfassung:
+- geänderte/neue Dateien,
+- getroffene Annahmen,
+- wie ich es testen kann.
+
+Lege die Zusammenfassung unter docs/inc/v1/tickets ab.

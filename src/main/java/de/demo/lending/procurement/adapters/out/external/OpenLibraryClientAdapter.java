@@ -32,9 +32,9 @@ public class OpenLibraryClientAdapter implements ProcurementClient {
                 URLEncoder.encode(query, StandardCharsets.UTF_8) +
                 "&limit=1&fields=title,isbn,key";
         try {
-            log.info("Synchroner REST-Call zu Payment-Service | Endpoint: {}", url);
+            log.info("OpenLibrary-Suche | Endpoint: {}", url);
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
-            log.info("Inventory-Service antwortete: Status {}", response.getStatusCode());
+            log.info("OpenLibrary antwortete: Status {}", response.getStatusCode());
 
             log.debug("Body of Response: {}", response.getBody().toString());
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -76,11 +76,6 @@ public class OpenLibraryClientAdapter implements ProcurementClient {
     }
 
     public String orderBook(String externalBookId) {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            // logging
-        }
         return UUID.randomUUID().toString();
     }
 
@@ -96,8 +91,8 @@ public class OpenLibraryClientAdapter implements ProcurementClient {
                 .filter(p -> !"N/A".equals(p.getIsbn()))
                 .findFirst();
         firstValidBook.ifPresentOrElse(
-                b -> System.out.println("Gefundenes Buch: " + b.getTitle() + " / ISBN: " + b.getIsbn()),
-                () -> System.out.println("Kein Buch mit gültiger ISBN gefunden")
+                b -> log.info("Gefundenes Buch: {} / ISBN: {}", b.getTitle(), b.getIsbn()),
+                () -> log.warn("Kein Buch mit gültiger ISBN gefunden")
         );
 
         if (firstValidBook.isEmpty()) {

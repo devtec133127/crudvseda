@@ -1,0 +1,7 @@
+Erstelle nun für T6 · "Navigation und Landing Page" eine detaillierte Ticketbeschreibung nach folgendem Format:
+T6 <Titel>,
+Kontext <detaillierte Kontextbeschreibung mit Ziel>,
+Aufgabe <Aufgabenauflistung>,
+Akzeptanzkriterien <Auflistung der Akzeptanzkriterien>.
+
+Die Beschreibung soll unter docs/ink/v1/tickets/t6 als md datei abgelegt werden.
