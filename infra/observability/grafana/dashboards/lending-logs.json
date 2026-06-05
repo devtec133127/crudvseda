@@ -1,0 +1,75 @@
+{
+  "id": null,
+  "uid": "lending-logs",
+  "title": "Lending System – Logs",
+  "tags": ["lending", "logs", "loki"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "logs",
+      "title": "Application Logs",
+      "gridPos": { "h": 20, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "${datasource}" },
+          "expr": "{compose_project=\"lending-system\"}",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": { "type": "loki", "uid": "${datasource}" }
+    },
+    {
+      "id": 2,
+      "type": "logs",
+      "title": "Fehler & Warnungen",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 20 },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showTime": true,
+        "showLabels": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "${datasource}" },
+          "expr": "{compose_project=\"lending-system\"} |= \"ERROR\" or {compose_project=\"lending-system\"} |= \"WARN\"",
+          "refId": "A"
+        }
+      ],
+      "datasource": { "type": "loki", "uid": "${datasource}" }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "name": "datasource",
+        "options": [],
+        "query": "loki",
+        "refresh": 1,
+        "type": "datasource",
+        "label": "Datenquelle"
+      }
+    ]
+  }
+}

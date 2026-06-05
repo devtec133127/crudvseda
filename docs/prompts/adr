@@ -1,0 +1,108 @@
+Du agierst als Senior Solution Architect und iSAQB CPSA-A zertifizierter Architekt.
+
+Analysiere das bestehende Projekt und erstelle professionelle Architecture Decision Records (ADRs) nach dem Template von Michael Nygard.
+
+Wichtige Vorgaben:
+
+- ADRs sollen reale Architekturentscheidungen dokumentieren.
+- Fokus auf Architektur, Integrationsmuster, Betriebsmodell und Erweiterbarkeit.
+- Keine Implementierungsdetails oder Framework-Diskussionen.
+- Jede ADR soll in einer separaten Markdown-Datei erstellt werden.
+- Umfang pro ADR: ca. 1–2 Seiten.
+- Status zunächst "Accepted".
+- Verwende folgende Struktur:
+
+# ADR-XXX: Titel
+
+## Status
+
+## Kontext
+
+## Entscheidung
+
+## Konsequenzen
+
+### Vorteile
+
+### Nachteile
+
+## Betrachtete Alternativen
+
+## Referenzen
+
+-------------------------------------------------------
+Projektkontext
+-------------------------------------------------------
+
+Das Projekt ist ein Referenzprojekt zur Demonstration von DDD & EDA basierend auf der hexagonalen Architektur.
+
+Ziele:
+
+- Domain Driven Design (DDD)
+- Event Driven Architecture (EDA)
+- Integrationsarchitektur (Open Library API)
+- Observability (Loki/Fluent-Bit/Grafana)
+- Cloud- und Kubernetes-Readiness
+- AI Integration
+
+Aktuelle fachliche Domänen:
+
+1. Catalog Service
+   - Verwaltung von Büchern
+   - Zentrale Fachlogik
+
+2. External Library Integration
+   - Integration externer Bibliotheksdaten
+   - Open Library API als Datenquelle
+
+Geplante Erweiterungen:
+
+3. AI Enrichment Service
+   - Konsumiert Events
+   - Erzeugt Metadatenvorschläge
+   - Später mögliche Nutzung von LLMs
+
+Technische Zielarchitektur:
+
+- Frontend
+- Catalog Service
+- External Library Integration Service
+- Message Broker
+- PostgreSQL
+- Loki/Grafana Monitoring
+- Kubernetes Deployment
+- AI Enrichment Service
+
+-------------------------------------------------------
+Zu erstellende ADRs
+-------------------------------------------------------
+
+ADR-001:
+Warum Domain Driven Design mit getrennten Bounded Contexts verwendet wird.
+
+ADR-002:
+Warum eine Event Driven Architecture mit Message Broker verwendet wird.
+
+ADR-003:
+Warum die Open Library Integration über einen separaten Integration Service / Anti-Corruption Layer erfolgt.
+
+ADR-004:
+Warum der AI Enrichment Service als eigenständiger Service und nicht innerhalb des Catalog Service umgesetzt wird.
+
+ADR-005:
+Warum eine zentrale Observability-Lösung mit Loki und Grafana eingeführt wird.
+
+ADR-006:
+Warum die Zielplattform Kubernetes statt eines reinen Docker-Compose-Betriebsmodells ist.
+
+-------------------------------------------------------
+Zusätzliche Anforderungen
+-------------------------------------------------------
+
+- Begründe die Entscheidungen aus Sicht eines Enterprise-Architekten.
+- Diskutiere Alternativen sachlich.
+- Beschreibe technische und organisatorische Konsequenzen.
+- Stelle die Entscheidungen so dar, dass sie für ein Architekturportfolio, Bewerbungen als Solution Architect oder Lead Cloud Engineer sowie für eine CPSA-A-orientierte Dokumentation geeignet sind.
+- Nutze professionelles Deutsch.
+- Erzeuge die ADRs direkt als Markdown-Dateien.
+- die ADRS sollen in das Projektverzeichnis unter /docs/architecture/adr/ abgelegt werden.

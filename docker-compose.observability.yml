@@ -1,0 +1,134 @@
+services:
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Infrastruktur (identisch mit docker-compose.yml)
+  # ════════════════════════════════════════════════════════════════════════════
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: lending-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: lending
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    labels:
+      com.docker.compose.project: "lending-system"
+      com.docker.compose.service: "postgres"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lending-network
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: lending-kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_PROCESS_ROLES: "broker, controller"
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@localhost:9093"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+    labels:
+      com.docker.compose.project: "lending-system"
+      com.docker.compose.service: "kafka"
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - lending-network
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # Observability Stack
+  # ════════════════════════════════════════════════════════════════════════════
+
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: lending-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/loki-config.yml
+    volumes:
+      - ./infra/observability/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki-data:/loki
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3100/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - lending-network
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: lending-promtail
+    command: -config.file=/etc/promtail/promtail-config.yml
+    volumes:
+      - ./infra/observability/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      # Docker-Socket für Container-Log-Discovery
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Lokale App-Logs (Spring Boot via mvn spring-boot:run)
+      - ./logs:/app-logs:ro
+    depends_on:
+      loki:
+        condition: service_healthy
+    networks:
+      - lending-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: lending-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_LOG_LEVEL: warn
+    volumes:
+      - ./infra/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/observability/grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      loki:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - lending-network
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  loki-data:
+  grafana-data:
+
+networks:
+  lending-network:
+    driver: bridge

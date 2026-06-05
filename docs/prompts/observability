@@ -1,0 +1,76 @@
+Du bist Senior Software Architect und DevOps Engineer.
+
+Analysiere mein bestehendes Projekt und integriere eine lokale Observability-Umgebung direkt über Docker Compose.
+
+Ziel:
+Das Projekt soll beim lokalen Start automatisch mit Monitoring und Logging hochfahren, ohne Cloud-Abhängigkeiten und ohne kostenpflichtige Dienste.
+
+Bitte setze folgende Anforderungen um:
+
+1. Analyse des bestehenden Projekts
+- Erkenne die vorhandenen Services, Container, Ports und Docker-/Docker-Compose-Struktur.
+- Prüfe, wie die Anwendung aktuell gestartet wird.
+- Verändere bestehende Services nur minimal und nachvollziehbar.
+
+2. Observability Stack
+Integriere einen lokalen Observability Stack mit:
+- Grafana für Dashboards
+- Loki für zentrales Log-Management
+- Promtail oder Fluent Bit zum Einsammeln der Container-Logs
+- optional Prometheus, falls Metriken bereits sinnvoll verfügbar sind oder einfach ergänzt werden können
+
+3. Docker Compose Integration
+- Erweitere oder erstelle eine docker-compose.yml so, dass die Observability-Komponenten gemeinsam mit der Anwendung gestartet werden.
+- Alle Komponenten sollen über `docker compose up` lokal lauffähig sein.
+- Verwende sinnvolle Container-Namen, Netzwerke und Volumes.
+- Stelle sicher, dass Logs der Anwendung in Loki sichtbar werden.
+- Grafana soll automatisch mit Loki als Data Source vorkonfiguriert werden.
+
+4. Konfiguration
+Erstelle alle notwendigen Konfigurationsdateien, z. B.:
+- loki-config.yml
+- promtail-config.yml oder fluent-bit.conf
+- grafana datasource provisioning
+- optional dashboard provisioning
+
+5. Dokumentation
+Erstelle oder erweitere eine README-Datei mit:
+- Startbefehl
+- Zugriff auf Grafana
+- Standard-Zugangsdaten
+- Erklärung der beteiligten Komponenten
+- Beispiel-LogQL-Abfragen
+- Hinweise zur lokalen Nutzung und Abgrenzung zu produktivem Monitoring
+
+6. Architekturbezug
+Erstelle zusätzlich eine kurze Architekturdokumentation unter `/docs/observability.md` mit:
+- Ziel der Observability-Erweiterung
+- Welche Qualitätsmerkmale unterstützt werden: Betreibbarkeit, Analysierbarkeit, Wartbarkeit
+- Welche Architekturentscheidung getroffen wurde
+- Warum lokale Docker-basierte Observability für dieses Referenzprojekt ausreichend ist
+- Welche Grenzen diese Lösung hat
+- Wie eine spätere Cloud-/Kubernetes-Variante aussehen könnte
+
+7. Qualitätsanforderungen
+- Die Lösung soll lokal einfach startbar sein.
+- Keine externen kostenpflichtigen Services.
+- Keine unnötige Komplexität.
+- Keine Kubernetes-Umsetzung in diesem Schritt.
+- Keine vollständige Enterprise-Monitoring-Plattform bauen.
+- Fokus liegt auf einem professionellen, nachvollziehbaren Referenzprojekt für Softwarearchitektur.
+
+8. Ergebnis
+Bitte liefere:
+- Die geänderten und neu erstellten Dateien
+- Eine kurze Zusammenfassung der Änderungen
+- Eine Anleitung, wie ich die Integration testen kann
+- Beispiel: Wie ich in Grafana die Logs meines Anwendungcontainers finde
+
+Arbeite iterativ:
+1. Analysiere zuerst das Projekt.
+2. Schlage die konkrete Zielstruktur vor.
+3. Setze die Änderungen um.
+4. Dokumentiere die Lösung.
+5. Prüfe, ob `docker compose up` plausibel funktionieren kann.
+
+Wichtig: Bitte keine produktionsreife Kubernetes- oder Cloud-Monitoring-Lösung bauen. Ziel ist eine lokale, präsentierbare Observability-Demo für mein Architektur-Referenzprojekt.

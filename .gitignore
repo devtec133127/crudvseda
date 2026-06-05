@@ -43,3 +43,7 @@ target/
 .env
 .env.kafka
 kafka-async-solution.zip
+
+# Observability: lokale App-Logs (von Promtail gelesen, nicht versioniert)
+logs/
+!logs/.gitkeep

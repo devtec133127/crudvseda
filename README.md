@@ -1,150 +1,216 @@
-# Decentral Library System
+# Library Lending System
 
-> Demo-Projekt zur Demonstration von Domain-Driven Design (DDD) und Event-Driven Architecture (EDA) am Beispiel eines
-> dezentralen Bibliothekssystems.
+> Referenzprojekt zur Demonstration von Domain-Driven Design (DDD), Event-Driven Architecture (EDA)
+> und Hexagonaler Architektur am Beispiel eines digitalen Bibliothekssystems.
 
-## 🎯 Über das Projekt
+---
 
-Dieses System demonstriert die praktische Anwendung von:
+## Über das Projekt
 
-- **Domain-Driven Design** mit expliziten Bounded Contexts
-- **Event-Driven Architecture** mit Choreography-Pattern
-- **Hexagonal Architecture** (Ports & Adapters)
+Dieses System zeigt die praktische Anwendung etablierter Architekturmuster in einem fachlich relevanten Kontext. Es dient als Lern- und Demonstrationsprojekt für Software-Architektur, nicht als produktionsreifes System.
 
-Das System simuliert ein Fernleih-Netzwerk zwischen verschiedenen Bibliotheken.
+**Kernprinzipien:**
 
-## 📦 Bounded Contexts
+- **Domain-Driven Design** mit expliziten Bounded Contexts und Ubiquitous Language
+- **Event-Driven Architecture** mit Choreography-Pattern (kein zentraler Orchestrator)
+- **Hexagonale Architektur** (Ports & Adapters) innerhalb jedes Bounded Context
+- **Modulith-Deployment** – ein Artefakt, klare Designgrenzen (siehe ADR-007)
 
-Das System ist in vier fachliche Kontexte unterteilt:
+---
 
-- **Loan Context**: Verwaltung von Buchausleihen
-- **Inventory Context**: Verwaltung des Buchbestands
-- **Procurement Context**: Externe Buchbeschaffung
-- **Payment Context**: Abwicklung von Gebühren
+## Bounded Contexts
 
-## 🎬 Implementierter Use Case
+| Context | Verantwortung | Status |
+|---------|---------------|--------|
+| `catalog` | Buchkatalog: Suche, Aufnahme, Metadaten | Implementiert |
+| `loan` | Ausleihe: Anfrage, Aktivierung, Zustandsmaschine | Implementiert |
+| `inventory` | Buchbestand: Exemplare, Reservierungen | Implementiert |
+| `procurement` | Externe Beschaffung über OpenLibrary API | Teilweise |
+| `payment` | Gebührenabwicklung | Grundgerüst |
 
-**UC1: Buch ausleihen (lokal vorhanden)**
+---
 
-1. User fordert ein Buch an
-2. Inventory prüft Verfügbarkeit und reserviert ein Exemplar
-3. Loan wird aktiviert
-4. User kann das Buch abholen
+## Implementierte Szenarien
 
-_(Use Case 2: Externe Beschaffung ist in Vorbereitung)_
+**Szenario 1 – Buch ausleihen (lokal verfügbar)**
+```
+POST /loans → LoanRequested → BookReserved → LoanActivated
+```
 
-## 🛠️ Tech Stack
+**Szenario 2 – Library Catalog (Inkrement v1)**
+```
+GET  /catalog/search?q={query}   → OpenLibrary-Suche
+POST /catalog/books              → Buch in Katalog übernehmen
+GET  /catalog/books              → Katalog anzeigen
+DEL  /catalog/books/{id}         → Buch entfernen
+```
 
-- Java 21
-- Spring Boot
-- Apache Kafka (Event Streaming)
-- PostgreSQL
-- Maven
+---
 
-## 🚀 Quick Start
+## Tech Stack
+
+| Technologie | Version | Zweck |
+|-------------|---------|-------|
+| Java | 17 | Laufzeitumgebung |
+| Spring Boot | 3.3.4 | Anwendungsrahmen |
+| Apache Kafka | KRaft | Event Streaming (Profil `kafka`) |
+| PostgreSQL | 15 | Persistenz |
+| Loki + Grafana | 3.0 / 11.0 | Lokales Log-Monitoring |
+| Maven | 3.8+ | Build |
+| Docker Compose | – | Lokale Infrastruktur |
+
+---
+
+## Quick Start
+
+### Voraussetzungen
+
+- Java 17+, Maven 3.8+, Docker & Docker Compose
+
+### Option A – Nur Infrastruktur (Standard-Entwicklung)
 
 ```bash
-# Prerequisites
-- Java 17+
-- Maven 3.8+
-- Docker & Docker Compose
+# 1. Infrastruktur starten (PostgreSQL + Kafka)
+docker compose up -d
 
-# 1. Repository klonen
-git clone https://github.com/dein-username/decentral-library-system.git
-cd decentral-library-system
-
-# 2. Infrastruktur starten (Kafka + PostgreSQL)
-docker-compose up -d
-
-# 3. Projekt bauen
-mvn clean install
-
-# 4. Anwendung starten
+# 2. Anwendung starten
 mvn spring-boot:run
 
-# 5. Health Check
+# 3. Health Check
 curl http://localhost:8080/actuator/health
 
-# 6. UI is reachable under 
-http://localhost:8080/demo/demo.html
+# 4. Catalog UI
+open http://localhost:8080/catalog/index.html
+
+# 5. EDA Demo UI
+open http://localhost:8080/demo/demo.html
 ```
 
-## 📡 API Beispiele
-
-### Loan anfordern (Endpoint 1)
+### Option B – Mit Observability Stack (Loki + Grafana)
 
 ```bash
-curl -X POST http://localhost:8083/loans \
-  -H "Content-Type: application/json" \
-  -d '{
-    "id": "fd2fab66-8a6a-11f0-829e-005056bb85fb",
-    "bookId": "5a47647d-4a22-4967-9d1d-9c9d6e7b66c4"
-  }'
+# Infrastruktur + Monitoring gemeinsam starten
+docker compose -f docker-compose.observability.yml up -d
+
+# Anwendung starten (Logs werden automatisch nach Grafana weitergeleitet)
+mvn spring-boot:run
+
+# Grafana öffnen: http://localhost:3000  (admin / admin)
 ```
 
-### Loan anfordern (Endpoint 2)
+Vollständige Anleitung: [OBSERVABILITY.md](./OBSERVABILITY.md)
+
+---
+
+## API-Endpunkte
+
+### Catalog API
 
 ```bash
-curl -X POST http://localhost:8083/lending/loans/request \
+# Bücher über OpenLibrary suchen
+curl "http://localhost:8080/catalog/search?q=Clean+Code"
+
+# Buch in eigenen Katalog übernehmen
+curl -X POST http://localhost:8080/catalog/books \
   -H "Content-Type: application/json" \
-  -d '{
-    "bookTitle": "Testbuch",
-    "userId": "123e4567-e89b-12d3-a456-426614174000"
-  }'
+  -d '{"isbn":"9780132350884","title":"Clean Code","author":"Robert C. Martin"}'
+
+# Katalog anzeigen
+curl http://localhost:8080/catalog/books
+
+# Buch entfernen
+curl -X DELETE http://localhost:8080/catalog/books/{id}
 ```
 
-## 🔄 Event Flow
+### Loan API
+
+```bash
+# Ausleihe anfordern
+curl -X POST http://localhost:8080/loans \
+  -H "Content-Type: application/json" \
+  -d '{"userId":"518aeace-387a-4a16-a0b8-b6d6fa9e8bc3","isbn":"9789353162344"}'
+
+# Ausleihstatus abfragen
+curl http://localhost:8080/{loanId}
+```
+
+---
+
+## Event-Flow (Szenario 1)
 
 ```
-User → LoanRequested → Inventory → CopyReserved → Loan → LoanActivated
+POST /loans
+    ↓
+LoanRequested (Domain Event)
+    ↓
+ReserveBookHandler → BookReserved
+    ↓
+LoanActivationHandler → LoanActivated
 ```
 
-_(Detailliertes Sequence-Diagramm folgt)_
+Echtzeit-Visualisierung: http://localhost:8080/demo/demo.html
 
-## 🏗️ Architektur-Details
+---
 
-### Aggregate Design
+## Projektstruktur
 
-Jeder Bounded Context folgt dem DDD-Aggregate-Pattern:
+```
+src/main/java/de/demo/lending/
+├── catalog/          ← Buchkatalog (Inkrement v1)
+├── loan/             ← Ausleihe-Kontext
+├── inventory/        ← Bestandsverwaltung
+├── procurement/      ← Externe Beschaffung
+├── payment/          ← Zahlungsabwicklung
+├── read/             ← CQRS Read Model
+└── common/           ← Shared Kernel (Events, Value Objects, Config)
 
-- **Aggregate Roots** schützen Geschäftsregeln
-- **Value Objects** für unveränderliche Konzepte (ISBN, IDs)
-- **Domain Events** für Bounded Context Kommunikation
+src/main/resources/static/
+├── catalog/          ← Catalog UI (search.html, manage.html, index.html)
+└── demo/             ← EDA Demo UI
 
-**Beispiel-Implementierungen:**
+infra/
+├── observability/    ← Loki, Promtail, Grafana Konfiguration
+└── init-multi-db.sql ← PostgreSQL Initialisierung
 
-- `Loan` Aggregate im Loan Context
-- Alternative Entity-Modellierung im `inventory/domain/alternative` Package (zu Demonstrationszwecken)
+docs/
+├── architecture/
+│   ├── adr/          ← Architecture Decision Records (ADR-001 bis ADR-007)
+│   ├── c4-container.md
+│   └── hexagonal-catalog.md
+├── ink/v1/           ← Produktinkrement v1 Dokumentation
+└── observability.md  ← Observability Architekturdokumentation
+```
 
-### Event-Driven Communication
+---
 
-Bounded Contexts kommunizieren ausschließlich über Domain Events:
+## Architekturentscheidungen (ADRs)
 
-- Lose Kopplung zwischen Kontexten
-- Choreography statt Orchestration
-- Event Sourcing-ready Design
+| ADR | Entscheidung |
+|-----|-------------|
+| [ADR-001](docs/architecture/adr/adr-001-domain-driven-design.md) | Domain-Driven Design mit Bounded Contexts |
+| [ADR-002](docs/architecture/adr/adr-002-event-driven-architecture.md) | Event-Driven Architecture mit Apache Kafka |
+| [ADR-003](docs/architecture/adr/adr-003-open-library-anti-corruption-layer.md) | Anti-Corruption Layer für OpenLibrary |
+| [ADR-004](docs/architecture/adr/adr-004-ai-enrichment-service.md) | AI Enrichment Service als eigenständiger Service |
+| [ADR-005](docs/architecture/adr/adr-005-observability-loki-grafana.md) | Observability mit Loki und Grafana |
+| [ADR-006](docs/architecture/adr/adr-006-kubernetes-deployment.md) | Kubernetes als Zielbetriebsmodell |
+| [ADR-007](docs/architecture/adr/adr-007-deployment-monolith.md) | Modulith-Deployment statt Microservice pro Bounded Context |
 
-## 🤔 Design-Entscheidungen
+---
 
-### Warum InventoryCopy als separates Aggregate?
+## Spring Profile
 
-Die alternative Modellierung (Book-Aggregate mit BookCopy-Entities) wurde zugunsten kleinerer, fokussierter Aggregates
-verworfen:
+| Profil | Beschreibung | Verwendung |
+|--------|-------------|-----------|
+| `async` (Standard) | In-Memory Events via `@Async` | Lokale Entwicklung ohne Kafka |
+| `kafka` | Apache Kafka als Message Broker | Vollständiger EDA-Stack |
 
-- ✅ Bessere Skalierbarkeit bei gleichzeitigen Zugriffen
-- ✅ Vermeidung von Optimistic Locking Konflikten
-- ✅ Klare Bounded Context Grenzen
-
-_(Siehe `inventory/domain/alternative` für Vergleichsimplementierung)_
-
-## 📚 Weiterführende Informationen
-
-- [TODO: Event Catalog]
-- [TODO: C4 Diagramme]
-- [TODO: Setup Guide]
+```bash
+# Mit Kafka-Profil starten
+mvn spring-boot:run -Dspring.profiles.active=kafka
+```
 
 ---
 
 ## Status
 
-🚧 **Work in Progress** - Dieses Projekt dient als Lern- und Demonstrationsprojekt.
+Work in Progress – Referenzprojekt für Softwarearchitektur und Cloud-native Muster.
